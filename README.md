@@ -11,3 +11,11 @@ Card Infinity is a free customizable Discord app where you can set up an online 
 ### Status Reports
 
 Holds the status report for each week.
+
+### Client
+
+Holds the code for client-side and the discordSDK file
+
+### Server
+
+Holds the code for server-side and current has a placeholder file server.js
