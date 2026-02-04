@@ -1,0 +1,24 @@
+Status Report Week 4
+High level goal: Complete a beta-version to be able to launch CardInfinity on discord and play a basic game. 
+
+Original goals for the week: 
+1. Create an overview of our architecture, including the components and how they interact (complete task as a group by the end of the weekend)
+2. Create an overview of our design for each component (complete task as a group by next Tuesday)
+3. Decide on coding guidelines (complete task as a group by next Tuesday)
+4. Update our product description by expanding our risk assessments, team structure, and schedule, and by adding a test plan and documentation plan.
+
+Progress and issues: 
+1,2. Successfully created an architecture and software design overview, including components and interfaces. 
+3. Successfully decided on style guidelines for relevant languages and libraries, namely JavaScript, Java, and SQL integrations. 
+4. Updated product description with new information and integrated feedback from product owner. 
+
+Questions for the product owner:
+
+???
+
+Goals for next week:
+1. Set up necessary tools and infrastructure for app development, should take no longer than one or two days. 
+2. Implement basic card game structure/functionality; this will be the basic framework for actually playing the game. Should be complete by EOD Sunday. 
+3. Implement basic multiplayer connectivity. Ideally finished EOD Tuesday, progress will potentially spill into next week. 
+4. Write basic unit and system tests. Will necessarily need to wait for completion of 2 above, should not take longer than one or two days.
+5. Implement very rough UI for gameplay purposes. Mockup ideally finished EOD Friday, implementation EOD Sunday. 
