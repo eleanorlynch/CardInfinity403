@@ -1,9 +1,8 @@
 import assert from "node:assert";
-import * from server/GameMove.js
 
 // Attempting to see if I can access GameMove
 
-var testMove = new GameMove();
+const GameMove = require('../server/GameMove');
 
 describe("Array", function () {
   describe("#indexOf()", function () {
