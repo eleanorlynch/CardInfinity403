@@ -15,5 +15,8 @@
   "bugs": {
     "url": "https://github.com/eleanorlynch/CardInfinity403/issues"
   },
-  "homepage": "https://github.com/eleanorlynch/CardInfinity403#readme"
+  "homepage": "https://github.com/eleanorlynch/CardInfinity403#readme",
+  "devDependencies": {
+    "mocha": "^11.3.0"
+  }
 }
