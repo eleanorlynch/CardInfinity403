@@ -1,4 +1,5 @@
 import assert from "node:assert";
+import * from server/GameMove.js
 
 // Attempting to see if I can access GameMove
 
