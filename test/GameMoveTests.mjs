@@ -1,3 +1,5 @@
 import assert from "node:assert";
 
-assert.equal(1,1);
+    it("1 should equal 1", {
+      assert.equal(1, 1);
+    });
