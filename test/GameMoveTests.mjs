@@ -3,7 +3,7 @@ import { GameMove } from "../server/GameMove.js";
 import { GameStatus } from "../server/GameStatus.js";
 
 describe("GameMove", function () {
-  describe('#getGameId()", function () {
+  describe("#getGameId()", function () {
     it("should return the correct gameid for a game", function () {
       const players = [1];
       const ruleset = [2];
