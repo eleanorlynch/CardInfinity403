@@ -4,12 +4,12 @@
 name: Node.js CI
 
 on:
- # push:
- #   branches: [ "main", "release/*" ]
- # pull_request:
- #   branches: [ "main" ]
- # schedule:
- # - cron: "0 2 * * *"
+  push:
+    branches: [ "main", "release/*" ]
+  pull_request:
+    branches: [ "main" ]
+  schedule:
+  - cron: "0 2 * * *"
   workflow_dispatch:
 
 jobs:
