@@ -1,4 +1,4 @@
-class GameStatus {
+export class GameStatus {
     constructor(gameId, ruleset, players) {
         this.gameId = gameId;
         this.ruleset = ruleset;
