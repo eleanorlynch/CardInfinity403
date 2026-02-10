@@ -9,6 +9,8 @@ describe("GameMove", function () {
       const ruleset = [2];
       game4 = Move.createGame(123, players, ruleset);
       assert.equal(game4.getGameId(), 123);
+    }
+  }
   describe("#createGame()", function () {
     it("should return the correct game when told to create one based on certain properties", function () {
       const Move = new GameMove();
