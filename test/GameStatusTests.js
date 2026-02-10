@@ -7,7 +7,7 @@ describe("GameStatus", function () {
       const players = [1];
       const ruleset = [2];
       const game = new GameStatus(123, ruleset, players);
-      assert.equal(game.getGameId(), 123);
+      assert.strictEqual(game.getGameId(), 123);
     });
   });
   describe("#getRuleset()", function () {
@@ -15,7 +15,7 @@ describe("GameStatus", function () {
       const players = [1];
       const ruleset = [2];
       const game = new GameStatus(123, ruleset, players);
-      assert.equal(game.getRuleset(), ruleset);
+      assert.strictEqual(game.getRuleset(), ruleset);
     });
   });
   describe("#getPlayers()", function () {
@@ -23,7 +23,7 @@ describe("GameStatus", function () {
       const players = [1];
       const ruleset = [2];
       const game = new GameStatus(123, ruleset, players);
-      assert.equal(game.getPlayers(), players);
+      assert.strictEqual(game.getPlayers(), players);
     });
   });
 });
