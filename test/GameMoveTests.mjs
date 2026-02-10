@@ -20,7 +20,7 @@ describe("GameMove", function () {
       const game = new GameStatus(123, ruleset, players);
       const game2 = Move.createGame(123, ruleset, players);
       assert.equal(game2.getGameId(), game.getGameId());
-      assert.equal(game2.getRuleset(), 3);
+      assert.equal(game2.getRuleset(), game.getRuleset);
       assert.equal(game2.getPlayers(), game.getPlayers());
     });
   });
