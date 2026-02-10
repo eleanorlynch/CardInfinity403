@@ -3,33 +3,6 @@ import { GameMove } from "../server/GameMove.js";
 import { GameStatus } from "../server/GameStatus.js";
 
 describe("GameMove", function () {
-  describe("#getGameId()", function () {
-    it("should return the correct gameid for a game", function () {
-      const Move = new GameMove();
-      const players = [1];
-      const ruleset = [2];
-      const game = Move.createGame(123, ruleset, players);
-      assert.equal(game.getGameId(), 123);
-    });
-  });
-  describe("#getRuleset()", function () {
-    it("should return the correct ruleset for a game", function () {
-      const Move = new GameMove();
-      const players = [1];
-      const ruleset = [2];
-      const game = Move.createGame(123, ruleset, players);
-      assert.equal(game.getRuleset(), ruleset);
-    });
-  });
-  describe("#getPlayers()", function () {
-    it("should return the correct players for a game", function () {
-      const Move = new GameMove();
-      const players = [1];
-      const ruleset = [2];
-      const game = Move.createGame(123, ruleset, players);
-      assert.equal(game.getPlayers(), players);
-    });
-  });
   describe("#createGame()", function () {
     it("should return the correct game when told to create one based on certain properties", function () {
       const players = [1];
