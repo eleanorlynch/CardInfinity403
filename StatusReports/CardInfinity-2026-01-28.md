@@ -1,0 +1,17 @@
+Status Report Week 3
+High level goal: Complete a beta-version to be able to launch CardInfinity on discord and play a basic game. 
+
+Original goals for the week: N/A
+
+Progress and issues: We have finished the project description and general progress plan for our project. Currently, there are no specific issues that have arised.
+
+Questions for the product owner: N/A
+
+Goals for next week: 
+
+1. Create an overview of our architecture, including the components and how they interact (complete task as a group by the end of the weekend)
+2. Create an overview of our design for each component (complete task as a group by next Tuesday)
+3. Decide on coding guidelines (complete task as a group by next Tuesday)
+4. Update our product description by expanding our risk assessments, team structure, and schedule, and by adding a test plan and documentation plan.
+   Each team member will be responsible for completing one of those aspects by next Tuesday, with those responsible for the tasks requiring less work (schedule, 
+   team structure) aiding those completing the tasks requiring more work when finished with them.
