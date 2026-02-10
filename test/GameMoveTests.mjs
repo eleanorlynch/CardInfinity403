@@ -6,8 +6,10 @@ describe("GameMove", function () {
   describe("#createGame()", function () {
     it("should return the correct game when told to create one based on certain properties", function () {
       const Move = new GameMove();
-      const game = new GameStatus(123, [], []);
-      const game2 = Move.createGame(123, [], []);
+      const players = [1];
+      const ruleset = [2];
+      const game = new GameStatus(123, ruleset, players);
+      const game2 = Move.createGame(123, ruleset, players);
       assert.equal(game2.getGameId(), game.getGameId());
       assert.equal(game2.getRuleset(), game.getRuleset());
       assert.equal(game2.getPlayers(), game.getPlayers());
