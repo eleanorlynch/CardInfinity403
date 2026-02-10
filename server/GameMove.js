@@ -1,4 +1,4 @@
-export class GameMove {
+class GameMove {
     constructor() {
         this.activeGames = new Map(); // Stores all ongoing games
     }
