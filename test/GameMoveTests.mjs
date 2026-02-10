@@ -13,7 +13,7 @@ describe("GameMove", function () {
     });
   });
   describe("#getRuleset()", function () {
-    it("should return the correct gameid for a game", function () {
+    it("should return the correct ruleset for a game", function () {
       const Move = new GameMove();
       const players = [1];
       const ruleset = [2];
@@ -22,7 +22,7 @@ describe("GameMove", function () {
     });
   });
   describe("#getPlayers()", function () {
-    it("should return the correct gameid for a game", function () {
+    it("should return the correct players for a game", function () {
       const Move = new GameMove();
       const players = [1];
       const ruleset = [2];
