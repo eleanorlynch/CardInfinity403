@@ -26,7 +26,6 @@ export class GameStatus {
                     code: `${rank.charAt(0)}${suit.charAt(0)}`
         });
     }
-}
     //for joker? 
        //if(this.rulset.jokers && this.ruleset.jokerCount > 0){
    // }
@@ -229,6 +228,7 @@ export class GameStatus {
     getDeckCount() {
         return this.deck.length;
     }
+}
 }
 
     
