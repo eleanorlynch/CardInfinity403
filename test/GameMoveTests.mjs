@@ -8,14 +8,15 @@ describe("GameMove", function () {
       const Move = new GameMove();
       const players = [1];
       const ruleset = [2];
-      const game4 = Move.createGame(123, ruleset, players);
-      assert.equal(game4.getGameId(), 123);
+      const game = Move.createGame(123, ruleset, players);
+      assert.equal(game.getGameId(), 123);
     });
   });
   describe("#createGame()", function () {
     it("should return the correct game when told to create one based on certain properties", function () {
       const players = [1];
       const ruleset = [2];
+      const Move = new GameMove();
       const game = new GameStatus(123, ruleset, players);
       const game2 = Move.createGame(123, ruleset, players);
       assert.equal(game2.getGameId(), game.getGameId());
@@ -27,8 +28,8 @@ describe("GameMove", function () {
     it("should return the correct game when given its gameid", function () {
       //const Status = new GameStatus(123, [], []);
       const Move = new GameMove();
-      const game3 = Move.createGame(123, [], []);
-      assert.strictEqual(Move.getGame(123), game3);
+      const game = Move.createGame(123, [], []);
+      assert.strictEqual(Move.getGame(123), game);
     });
   });
 });
