@@ -5,15 +5,15 @@ import { GameStatus } from "../server/GameStatus.js";
 describe("GameMove", function () {
   describe("#getGameId()", function () {
     it("should return the correct gameid for a game", function () {
+      const Move = new GameMove();
       const players = [1];
       const ruleset = [2];
-      game4 = Move.createGame(123, players, ruleset);
+      game4 = Move.createGame(123, ruleset, players);
       assert.equal(game4.getGameId(), 123);
     });
   });
   describe("#createGame()", function () {
     it("should return the correct game when told to create one based on certain properties", function () {
-      const Move = new GameMove();
       const game = new GameStatus(123, ruleset, players);
       const game2 = Move.createGame(123, ruleset, players);
       assert.equal(game2.getGameId(), game.getGameId());
