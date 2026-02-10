@@ -10,9 +10,9 @@ describe("GameMove", function () {
       const Move = new GameMove();
       const game = new GameStatus(123, ruleset, players);
       const game2 = Move.createGame(123, ruleset, players);
-      assert.equal(game2.getGameId(), game.getGameId());
-      assert.equal(game2.getRuleset(), game.getRuleset());
-      assert.equal(game2.getPlayers(), game.getPlayers());
+      assert.strictEqual(game2.getGameId(), game.getGameId());
+      assert.strictEqual(game2.getRuleset(), game.getRuleset());
+      assert.strictEqual(game2.getPlayers(), game.getPlayers());
     });
   });
   describe("#getGame()", function () {
