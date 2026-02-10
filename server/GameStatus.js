@@ -24,7 +24,8 @@ export class GameStatus {
                     rank:rank,
                     id: `${rank}_${suit}`,
                     code: `${rank.charAt(0)}${suit.charAt(0)}`
-        });
+                });
+        }
     }
     //for joker? 
        //if(this.rulset.jokers && this.ruleset.jokerCount > 0){
