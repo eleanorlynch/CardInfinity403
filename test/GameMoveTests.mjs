@@ -1,6 +1,6 @@
 import assert from "node:assert";
-import * as GameMove from "../server/GameMove.js";
+import { GameMove } from "../server/GameMove.js";
 
-// const Mover = new GameMove();
-GameMove.createGame(123, [], []);
-assert.equals(GameMove.getGame, 123);
+const Mover = new GameMove();
+Mover.createGame(123, [], []);
+assert.equals(Mover.getGame, 123);
