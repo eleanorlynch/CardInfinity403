@@ -82,3 +82,4 @@ export class GameMove {
             message: wasDeleted ? "Game ended" : "Game not found"
         };
     }
+}
