@@ -29,6 +29,7 @@ export class GameStatus {
     //for joker? 
        //if(this.rulset.jokers && this.ruleset.jokerCount > 0){
    // }
+}
 
     //shuffles the deck before game starts
     shuffleDeck() {
@@ -228,7 +229,6 @@ export class GameStatus {
     getDeckCount() {
         return this.deck.length;
     }
-}
 }
 
     
