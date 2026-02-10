@@ -1,4 +1,4 @@
-class GameMove {
+export class GameMove {
     constructor() {
         this.activeGames = new Map(); // Stores all ongoing games
     }
@@ -82,5 +82,3 @@ class GameMove {
             message: wasDeleted ? "Game ended" : "Game not found"
         };
     }
-
-    export { GameMove };
