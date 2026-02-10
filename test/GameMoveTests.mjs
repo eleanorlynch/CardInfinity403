@@ -7,7 +7,7 @@ describe("GameMove", function () {
     it("should return the correct game when told to create one based on certain properties", function () {
       const Move = new GameMove();
       const game = new GameStatus(123, [], []);
-      assert.equals(Move.createGame(123, [], []), game);
+      assert.equal(Move.createGame(123, [], []), game);
     });
   });
   describe("#getGame()", function () {
