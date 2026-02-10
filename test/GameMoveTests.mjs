@@ -8,7 +8,7 @@ describe("GameMove", function () {
       const Move = new GameMove();
       const players = [1];
       const ruleset = [2];
-      game4 = Move.createGame(123, ruleset, players);
+      const game4 = Move.createGame(123, ruleset, players);
       assert.equal(game4.getGameId(), 123);
     });
   });
