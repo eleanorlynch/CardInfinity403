@@ -83,4 +83,4 @@ class GameMove {
         };
     }
 
-    export { createGame };
+    export { GameMove };
