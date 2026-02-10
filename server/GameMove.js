@@ -1,3 +1,5 @@
+import { GameStatus } from "../server/GameStatus.js";
+
 export class GameMove {
     constructor() {
         this.activeGames = new Map(); // Stores all ongoing games
