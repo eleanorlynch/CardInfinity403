@@ -1,3 +1,2 @@
 import assert from "node:assert";
-
-const GameMove = require('../server/GameMove');
+import * as GameMove from './server/GameMove.js';
