@@ -9,7 +9,7 @@ describe("GameMove", function () {
       const game = new GameStatus(gameId, ruleset, players);
       assert.strictEqual(Move.createGame(123, [], []));
     });
-  }
+  });
   describe("#getGame()", function () {
     it("should return the correct game when given its gameid", function () {
       //const Status = new GameStatus(123, [], []);
