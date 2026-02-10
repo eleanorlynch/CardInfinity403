@@ -83,4 +83,4 @@ class GameMove {
         };
     }
 
-    export *;
+    export { createGame };
