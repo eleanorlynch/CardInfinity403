@@ -10,6 +10,18 @@ export class GameStatus {
         this.currentTurn = players[0]?.id || null;
         this.discardPile = [];
 }
+
+    getGameId() {
+        return this.gameId;
+    }
+
+    getRuleset() {
+        return this.ruleset;
+    }
+
+    getPlayers() {
+        return this.players;
+    }
     //creates a 52 card deck 
     createDeck(){
         const suits = ['clubs','spades','hearts','diamonds'];
