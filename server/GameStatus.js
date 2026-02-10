@@ -166,7 +166,7 @@ export class GameStatus {
         };
     }
         
-    Discard a card from hand to discard pile
+   // Discard a card from hand to discard pile
     discardCard(playerId, cardId) {
         // Check if it's player's turn
         if (this.currentTurn !== playerId) {
