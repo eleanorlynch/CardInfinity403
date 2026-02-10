@@ -83,4 +83,3 @@ class GameMove {
         };
     }
     
-module.exports = GameMove;
