@@ -1,4 +1,4 @@
-class GameStatus {
+export class GameStatus {
     constructor(gameId, ruleset, players) {
         this.gameId = gameId;
         this.ruleset = ruleset;
@@ -10,6 +10,18 @@ class GameStatus {
         this.currentTurn = players[0]?.id || null;
         this.discardPile = [];
 }
+
+    getGameId() {
+        return this.gameId;
+    }
+
+    getRuleset() {
+        return this.ruleset;
+    }
+
+    getPlayers() {
+        return this.players;
+    }
     //creates a 52 card deck 
     createDeck(){
         const suits = ['clubs','spades','hearts','diamonds'];
@@ -24,12 +36,13 @@ class GameStatus {
                     rank:rank,
                     id: `${rank}_${suit}`,
                     code: `${rank.charAt(0)}${suit.charAt(0)}`
-        });
+                });
+        }
     }
-}
     //for joker? 
        //if(this.rulset.jokers && this.ruleset.jokerCount > 0){
    // }
+}
 
     //shuffles the deck before game starts
     shuffleDeck() {
@@ -166,7 +179,7 @@ class GameStatus {
         };
     }
         
-    Discard a card from hand to discard pile
+   // Discard a card from hand to discard pile
     discardCard(playerId, cardId) {
         // Check if it's player's turn
         if (this.currentTurn !== playerId) {

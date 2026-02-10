@@ -4,13 +4,14 @@
   "description": "Card Infinity project package",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "mocha"
   },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/eleanorlynch/CardInfinity403.git"
   },
   "author": "eleanorlynch",
+  "type": "module", 
   "license": "ISC",
   "bugs": {
     "url": "https://github.com/eleanorlynch/CardInfinity403/issues"
