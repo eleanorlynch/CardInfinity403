@@ -1,2 +1,2 @@
 import assert from "node:assert";
-import * as GameMove from '../server/GameMove';
+import * as GameMove from '../server/GameMove.js';
