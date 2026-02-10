@@ -4,5 +4,5 @@ import { GameStatus } from "../server/GameStatus.js";
 
 const Status = new GameStatus(123, [], []);
 const Move = new GameMove();
-Move.createGame(123, [], []);
-assert.strictEqual(Move.getGame, 123);
+const game = Move.createGame(123, [], []);
+assert.strictEqual(Move.getGame(123), game);
