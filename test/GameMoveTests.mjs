@@ -6,17 +6,16 @@ describe("GameMove", function () {
   describe("#createGame()", function () {
     it("should return the correct game when told to create one based on certain properties", function () {
       const Move = new GameMove();
-      const game = new GameStatus(gameId, ruleset, players);
-      assert.strictEqual(Move.createGame(123, [], []));
+      const game = new GameStatus(123, [], []);
+      assert.strictEqual(Move.createGame(123, [], []), game);
     });
   });
   describe("#getGame()", function () {
     it("should return the correct game when given its gameid", function () {
       //const Status = new GameStatus(123, [], []);
       const Move = new GameMove();
-      const game = new GameStatus(gameId, ruleset, players);
-      const game = Move.createGame(123, [], []);
-      assert.strictEqual(Move.getGame(123), game);
+      const game2 = Move.createGame(123, [], []);
+      assert.strictEqual(Move.getGame(123), game2);
     });
   });
 });
