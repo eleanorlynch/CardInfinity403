@@ -4,7 +4,7 @@
   "description": "Card Infinity project package",
   "main": "index.js",
   "scripts": {
-    "test": "mocha"
+    "test": "c8 mocha"
   },
   "repository": {
     "type": "git",
