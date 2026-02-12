@@ -20,5 +20,6 @@
   "homepage": "https://github.com/eleanorlynch/CardInfinity403#readme",
   "devDependencies": {
     "mocha": "^11.3.0"
+    "c8": "^10.1.3"
   }
 }
