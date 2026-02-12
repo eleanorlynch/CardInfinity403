@@ -4,7 +4,7 @@
   "description": "Card Infinity project package",
   "main": "index.js",
   "scripts": {
-    "test": "c8 mocha"
+    "test": "mocha && cross-env NODE_OPTIONS=--enable-source-maps npx c8 --config ./config/.c8rc jasmine --config=config/jasmine-unit.json"
   },
   "repository": {
     "type": "git",
