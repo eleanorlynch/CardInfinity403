@@ -5,7 +5,7 @@
   "main": "index.js",
   "scripts": {
     "test": "mocha",
-    "coverage": "c8 report" 
+    "coverage": "c8 node server/GameMove.js" 
   },
   "repository": {
     "type": "git",
