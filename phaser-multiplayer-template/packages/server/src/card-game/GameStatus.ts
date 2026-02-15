@@ -76,8 +76,9 @@ export class GameStatus {
             this.players.forEach(player => {
                 if (this.deck.length > 0) {
                     const card = this.deck.pop();
-                    if (this.playerHands[player.id] !== undefined && card !== undefined) { // add error message for else
-                        this.playerHands[player.id].push(card);
+                    const hand = this.playerHands[player.id];
+                    if (hand !== undefined && card !== undefined) { // add error message for else
+                        hand.push(card);
                     }
                 }
             });
