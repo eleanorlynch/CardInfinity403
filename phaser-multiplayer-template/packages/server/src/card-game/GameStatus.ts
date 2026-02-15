@@ -118,22 +118,22 @@ export class GameStatus {
         // Draw the top card from deck
         const drawnCard = this.deck.pop();
         if (drawnCard !== undefined) {
-            this.playerHands[playerId].push(drawnCard);
-            
-            return { 
-                success: true, 
-                card: drawnCard,
-                playerHand: this.playerHands[playerId],
-                deckRemaining: this.deck.length
-            };
-        }
-        else {
-            return {
-                success: false,
-                card: undefined,
-                playerHand: this.playerHands[playerId],
-                deckRemaining: this.deck.length
+            if (this.playerHands[playerId] !== undefined) {
+                this.playerHands[playerId].push(drawnCard);
+                
+                return { 
+                    success: true, 
+                    card: drawnCard,
+                    playerHand: this.playerHands[playerId],
+                    deckRemaining: this.deck.length
+                };
             }
+        }
+        return {
+            success: false,
+            card: undefined,
+            playerHand: this.playerHands[playerId],
+            deckRemaining: this.deck.length
         }
     }
 
