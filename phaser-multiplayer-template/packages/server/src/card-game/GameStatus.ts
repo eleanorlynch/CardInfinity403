@@ -2,13 +2,13 @@ export class GameStatus {
     // TODO: Once objects have been defined, replace the any datatypes with the object
     gameId: number;
     ruleset: string[];
-    players: any[]; // replace with Player
-    deck: any[]; // replace with Card
+    players: any[]; // TODO: replace with Player
+    deck: any[]; // TODO: replace with Card
     playerHands: any[][];
     gameOver: boolean;
-    winner: any; // replace with Player
+    winner: any; // TODO: replace with Player
     currentTurn: number; // this is a player id
-    discardPile: any[]; // replace with Card
+    discardPile: any[]; // TODO: replace with Card
     constructor(gameId: number, ruleset: string[], players: any[]) {
         this.gameId = gameId;
         this.ruleset = ruleset;
@@ -117,14 +117,16 @@ export class GameStatus {
         
         // Draw the top card from deck
         const drawnCard = this.deck.pop();
-        this.playerHands[playerId].push(drawnCard);
-        
-        return { 
-            success: true, 
-            card: drawnCard,
-            playerHand: this.playerHands[playerId],
-            deckRemaining: this.deck.length
-        };
+        if (drawnCard !== undefined) { // TODO: add error message for if false
+            this.playerHands[playerId].push(drawnCard);
+            
+            return { 
+                success: true, 
+                card: drawnCard,
+                playerHand: this.playerHands[playerId],
+                deckRemaining: this.deck.length
+            };
+        }
     }
 
 
@@ -148,7 +150,7 @@ export class GameStatus {
         
         // Find the card in player's hand
         const playerHand = this.playerHands[playerId];
-        if (playerHand !== undefined) { // add error message for if false
+        if (playerHand !== undefined) { // TODO: add error message for if false
             const cardIndex = playerHand.findIndex(card => card.id === cardId);
             
             if (cardIndex === -1) {
@@ -211,31 +213,33 @@ export class GameStatus {
         
         // Find the card in player's hand
         const playerHand = this.playerHands[playerId];
-        const cardIndex = playerHand.findIndex(card => card.id === cardId);
-        
-        if (cardIndex === -1) {
+        if (playerHand !== undefined) { // TODO: add error message for if false
+            const cardIndex = playerHand.findIndex(card => card.id === cardId);
+            
+            if (cardIndex === -1) {
+                return { 
+                    success: false, 
+                    message: "Card not in your hand" 
+                };
+            }
+            
+            // Remove card from hand
+            const discardedCard = playerHand.splice(cardIndex, 1)[0];
+            
+            // Add to discard pile
+            this.discardPile.push(discardedCard);
+            
+            // Move to next player's turn
+            this.nextTurn();
+            
             return { 
-                success: false, 
-                message: "Card not in your hand" 
+                success: true, 
+                message: "Card discarded",
+                playerHand: playerHand,
+                discardTop: discardedCard,
+                nextPlayer: this.currentTurn
             };
         }
-        
-        // Remove card from hand
-        const discardedCard = playerHand.splice(cardIndex, 1)[0];
-        
-        // Add to discard pile
-        this.discardPile.push(discardedCard);
-        
-        // Move to next player's turn
-        this.nextTurn();
-        
-        return { 
-            success: true, 
-            message: "Card discarded",
-            playerHand: playerHand,
-            discardTop: discardedCard,
-            nextPlayer: this.currentTurn
-        };
     }
 
   // Helper: Get a player's hand
