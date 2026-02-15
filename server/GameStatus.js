@@ -1,4 +1,4 @@
-export class GameStatus {
+class GameStatus {
     constructor(gameId, ruleset, players) {
         this.gameId = gameId;
         this.ruleset = ruleset;
@@ -10,6 +10,8 @@ export class GameStatus {
         this.currentTurn = players[0]?.id || null;
         this.discardPile = [];
 }
+
+module.exports = { GameStatus };
 
     getGameId() {
         return this.gameId;

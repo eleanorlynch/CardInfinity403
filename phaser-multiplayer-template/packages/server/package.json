@@ -17,7 +17,6 @@
   "keywords": [],
   "author": "",
   "license": "ISC",
-  "type": "module",
   "dependencies": {
     "@colyseus/monitor": "^0.16.0",
     "@colyseus/schema": "^3.0.0",

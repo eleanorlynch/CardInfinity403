@@ -2,13 +2,15 @@
     "compilerOptions": {
       "outDir": "dist",
       "target": "es6",
-      "module": "nodenext",
+      "module": "commonjs",
       "strict": true,
       "esModuleInterop": true,
       "skipLibCheck": true,
       "forceConsistentCasingInFileNames": true,
       "experimentalDecorators": true,
       "emitDecoratorMetadata": true,
+      "noEmit": false,
+      "moduleResolution": "node",
 
     },
     "include": ["src/**/*.ts", "./environment.d.ts"],

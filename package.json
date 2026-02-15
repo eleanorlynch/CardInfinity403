@@ -4,15 +4,14 @@
   "description": "Card Infinity project package",
   "main": "index.js",
   "scripts": {
-    "test": "mocha",
-    "coverage": "c8 --extension .ts node --enable-source-maps --loader ts-node/esm ./node_modules/mocha/bin/mocha \"test/**/*.spec.ts\""
+    "test": "mocha -r ts-node/register \"test/**/*.spec.ts\"",
+    "coverage": "c8 --extension .ts --enable-source-maps -- mocha -r ts-node/register test/**/*.spec.ts"
   },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/eleanorlynch/CardInfinity403.git"
   },
   "author": "eleanorlynch",
-  "type": "module",
   "license": "ISC",
   "bugs": {
     "url": "https://github.com/eleanorlynch/CardInfinity403/issues"

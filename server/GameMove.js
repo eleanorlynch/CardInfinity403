@@ -1,6 +1,6 @@
-import { GameStatus } from "../server/GameStatus.js";
+const { GameStatus } = require("./GameStatus.js");
 
-export class GameMove {
+class GameMove {
     constructor() {
         this.activeGames = new Map(); // Stores all ongoing games
     }
@@ -85,3 +85,5 @@ export class GameMove {
         };
     }
 }
+
+module.exports = { GameMove };

@@ -1,4 +1,4 @@
-import { GameStatus } from "./GameStatus.js";
+import { GameStatus } from "./GameStatus";
 
 export class GameWinner {
     // Check if any player has won

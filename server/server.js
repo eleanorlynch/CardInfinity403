@@ -1,6 +1,11 @@
-import express from "express";
-import dotenv from "dotenv";
-import fetch from "node-fetch";
+const express = require("express");
+const dotenv = require("dotenv");
+let fetch = globalThis.fetch;
+try {
+  if (!fetch) fetch = require('node-fetch');
+} catch (e) {
+  // node-fetch may be absent or ESM-only; if global fetch exists it's fine
+}
 dotenv.config({ path: "../.env" });
 
 const app = express();

@@ -1,4 +1,4 @@
-import { GameStatus } from "./GameStatus.js";
+import { GameStatus } from "./GameStatus";
 
 // TODO: Once objects have been defined, replace the any datatypes with the object
 export class GameMove {
