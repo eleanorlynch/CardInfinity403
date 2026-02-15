@@ -377,6 +377,7 @@ export class GameStatus {
     // FOR TESTING PURPOSES
     setRound(round: number) {
         this.totalRounds = round;
+        this.currentTurn = 0;
         this.drawsThisTurn = 0;
         this.playsThisTurn = 0;
         this.discardsThisTurn = 0;

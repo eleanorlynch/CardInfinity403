@@ -30,17 +30,28 @@ export class GameMove {
             };
         }
         
-        if (game.getDrawsThisTurn() < 1 && game.getPlayers()[0].getHand().length < 5) { // 5 is the max hand size for beta rules
-            return game.drawCard(playerId);
+        if (game.getDrawsThisTurn() < 1) {
+            if (game.getPlayers()[0].getHand().length < 5) { // current beta ruleset has a hand size limit of 5
+                return game.drawCard(playerId);
+            }
+            else {
+                return { 
+                    success: false, 
+                    message: "User cannot draw more cards, hand size limit reached" 
+                };
+            }
         }
 
         else {
-            return 0; // what should I return for a fail state here? Should I add a different check earlier?
+            return { 
+                success: false, 
+                message: "User cannot draw any more cards this turn" 
+            };
         }
     }
     
     // Handle playing a card
-    handlePlayCard(gameId: number, playerId: number, cardId: number) {
+    handlePlayCard(gameId: number, playerId: number, cardId: string) {
         const game = this.activeGames.get(gameId);
         
         if (!game) {
@@ -54,11 +65,14 @@ export class GameMove {
             return game.playCard(playerId, cardId);
         }
 
-        return 0; // what should I return for a fail state here?
+        return { 
+                success: false, 
+                message: "User cannot play any more cards this turn" 
+            };
     }
     
     // Handle discarding a card
-    handleDiscardCard(gameId: number, playerId: number, cardId: number) {
+    handleDiscardCard(gameId: number, playerId: number, cardId: string) {
         const game = this.activeGames.get(gameId);
         
         if (!game) {
@@ -69,10 +83,19 @@ export class GameMove {
         }
         
         if (game.getDiscardsThisTurn() < 1) {
-            return game.discardCard(playerId, cardId);
+            if (game.getDrawsThisTurn() >= 1) { // haven't discarded yet and have drawn a card to start your turn
+                return game.discardCard(playerId, cardId);
+            }
+            return { 
+                success: false, 
+                message: "User has not yet drawn a card this turn" 
+            };
         }
 
-        return 0; // what should I return for a fail state here?
+        return { 
+                success: false, 
+                message: "User cannot discard any more cards this turn" 
+            };
     }
     
     // Get game state for a player

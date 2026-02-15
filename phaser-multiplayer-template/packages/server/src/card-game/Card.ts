@@ -17,4 +17,8 @@ export class Card {
     getRank() {
         return this.rank;
     }
+
+    getId() {
+        return this.id;
+    }
 }
