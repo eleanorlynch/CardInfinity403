@@ -9,6 +9,7 @@ export class GameStatus {
     winner: any; // TODO: replace with Player
     currentTurn: number; // this is a player id
     discardPile: any[]; // TODO: replace with Card
+    totalRounds: number;
     constructor(gameId: number, ruleset: string[], players: any[]) {
         this.gameId = gameId;
         this.ruleset = ruleset;
@@ -19,6 +20,7 @@ export class GameStatus {
         this.winner = null; 
         this.currentTurn = players[0]?.id || null;
         this.discardPile = [];
+        this.totalRounds = 0;
 }
 
     getGameId() {
@@ -316,6 +318,9 @@ export class GameStatus {
 
     nextTurn() {
         this.currentTurn = (this.currentTurn + 1) % this.players.length;
+        if (this.currentTurn === 0) {
+            this.totalRounds++;
+        }
     }
 }
 
