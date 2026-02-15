@@ -13,7 +13,7 @@ export class MainMenu extends Scene {
     let scale = Math.max(scaleX, scaleY);
     bg.setScale(scale).setScrollFactor(0);
 
-    this.add.image(Number(this.game.config.width) * 0.5, 300, "logo");
+    this.add.image(Number(this.game.config.width) * 0.5, 300, "infinity of spades");
 
     this.add
       .text(Number(this.game.config.width) * 0.5, 460, "Main Menu", {
