@@ -76,7 +76,9 @@ export class GameStatus {
             this.players.forEach(player => {
                 if (this.deck.length > 0) {
                     const card = this.deck.pop();
-                    this.playerHands[player.id].push(card);
+                    if (this.playerHands[player.id] !== undefined) { // add error message for else
+                        this.playerHands[player.id].push(card);
+                    }
                 }
             });
         }
@@ -129,11 +131,21 @@ export class GameStatus {
                 };
             }
         }
-        return {
-            success: false,
-            card: undefined,
-            playerHand: this.playerHands[playerId],
-            deckRemaining: this.deck.length
+        if (this.playerHands[playerId] !== undefined) {
+            return {
+                success: false,
+                card: undefined,
+                playerHand: this.playerHands[playerId],
+                deckRemaining: this.deck.length
+            }
+        }
+        else {
+            return {
+                success: false,
+                card: undefined,
+                playerHand: [],
+                deckRemaining: this.deck.length
+            }
         }
     }
 
@@ -157,57 +169,64 @@ export class GameStatus {
         }
         
         // Find the card in player's hand
-        const playerHand = this.playerHands[playerId];
-        if (playerHand !== undefined) { // TODO: add error message for if false
-            const cardIndex = playerHand.findIndex(card => card.id === cardId);
-            
-            if (cardIndex === -1) {
-                return { 
-                    success: false, 
-                    message: "Card not in your hand" 
-                };
-            }
-            
-            // Remove card from hand
-            const playedCard = playerHand.splice(cardIndex, 1)[0];
-            
-            // Add to discard pile
-            this.discardPile.push(playedCard);
-            
-            // Check if player has no cards left (win condition)
-            if (playerHand.length === 0) {
-                this.gameOver = true;
-                this.winner = playerId;
+        if (this.playerHands[playerId] !== undefined) {
+            const playerHand = this.playerHands[playerId];
+            if (playerHand !== undefined) { // TODO: add error message for if false
+                const cardIndex = playerHand.findIndex(card => card.id === cardId);
+                
+                if (cardIndex === -1) {
+                    return { 
+                        success: false, 
+                        message: "Card not in your hand" 
+                    };
+                }
+                
+                // Remove card from hand
+                const playedCard = playerHand.splice(cardIndex, 1)[0];
+                
+                // Add to discard pile
+                this.discardPile.push(playedCard);
+                
+                // Check if player has no cards left (win condition)
+                if (playerHand.length === 0) {
+                    this.gameOver = true;
+                    this.winner = playerId;
+                    
+                    return { 
+                        success: true, 
+                        message: "Card played - You win!",
+                        gameOver: true,
+                        winner: playerId,
+                        discardTop: playedCard
+                    };
+                }
+                
+                // Move to next player's turn
+                this.nextTurn();
                 
                 return { 
                     success: true, 
-                    message: "Card played - You win!",
-                    gameOver: true,
-                    winner: playerId,
-                    discardTop: playedCard
+                    message: "Card played successfully",
+                    playerHand: playerHand,
+                    discardTop: playedCard,
+                    nextPlayer: this.currentTurn
                 };
             }
-            
-            // Move to next player's turn
-            this.nextTurn();
-            
-            return { 
-                success: true, 
-                message: "Card played successfully",
-                playerHand: playerHand,
-                discardTop: playedCard,
-                nextPlayer: this.currentTurn
-            };
+            return {
+                success: false, 
+                    message: "Card played successfully",
+                    playerHand: playerHand,
+                    discardTop: this.discardPile[this.discardPile.length],
+                    nextPlayer: this.currentTurn
+            }
         }
-        else {
             return {
                 success: false,
                 message: "Card not played successfully",
-                playerHand: playerHand,
+                playerHand: [],
                 discardTop: this.discardPile[this.discardPile.length],
                 nextPlayer: this.currentTurn
             }
-        }
     }
         
    // Discard a card from hand to discard pile
@@ -229,42 +248,51 @@ export class GameStatus {
         }
         
         // Find the card in player's hand
-        const playerHand = this.playerHands[playerId];
-        if (playerHand !== undefined) {
-            const cardIndex = playerHand.findIndex(card => card.id === cardId);
-            
-            if (cardIndex === -1) {
+        if (this.playerHands[playerId] !== undefined) {
+            const playerHand = this.playerHands[playerId];
+            if (playerHand !== undefined) {
+                const cardIndex = playerHand.findIndex(card => card.id === cardId);
+                
+                if (cardIndex === -1) {
+                    return { 
+                        success: false, 
+                        message: "Card not in your hand" 
+                    };
+                }
+                
+                // Remove card from hand
+                const discardedCard = playerHand.splice(cardIndex, 1)[0];
+                
+                // Add to discard pile
+                this.discardPile.push(discardedCard);
+                
+                // Move to next player's turn
+                this.nextTurn();
+                
                 return { 
-                    success: false, 
-                    message: "Card not in your hand" 
+                    success: true, 
+                    message: "Card discarded",
+                    playerHand: playerHand,
+                    discardTop: discardedCard,
+                    nextPlayer: this.currentTurn
                 };
             }
-            
-            // Remove card from hand
-            const discardedCard = playerHand.splice(cardIndex, 1)[0];
-            
-            // Add to discard pile
-            this.discardPile.push(discardedCard);
-            
-            // Move to next player's turn
-            this.nextTurn();
-            
-            return { 
-                success: true, 
-                message: "Card discarded",
-                playerHand: playerHand,
-                discardTop: discardedCard,
-                nextPlayer: this.currentTurn
-            };
-        }
-        else {
-            return {
-                success: false,
-                message: "Card not discarded",
-                playerHand: playerHand,
-                discardTop: this.discardPile[this.discardPile.length],
-                nextPlayer: this.currentTurn
+            else {
+                return {
+                    success: false,
+                    message: "Card not discarded",
+                    playerHand: playerHand,
+                    discardTop: this.discardPile[this.discardPile.length],
+                    nextPlayer: this.currentTurn
+                }
             }
+        }
+        return {
+            success: false,
+            message: "Card not discarded",
+            playerHand: [],
+            discardTop: this.discardPile[this.discardPile.length],
+            nextPlayer: this.currentTurn
         }
     }
 
