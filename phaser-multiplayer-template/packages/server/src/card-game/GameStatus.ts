@@ -1,5 +1,6 @@
 import { Card } from "./Card";
 import { Player } from "./Player";
+import { GameWinner } from "./GameWinner";
 
 export class GameStatus {
     gameId: number;
@@ -8,7 +9,9 @@ export class GameStatus {
     deck: Card[];
     //playerHands: any[][];
     gameOver: boolean;
-    winner: number; // this is a player id
+    winner: number;
+    winners: number[]; // this is a list ofplayer ids (use if tie)
+    tied: boolean;
     currentTurn: number; // this is a player id
     discardPile: Card[];
     totalRounds: number;
@@ -23,12 +26,14 @@ export class GameStatus {
        // this.playerHands = [];
         this.gameOver = false;
         this.winner = -1; 
+        this.winners = [];
         this.currentTurn = players[0]!.getID() /*|| null*/; // previously ! was a ?
         this.discardPile = [];
         this.totalRounds = 0;
         this.drawsThisTurn = 0;
         this.playsThisTurn = 0;
         this.discardsThisTurn = 0;
+        this.tied = false;
 }
 
     getGameId() {
@@ -315,9 +320,13 @@ export class GameStatus {
                 }
                 
                 // Move to next player's turn
-               // this.nextTurn();
+               //this.nextTurn();
                 
                this.discardsThisTurn++;
+
+               if (this.discardsThisTurn > 0) { // use for when discard ends your turn
+                    this.nextTurn();
+               }
                 return { 
                     success: true, 
                     message: "Card discarded",
@@ -366,12 +375,35 @@ export class GameStatus {
         return this.deck.length;
     }
 
+    // Helper: Get the current turn
+    getCurrentTurn() {
+        return this.currentTurn;
+    }
+
     nextTurn() {
         this.currentTurn = (this.currentTurn + 1) % this.players.length;
         if (this.currentTurn === 0) {
             this.totalRounds++;
         }
         this.drawsThisTurn = 0;
+        this.playsThisTurn = 0;
+        this.discardsThisTurn = 0;
+        const Winner = new GameWinner;
+        const winnerInfo = Winner.checkWinner(this);
+        if (winnerInfo !== null) {
+            this.gameOver = true;
+            if (winnerInfo.tie === true) {
+                this.tied = true;
+                if (winnerInfo.winners !== undefined) {
+                    this.winners = winnerInfo.winners;
+                }
+            }
+            else {
+                if (winnerInfo.winner !== undefined) {
+                    this.winner = winnerInfo.winner;
+                }
+            }
+        }
     }
 
     // FOR TESTING PURPOSES

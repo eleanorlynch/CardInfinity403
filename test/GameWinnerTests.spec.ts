@@ -33,6 +33,16 @@ describe("GameWinner", function () {
             const winner = new GameWinner;
             assert.strictEqual(winner.checkMostSuit(game), null);
         });
+        it("should return that all players are tied if all players have no cards left", function() {
+            const players = [new Player(0, []), 
+                new Player(1, [])];
+            const ruleset = ["1"];
+            const game = new GameStatus(1, ruleset, players);
+            game.setRound(3);
+            const winner = new GameWinner;
+            const winnersList: number[] = [0, 1];
+            assert.deepStrictEqual(winner.checkMostSuit(game), {tie: true, winners: winnersList, message: "All players have no cards left!"});
+        });
     });
     describe("#checkWinner()", function() {
         it("should return the winner of the game based on the ruleset", function() { // currently ruleset is hardcoded in for the beta, update this test after the beta
@@ -54,4 +64,5 @@ describe("GameWinner", function () {
             assert.deepStrictEqual(winner.emptyHand(game), {winner: 0, winCondition: 'empty_hand', message: "Player has no cards left!"});
         });
     });
+
 });

@@ -26,6 +26,22 @@ export class GameWinner {
             var maxCards: number[] = [];
             var maxCardsIndex: number = 0;
 
+            var allEmpty = true;
+            for (const player of gameState.getPlayers()) {
+                if (player.getHand() !== undefined) {
+                    if (player.getHand().length !== 0) {
+                        allEmpty = false;
+                        break;
+                    }
+                }
+            }
+            if (allEmpty) {
+                return {
+                    tie: true,
+                    winners: gameState.getPlayers().map(player => player.getID()),
+                    message: "All players have no cards left!"
+                }
+            }
             // For every player, find the suit of cards that they have the most of, and record how many
             for (const player of gameState.getPlayers()) {
                 const hand = player.getHand();
