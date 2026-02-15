@@ -5,7 +5,7 @@
   "main": "index.js",
   "scripts": {
     "test": "mocha",
-    "coverage": "c8 ts-node phaser-multiplayer-template/packages/server/src/card-game/GameMove.ts"
+    "coverage": "c8 --extension .ts node --enable-source-maps --loader ts-node/esm ./node_modules/mocha/bin/mocha \"test/**/*.spec.ts\""
   },
   "repository": {
     "type": "git",

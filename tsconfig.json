@@ -20,6 +20,7 @@
 
     // Other Outputs
     "sourceMap": true,
+    "inlineSources": true,
     "declaration": true,
     "declarationMap": true,
 
