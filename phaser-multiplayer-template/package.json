@@ -15,6 +15,7 @@
   "engines": {
     "node": ">=21.0.0"
   },
+  "type": "module",
   "author": "Phaser Studio Inc <support@phaser.io> (https://www.phaser.io)",
   "license": "MIT",
   "licenseUrl": "https://www.opensource.org/licenses/mit-license.php",
