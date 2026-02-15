@@ -1,4 +1,4 @@
-import { GameStatus } from "../phaser-multiplayer-template/packages/server/src/card-game/GameStatus.ts";
+import { GameStatus }/*from "../phaser-multiplayer-template/packages/server/src/card-game/GameStatus.ts"*/;
 
 export class GameMove {
     constructor() {
