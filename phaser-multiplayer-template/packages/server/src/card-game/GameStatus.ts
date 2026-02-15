@@ -1,14 +1,16 @@
+import { Card } from "./Card.js";
+
 export class GameStatus {
     // TODO: Once objects have been defined, replace the any datatypes with the object
     gameId: number;
     ruleset: string[];
     players: any[]; // TODO: replace with Player
-    deck: any[]; // TODO: replace with Card
+    deck: Card[]; // TODO: replace with Card
     playerHands: any[][];
     gameOver: boolean;
     winner: any; // TODO: replace with Player
     currentTurn: number; // this is a player id
-    discardPile: any[]; // TODO: replace with Card
+    discardPile: Card[]; // TODO: replace with Card
     totalRounds: number;
     constructor(gameId: number, ruleset: string[], players: any[]) {
         this.gameId = gameId;
@@ -37,18 +39,13 @@ export class GameStatus {
     //creates a 52 card deck 
     createDeck(){
         const suits = ['clubs','spades','hearts','diamonds'];
-        const ranks = ['2','3','4','5','6','7','8','9','10','J','Q','K','A'];
+        const ranks = [2,3,4,5,6,7,8,9,10,11,12,13,14];
 
         this.deck = [];
     
         for(const suit of suits){
             for(const rank of ranks){
-                this.deck.push({
-                    suit:suit,
-                    rank:rank,
-                    id: `${rank}_${suit}`,
-                    code: `${rank.charAt(0)}${suit.charAt(0)}`
-                });
+                this.deck.push(new Card(suit, rank));
         }
     }
     //for joker? 
@@ -109,9 +106,11 @@ export class GameStatus {
         if (this.deck.length === 0) {
             if (this.discardPile.length > 1) {
                 const topCard = this.discardPile.pop();
-                this.deck = [...this.discardPile];
-                this.shuffleDeck();
-                this.discardPile = [topCard]; // Put top card back
+                if (topCard !== undefined) { // TODO: make an error message for if false
+                    this.deck = [...this.discardPile];
+                    this.shuffleDeck();
+                    this.discardPile = [topCard]; // Put top card back
+                }
             } else {
                 return { 
                     success: false, 
@@ -321,6 +320,16 @@ export class GameStatus {
         if (this.currentTurn === 0) {
             this.totalRounds++;
         }
+    }
+
+    // FOR TESTING PURPOSES
+    setRound(round: number) {
+        this.totalRounds = round;
+    }
+
+    // FOR TESTING PURPOSES
+    setPlayerHand(hand: Card[], player: number) {
+        this.playerHands[player] = hand;
     }
 }
 

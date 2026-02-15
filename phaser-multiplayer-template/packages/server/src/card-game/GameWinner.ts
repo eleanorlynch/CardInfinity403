@@ -1,10 +1,13 @@
 import { GameStatus } from "./GameStatus.js";
 
-class GameWinner {
+export class GameWinner {
     // Check if any player has won
-    static checkWinner(gameState: GameStatus) {
-        // Simple win condition: player with empty hand wins
-        /*for (const player of gameState.playerHands) {
+    checkWinner(gameState: GameStatus) { // TODO: Make which method it calls variable based on chosen rules
+        this.checkMostSuit(gameState);
+    }
+
+    emptyHand(gameState: GameStatus) { // Player with empty hand wins
+        for (const player of gameState.playerHands) {
             if (gameState.playerHands.length === 0) {
                 return {
                     winner: gameState.currentTurn,
@@ -12,7 +15,11 @@ class GameWinner {
                     message: "Player has no cards left!"
                 };
             }
-        }*/
+        }
+        return null; // No winner yet
+    }
+
+    checkMostSuit(gameState: GameStatus) { // Player with most cards of a single suit wins
         const suits = ['clubs','spades','hearts','diamonds']; // later allow for custom suites by making
                                                               // this a GameStatus variable
         if (gameState.totalRounds >= 3) {
@@ -23,7 +30,7 @@ class GameWinner {
                 for (const card of player) {
                     var playerMaxesIndex: number = 0;
                     for (const suit of suits) {
-                        if (card.suit === suit) {
+                        if (card.getSuit() === suit) {
                             playerMaxes[playerMaxesIndex] = playerMaxes[playerMaxesIndex] + 1;
                         }
                         playerMaxesIndex++;
@@ -68,7 +75,6 @@ class GameWinner {
                 }
             }
         }
-        // Add more win conditions here if needed
         return null; // No winner yet
     }
 }
