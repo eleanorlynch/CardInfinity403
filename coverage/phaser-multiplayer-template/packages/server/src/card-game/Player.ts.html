@@ -3,7 +3,7 @@
 <html lang="en">
 
 <head>
-    <title>Code coverage report for phaser-multiplayer-template/packages/client/src/scenes/Background.ts</title>
+    <title>Code coverage report for phaser-multiplayer-template/packages/server/src/card-game/Player.ts</title>
     <meta charset="utf-8" />
     <link rel="stylesheet" href="../../../../../prettify.css" />
     <link rel="stylesheet" href="../../../../../base.css" />
@@ -19,13 +19,13 @@
 <body>
 <div class='wrapper'>
     <div class='pad1'>
-        <h1><a href="../../../../../index.html">All files</a> / <a href="index.html">phaser-multiplayer-template/packages/client/src/scenes</a> Background.ts</h1>
+        <h1><a href="../../../../../index.html">All files</a> / <a href="index.html">phaser-multiplayer-template/packages/server/src/card-game</a> Player.ts</h1>
         <div class='clearfix'>
             
             <div class='fl pad1y space-right2'>
                 <span class="strong">0% </span>
                 <span class="quiet">Statements</span>
-                <span class='fraction'>0/19</span>
+                <span class='fraction'>0/23</span>
             </div>
         
             
@@ -46,7 +46,7 @@
             <div class='fl pad1y space-right2'>
                 <span class="strong">0% </span>
                 <span class="quiet">Lines</span>
-                <span class='fraction'>0/19</span>
+                <span class='fraction'>0/23</span>
             </div>
         
             
@@ -82,7 +82,10 @@
 <a name='L17'></a><a href='#L17'>17</a>
 <a name='L18'></a><a href='#L18'>18</a>
 <a name='L19'></a><a href='#L19'>19</a>
-<a name='L20'></a><a href='#L20'>20</a></td><td class="line-coverage quiet"><span class="cline-any cline-no">&nbsp;</span>
+<a name='L20'></a><a href='#L20'>20</a>
+<a name='L21'></a><a href='#L21'>21</a>
+<a name='L22'></a><a href='#L22'>22</a>
+<a name='L23'></a><a href='#L23'>23</a></td><td class="line-coverage quiet"><span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
@@ -101,26 +104,32 @@
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span></td><td class="text"><pre class="prettyprint lang-js"><span class="cstat-no" title="statement not covered" ><span class="fstat-no" title="function not covered" ><span class="branch-0 cbranch-no" title="branch not covered" >import { Scene } from "phaser";</span></span></span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span></td><td class="text"><pre class="prettyprint lang-js"><span class="cstat-no" title="statement not covered" ><span class="fstat-no" title="function not covered" ><span class="branch-0 cbranch-no" title="branch not covered" >import { Card } from "./Card.js";</span></span></span>
 <span class="cstat-no" title="statement not covered" ></span>
-<span class="cstat-no" title="statement not covered" >export class Background extends Scene {</span>
-<span class="cstat-no" title="statement not covered" >  constructor() {</span>
-<span class="cstat-no" title="statement not covered" >    super("background");</span>
-<span class="cstat-no" title="statement not covered" >  }</span>
+<span class="cstat-no" title="statement not covered" >export class Player {</span>
+<span class="cstat-no" title="statement not covered" >    id: number;</span>
+<span class="cstat-no" title="statement not covered" >    hand: Card[];</span>
 <span class="cstat-no" title="statement not covered" ></span>
-<span class="cstat-no" title="statement not covered" >  create() {</span>
-<span class="cstat-no" title="statement not covered" >    this.cameras.main.setBackgroundColor(0xffffff);</span>
-<span class="cstat-no" title="statement not covered" >    this.scene.sendToBack();</span>
+<span class="cstat-no" title="statement not covered" >    constructor(id: number, hand: Card[]) {</span>
+<span class="cstat-no" title="statement not covered" >        this.id = id;</span>
+<span class="cstat-no" title="statement not covered" >        this.hand = hand;</span>
+<span class="cstat-no" title="statement not covered" >    }</span>
 <span class="cstat-no" title="statement not covered" ></span>
-<span class="cstat-no" title="statement not covered" >    const fridge_bg = this.add.image(</span>
-<span class="cstat-no" title="statement not covered" >      Number(this.game.config.width) / 2,</span>
-<span class="cstat-no" title="statement not covered" >      Number(this.game.config.height) / 2,</span>
-<span class="cstat-no" title="statement not covered" >      "fridge_bg"</span>
-<span class="cstat-no" title="statement not covered" >    );</span>
-<span class="cstat-no" title="statement not covered" >    fridge_bg.setScale(0.4);</span>
-<span class="cstat-no" title="statement not covered" >  }</span>
-<span class="cstat-no" title="statement not covered" >}</span>
-&nbsp;</pre></td></tr></table></pre>
+<span class="cstat-no" title="statement not covered" >    getHand() {</span>
+<span class="cstat-no" title="statement not covered" >        return this.hand;</span>
+<span class="cstat-no" title="statement not covered" >    }</span>
+<span class="cstat-no" title="statement not covered" ></span>
+<span class="cstat-no" title="statement not covered" >    getID() {</span>
+<span class="cstat-no" title="statement not covered" >        return this.id;</span>
+<span class="cstat-no" title="statement not covered" >    }</span>
+<span class="cstat-no" title="statement not covered" ></span>
+<span class="cstat-no" title="statement not covered" >    setHand(hand: Card[]) {</span>
+<span class="cstat-no" title="statement not covered" >        this.hand = hand;</span>
+<span class="cstat-no" title="statement not covered" >    }</span>
+<span class="cstat-no" title="statement not covered" >}</span></pre></td></tr></table></pre>
 
                 <div class='push'></div><!-- for sticky footer -->
             </div><!-- /wrapper -->

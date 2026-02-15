@@ -7,8 +7,8 @@ export class GameWinner {
     }
 
     emptyHand(gameState: GameStatus) { // Player with empty hand wins
-        for (const player of gameState.playerHands) {
-            if (gameState.playerHands.length === 0) {
+        for (const player of gameState.getPlayers()) {
+            if (player.getHand() !== undefined && player.getHand().length === 0) {
                 return {
                     winner: gameState.currentTurn,
                     winCondition: 'empty_hand',
@@ -27,10 +27,11 @@ export class GameWinner {
             var maxCardsIndex: number = 0;
 
             // For every player, find the suit of cards that they have the most of, and record how many
-            for (const player of gameState.playerHands) {
-                var playerMaxes: number[] = new Array<number>(player.length).fill(0);
+            for (const player of gameState.getPlayers()) {
+                const hand = player.getHand();
+                var playerMaxes: number[] = new Array<number>(hand.length).fill(0);
 
-                for (const card of player) {
+                for (const card of hand) {
                     var playerMaxesIndex: number = 0;
 
                     for (const suit of suits) {

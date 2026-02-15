@@ -1,28 +1,34 @@
 import { Card } from "./Card.js";
+import { Player } from "./Player.js";
 
 export class GameStatus {
-    // TODO: Once objects have been defined, replace the any datatypes with the object
     gameId: number;
     ruleset: string[];
-    players: any[]; // TODO: replace with Player
-    deck: Card[]; // TODO: replace with Card
-    playerHands: any[][];
+    players: Player[];
+    deck: Card[];
+    //playerHands: any[][];
     gameOver: boolean;
-    winner: any; // TODO: replace with Player
+    winner: number; // this is a player id
     currentTurn: number; // this is a player id
-    discardPile: Card[]; // TODO: replace with Card
+    discardPile: Card[];
     totalRounds: number;
-    constructor(gameId: number, ruleset: string[], players: any[]) {
+    drawsThisTurn: number;
+    playsThisTurn: number;
+    discardsThisTurn: number;
+    constructor(gameId: number, ruleset: string[], players: Player[]) {
         this.gameId = gameId;
         this.ruleset = ruleset;
         this.players = players;
         this.deck = [];
-        this.playerHands = [];
+       // this.playerHands = [];
         this.gameOver = false;
-        this.winner = null; 
-        this.currentTurn = players[0]?.id || null;
+        this.winner = -1; 
+        this.currentTurn = players[0]!.getID() /*|| null*/; // previously ! was a ?
         this.discardPile = [];
         this.totalRounds = 0;
+        this.drawsThisTurn = 0;
+        this.playsThisTurn = 0;
+        this.discardsThisTurn = 0;
 }
 
     getGameId() {
@@ -36,6 +42,19 @@ export class GameStatus {
     getPlayers() {
         return this.players;
     }
+
+    getDrawsThisTurn() {
+        return this.drawsThisTurn;
+    }
+
+    getPlaysThisTurn() {
+        return this.playsThisTurn
+    }
+
+    getDiscardsThisTurn() {
+        return this.discardsThisTurn;
+    }
+    
     //creates a 52 card deck 
     createDeck(){
         const suits = ['clubs','spades','hearts','diamonds'];
@@ -69,7 +88,8 @@ export class GameStatus {
     dealCards() {
         // Initialize empty hand for each player
         this.players.forEach(player => {
-            this.playerHands[player.id] = [];
+           // this.playerHands[player.id] = [];
+           player.setHand([]);
         });
         
         // Deal cards (default 7 cards per player)
@@ -79,9 +99,11 @@ export class GameStatus {
             this.players.forEach(player => {
                 if (this.deck.length > 0) {
                     const card = this.deck.pop();
-                    const hand = this.playerHands[player.id];
+                    //const hand = this.playerHands[player.id];
+                    const hand = player.getHand();
                     if (hand !== undefined && card !== undefined) { // add error message for else
                         hand.push(card);
+                        player.setHand(hand);
                     }
                 }
             });
@@ -98,6 +120,8 @@ export class GameStatus {
             };
         }
         
+        const player = this.players[playerId];
+
         // Check if game is over
         if (this.gameOver) {
             return { 
@@ -126,22 +150,29 @@ export class GameStatus {
         // Draw the top card from deck
         const drawnCard = this.deck.pop();
         if (drawnCard !== undefined) {
-            if (this.playerHands[playerId] !== undefined) {
-                this.playerHands[playerId].push(drawnCard);
+            if (/*this.playerHands[playerId]*/player !== undefined && player.getHand() !== undefined) {
+                //this.playerHands[playerId].push(drawnCard);
+                const hand = player.getHand();
+                hand.push(drawnCard);
+                player.setHand(hand);
                 
+                this.drawsThisTurn++;
+
                 return { 
                     success: true, 
                     card: drawnCard,
-                    playerHand: this.playerHands[playerId],
+                   // playerHand: this.playerHands[playerId],
+                    playerHand: player.getHand(),
                     deckRemaining: this.deck.length
                 };
             }
         }
-        if (this.playerHands[playerId] !== undefined) {
+        if (/*this.playerHands[playerId]*/player !== undefined && player.getHand() !== undefined) {
             return {
                 success: false,
                 card: undefined,
-                playerHand: this.playerHands[playerId],
+                //playerHand: this.playerHands[playerId],
+                playerHand: player.getHand(),
                 deckRemaining: this.deck.length
             }
         }
@@ -157,7 +188,7 @@ export class GameStatus {
 
 
     // Player plays a card from hand to discard pile
-    playCard(playerId: number, cardId: number) {
+    playCard(playerId: number, cardId: string) {
         // Check if it's player's turn
         if (this.currentTurn !== playerId) {
             return { 
@@ -165,6 +196,8 @@ export class GameStatus {
                 message: "Not your turn" 
             };
         }
+
+        const player = this.players[playerId];
         
         // Check if game is over
         if (this.gameOver) {
@@ -175,8 +208,9 @@ export class GameStatus {
         }
         
         // Find the card in player's hand
-        if (this.playerHands[playerId] !== undefined) {
-            const playerHand = this.playerHands[playerId];
+        if (/*this.playerHands[playerId]*/player !== undefined && player.getHand() !== undefined) {
+            //const playerHand = this.playerHands[playerId];
+            const playerHand = player.getHand();
             if (playerHand !== undefined) { // TODO: add error message for if false
                 const cardIndex = playerHand.findIndex(card => card.id === cardId);
                 
@@ -191,10 +225,12 @@ export class GameStatus {
                 const playedCard = playerHand.splice(cardIndex, 1)[0];
                 
                 // Add to discard pile
-                this.discardPile.push(playedCard);
+                if (playedCard !== undefined) {
+                    this.discardPile.push(playedCard);
+                }
                 
                 // Check if player has no cards left (win condition)
-                if (playerHand.length === 0) {
+               /* if (playerHand.length === 0) {
                     this.gameOver = true;
                     this.winner = playerId;
                     
@@ -205,11 +241,12 @@ export class GameStatus {
                         winner: playerId,
                         discardTop: playedCard
                     };
-                }
+                } */
                 
                 // Move to next player's turn
-                this.nextTurn();
+               // this.nextTurn();
                 
+               this.playsThisTurn++;
                 return { 
                     success: true, 
                     message: "Card played successfully",
@@ -220,7 +257,7 @@ export class GameStatus {
             }
             return {
                 success: false, 
-                    message: "Card played successfully",
+                    message: "Card not played successfully",
                     playerHand: playerHand,
                     discardTop: this.discardPile[this.discardPile.length],
                     nextPlayer: this.currentTurn
@@ -236,7 +273,7 @@ export class GameStatus {
     }
         
    // Discard a card from hand to discard pile
-    discardCard(playerId: number, cardId: number) {
+    discardCard(playerId: number, cardId: string) {
         // Check if it's player's turn
         if (this.currentTurn !== playerId) {
             return { 
@@ -253,9 +290,12 @@ export class GameStatus {
             };
         }
         
+        const player = this.players[playerId];
+
         // Find the card in player's hand
-        if (this.playerHands[playerId] !== undefined) {
-            const playerHand = this.playerHands[playerId];
+        if (/*this.playerHands[playerId]*/player !== undefined && player.getHand() !== undefined) {
+            //const playerHand = this.playerHands[playerId];
+            const playerHand = player.getHand();
             if (playerHand !== undefined) {
                 const cardIndex = playerHand.findIndex(card => card.id === cardId);
                 
@@ -270,11 +310,14 @@ export class GameStatus {
                 const discardedCard = playerHand.splice(cardIndex, 1)[0];
                 
                 // Add to discard pile
-                this.discardPile.push(discardedCard);
+                if (discardedCard !== undefined) {
+                    this.discardPile.push(discardedCard);
+                }
                 
                 // Move to next player's turn
-                this.nextTurn();
+               // this.nextTurn();
                 
+               this.discardsThisTurn++;
                 return { 
                     success: true, 
                     message: "Card discarded",
@@ -304,7 +347,11 @@ export class GameStatus {
 
   // Helper: Get a player's hand
     getPlayerHand(playerId: number) {
-        return this.playerHands[playerId] || [];
+        if (this.players[playerId] !== undefined) {
+            if ((this.players[playerId].getHand() !== undefined)) {
+                return /*this.playerHands[playerId] || []*/this.players[playerId].getHand();
+            }
+        }
     }
 
   // Helper: Get top card of discard pile
@@ -324,16 +371,23 @@ export class GameStatus {
         if (this.currentTurn === 0) {
             this.totalRounds++;
         }
+        this.drawsThisTurn = 0;
     }
 
     // FOR TESTING PURPOSES
     setRound(round: number) {
         this.totalRounds = round;
+        this.drawsThisTurn = 0;
+        this.playsThisTurn = 0;
+        this.discardsThisTurn = 0;
     }
 
     // FOR TESTING PURPOSES
     setPlayerHand(hand: Card[], player: number) {
-        this.playerHands[player] = hand;
+        //this.playerHands[player] = hand;
+        if (this.players[player] !== undefined) {
+            this.players[player].setHand(hand);
+        }
     }
 }
 

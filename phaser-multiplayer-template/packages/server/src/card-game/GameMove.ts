@@ -30,7 +30,13 @@ export class GameMove {
             };
         }
         
-        return game.drawCard(playerId);
+        if (game.getDrawsThisTurn() < 1 && game.getPlayers()[0].getHand().length < 5) { // 5 is the max hand size for beta rules
+            return game.drawCard(playerId);
+        }
+
+        else {
+            return 0; // what should I return for a fail state here? Should I add a different check earlier?
+        }
     }
     
     // Handle playing a card
@@ -44,7 +50,11 @@ export class GameMove {
             };
         }
         
-        return game.playCard(playerId, cardId);
+        if (game.getPlaysThisTurn() < 0) { // current beta rules don't allow for playing cards
+            return game.playCard(playerId, cardId);
+        }
+
+        return 0; // what should I return for a fail state here?
     }
     
     // Handle discarding a card
@@ -58,7 +68,11 @@ export class GameMove {
             };
         }
         
-        return game.discardCard(playerId, cardId);
+        if (game.getDiscardsThisTurn() < 1) {
+            return game.discardCard(playerId, cardId);
+        }
+
+        return 0; // what should I return for a fail state here?
     }
     
     // Get game state for a player
