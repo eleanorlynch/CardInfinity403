@@ -31,7 +31,7 @@ export class GameMove {
         }
         
         if (game.getDrawsThisTurn() < 1) {
-            if (game.getPlayers()[0].getHand().length < 5) { // current beta ruleset has a hand size limit of 5
+            if (game.getPlayers()[0].getHand().length < 4) { // current beta ruleset has a hand size limit of 5
                 return game.drawCard(playerId);
             }
             else {
