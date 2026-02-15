@@ -1,6 +1,6 @@
 import assert from "node:assert";
-import { GameMove } from "../server/GameMove.js";
-import { GameStatus } from "../server/GameStatus.js";
+import { GameMove } from "../phaser-multiplayer-template/packages/server/src/GameMove.ts";
+import { GameStatus } from "../phaser-multiplayer-template/packages/server/src/GameStatus.ts";
 
 describe("GameMove", function () {
   describe("#createGame()", function () {
