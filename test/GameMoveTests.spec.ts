@@ -1,6 +1,6 @@
 import assert from "node:assert";
-import { GameMove } from "../phaser-multiplayer-template/packages/server/src/GameMove.ts";
-import { GameStatus } from "../phaser-multiplayer-template/packages/server/src/GameStatus.ts";
+import { GameMove } from "../phaser-multiplayer-template/packages/server/src/card-game/GameMove.ts";
+import { GameStatus } from "../phaser-multiplayer-template/packages/server/src/card-game/GameStatus.ts";
 
 describe("GameMove", function () {
   describe("#createGame()", function () {
