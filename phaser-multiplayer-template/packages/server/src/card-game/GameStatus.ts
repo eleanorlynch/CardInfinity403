@@ -1,10 +1,20 @@
 export class GameStatus {
-    constructor(gameId, ruleset, players) {
+    // TODO: Once objects have been defined, replace the any datatypes with the object
+    gameId: number;
+    ruleset: string[];
+    players: any[]; // replace with Player
+    deck: any[]; // replace with Card
+    playerHands: any[][];
+    gameOver: boolean;
+    winner: any; // replace with Player
+    currentTurn: number; // this is a player id
+    discardPile: any[]; // replace with Card
+    constructor(gameId: number, ruleset: string[], players: any[]) {
         this.gameId = gameId;
         this.ruleset = ruleset;
         this.players = players;
         this.deck = [];
-        this.playerHands = {};
+        this.playerHands = [];
         this.gameOver = false;
         this.winner = null; 
         this.currentTurn = players[0]?.id || null;
@@ -25,7 +35,7 @@ export class GameStatus {
     //creates a 52 card deck 
     createDeck(){
         const suits = ['clubs','spades','hearts','diamonds'];
-        const rank = ['2','3','4','5','6','7','8','9','10','J','Q','K','A'];
+        const ranks = ['2','3','4','5','6','7','8','9','10','J','Q','K','A'];
 
         this.deck = [];
     
@@ -60,7 +70,7 @@ export class GameStatus {
         });
         
         // Deal cards (default 7 cards per player)
-        const cardsPerPlayer = this.ruleset.cardsPerPlayer || 7;
+        const cardsPerPlayer = /*this.ruleset.cardsPerPlayer || */3;
         
         for (let i = 0; i < cardsPerPlayer; i++) {
             this.players.forEach(player => {
@@ -73,7 +83,7 @@ export class GameStatus {
     }
  
     //Player drawing a card from the deck 
-    drawCard(playerId) {
+    drawCard(playerId: number) {
         // Check if player's turn
         if (this.currentTurn !== playerId) {
             return { 
@@ -119,7 +129,7 @@ export class GameStatus {
 
 
     // Player plays a card from hand to discard pile
-    playCard(playerId, cardId) {
+    playCard(playerId: number, cardId: number) {
         // Check if it's player's turn
         if (this.currentTurn !== playerId) {
             return { 
@@ -180,7 +190,7 @@ export class GameStatus {
     }
         
    // Discard a card from hand to discard pile
-    discardCard(playerId, cardId) {
+    discardCard(playerId: number, cardId: number) {
         // Check if it's player's turn
         if (this.currentTurn !== playerId) {
             return { 
@@ -227,7 +237,7 @@ export class GameStatus {
     }
 
   // Helper: Get a player's hand
-    getPlayerHand(playerId) {
+    getPlayerHand(playerId: number) {
         return this.playerHands[playerId] || [];
     }
 
@@ -241,6 +251,10 @@ export class GameStatus {
     // Helper: Get remaining cards in deck
     getDeckCount() {
         return this.deck.length;
+    }
+
+    nextTurn() {
+        this.currentTurn = (this.currentTurn + 1) % this.players.length;
     }
 }
 

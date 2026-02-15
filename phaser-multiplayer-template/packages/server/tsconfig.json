@@ -2,7 +2,7 @@
     "compilerOptions": {
       "outDir": "dist",
       "target": "es6",
-      "module": "commonjs",
+      "module": "nodenext",
       "strict": true,
       "esModuleInterop": true,
       "skipLibCheck": true,
