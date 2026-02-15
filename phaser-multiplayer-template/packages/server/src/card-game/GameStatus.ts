@@ -117,7 +117,7 @@ export class GameStatus {
         
         // Draw the top card from deck
         const drawnCard = this.deck.pop();
-        if (drawnCard !== undefined) { // TODO: add error message for if false
+        if (drawnCard !== undefined) {
             this.playerHands[playerId].push(drawnCard);
             
             return { 
@@ -126,6 +126,14 @@ export class GameStatus {
                 playerHand: this.playerHands[playerId],
                 deckRemaining: this.deck.length
             };
+        }
+        else {
+            return {
+                success: false,
+                card: undefined,
+                playerHand: this.playerHands[playerId],
+                deckRemaining: this.deck.length
+            }
         }
     }
 
@@ -191,6 +199,15 @@ export class GameStatus {
                 nextPlayer: this.currentTurn
             };
         }
+        else {
+            return {
+                success: false,
+                message: "Card not played successfully",
+                playerHand: playerHand,
+                discardTop: this.discardPile[this.discardPile.length],
+                nextPlayer: this.currentTurn
+            }
+        }
     }
         
    // Discard a card from hand to discard pile
@@ -213,7 +230,7 @@ export class GameStatus {
         
         // Find the card in player's hand
         const playerHand = this.playerHands[playerId];
-        if (playerHand !== undefined) { // TODO: add error message for if false
+        if (playerHand !== undefined) {
             const cardIndex = playerHand.findIndex(card => card.id === cardId);
             
             if (cardIndex === -1) {
@@ -239,6 +256,15 @@ export class GameStatus {
                 discardTop: discardedCard,
                 nextPlayer: this.currentTurn
             };
+        }
+        else {
+            return {
+                success: false,
+                message: "Card not discarded",
+                playerHand: playerHand,
+                discardTop: this.discardPile[this.discardPile.length],
+                nextPlayer: this.currentTurn
+            }
         }
     }
 
