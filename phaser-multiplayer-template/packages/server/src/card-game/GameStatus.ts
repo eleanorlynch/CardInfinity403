@@ -57,8 +57,10 @@ export class GameStatus {
     shuffleDeck() {
         for (let i = this.deck.length - 1; i > 0; i--) {
             const j = Math.floor(Math.random() * (i + 1));
-            if (this.deck[i] !== undefined && this.deck[j] !== undefined) {
-                [this.deck[i], this.deck[j]] = [this.deck[j], this.deck[i]];
+            const firstCard = this.deck[i];
+            const secondCard = this.deck[j];
+            if (firstCard !== undefined && secondCard !== undefined) {
+                [this.deck[i], this.deck[j]] = [secondCard, firstCard];
             }
         }
     }
