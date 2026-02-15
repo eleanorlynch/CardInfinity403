@@ -6,7 +6,7 @@ describe("GameMove", function () {
   describe("#createGame()", function () {
     it("should return the correct game when told to create one based on certain properties", function () {
       const players = [1];
-      const ruleset = [2];
+      const ruleset = ["2"];
       const Move = new GameMove();
       const game = new GameStatus(123, ruleset, players);
       const game2 = Move.createGame(123, ruleset, players);
