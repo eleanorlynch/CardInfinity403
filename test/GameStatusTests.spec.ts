@@ -1,5 +1,5 @@
 import assert from "node:assert";
-import { GameStatus } from "../server/GameStatus.js";
+import { GameStatus } from "../phaser-multiplayer-template/packages/server/src/GameStatus.ts";
 
 describe("GameStatus", function () {
   describe("#getGameId()", function () {
