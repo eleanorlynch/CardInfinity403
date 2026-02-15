@@ -148,45 +148,47 @@ export class GameStatus {
         
         // Find the card in player's hand
         const playerHand = this.playerHands[playerId];
-        const cardIndex = playerHand.findIndex(card => card.id === cardId);
-        
-        if (cardIndex === -1) {
-            return { 
-                success: false, 
-                message: "Card not in your hand" 
-            };
-        }
-        
-        // Remove card from hand
-        const playedCard = playerHand.splice(cardIndex, 1)[0];
-        
-        // Add to discard pile
-        this.discardPile.push(playedCard);
-        
-        // Check if player has no cards left (win condition)
-        if (playerHand.length === 0) {
-            this.gameOver = true;
-            this.winner = playerId;
+        if (playerHand !== undefined) { // add error message for if false
+            const cardIndex = playerHand.findIndex(card => card.id === cardId);
+            
+            if (cardIndex === -1) {
+                return { 
+                    success: false, 
+                    message: "Card not in your hand" 
+                };
+            }
+            
+            // Remove card from hand
+            const playedCard = playerHand.splice(cardIndex, 1)[0];
+            
+            // Add to discard pile
+            this.discardPile.push(playedCard);
+            
+            // Check if player has no cards left (win condition)
+            if (playerHand.length === 0) {
+                this.gameOver = true;
+                this.winner = playerId;
+                
+                return { 
+                    success: true, 
+                    message: "Card played - You win!",
+                    gameOver: true,
+                    winner: playerId,
+                    discardTop: playedCard
+                };
+            }
+            
+            // Move to next player's turn
+            this.nextTurn();
             
             return { 
                 success: true, 
-                message: "Card played - You win!",
-                gameOver: true,
-                winner: playerId,
-                discardTop: playedCard
+                message: "Card played successfully",
+                playerHand: playerHand,
+                discardTop: playedCard,
+                nextPlayer: this.currentTurn
             };
         }
-        
-        // Move to next player's turn
-        this.nextTurn();
-        
-        return { 
-            success: true, 
-            message: "Card played successfully",
-            playerHand: playerHand,
-            discardTop: playedCard,
-            nextPlayer: this.currentTurn
-        };
     }
         
    // Discard a card from hand to discard pile
