@@ -1,5 +1,5 @@
-import { Card } from "./Card";
-import { Player } from "./Player";
+import { Card } from "./Card.ts";
+import { Player } from "./Player.ts";
 import { GameWinner } from "./GameWinner";
 
 export class GameStatus {
@@ -383,7 +383,12 @@ export class GameStatus {
     nextTurn() {
         const currentIndex = this.players.findIndex(p => p.id === this.currentTurn);
         const nextIndex = (currentIndex + 1) % this.players.length;
-        this.currentTurn = this.players[nextIndex].id;
+        if (this.players[nextIndex] !== undefined) {
+            this.currentTurn = this.players[nextIndex].id;
+        }
+        else {
+            this.currentTurn === 0;
+        }
         if (this.currentTurn === 0) {
             this.totalRounds++;
         }
@@ -394,17 +399,18 @@ export class GameStatus {
         const winnerInfo = Winner.checkWinner(this);
         if (winnerInfo !== null) {
             this.gameOver = true;
-            if (winnerInfo.tie === true) {
+            // Current uno ruleset means ties are impossible, add canTie to ruleset later
+          /*  if (winnerInfo.tie === true) {
                 this.tied = true;
                 if (winnerInfo.winners !== undefined) {
                     this.winners = winnerInfo.winners;
                 }
             }
-            else {
+            else { */
                 if (winnerInfo.winner !== undefined) {
                     this.winner = winnerInfo.winner;
                 }
-            }
+        //    }
         }
     }
 
@@ -432,7 +438,7 @@ export class GameStatus {
             ruleset: this.ruleset,
             players: this.players.map(p => ({
                 id: p.id,
-                name: p.name || `Player ${p.id}`,
+                name: /*p.name || */`Player ${p.id}`,
                 handCount: this.players[p.id]?.getHand()?.length || 0
             })),
             currentTurn: this.currentTurn,
