@@ -46,7 +46,8 @@ describe("GameMove", function () {
           success: false});
       }
     });
-    it("shouldn't allow the user to draw a card when they have reached the hand size limit", function() {
+    // No hand size limits in Uno
+  /*  it("shouldn't allow the user to draw a card when they have reached the hand size limit", function() {
       const Move = new GameMove();
       const players = [new Player(0, []), new Player(1, [])];
       const game = Move.createGame(123, ["2"], players);
@@ -58,7 +59,7 @@ describe("GameMove", function () {
         assert.deepStrictEqual(Move.handleDrawCard(123, 0), { message: 'User cannot draw more cards, hand size limit reached', 
           success: false });
       }
-    });
+    }); */
   });
   describe("#handleDiscardCard()", function() {
    /* it("should allow the user to discard a card when they have not yet reached the discard limit and have played a card to start their turn", function() {
@@ -97,7 +98,8 @@ describe("GameMove", function () {
         }
       }
     }); */
-    it("shouldn't allow the user to discard a card when they haven't yet drawn to start their turn", function() {
+    // No discarding in Uno
+   /* it("shouldn't allow the user to discard a card when they haven't yet drawn to start their turn", function() {
       const Move = new GameMove();
       const players = [new Player(0, []), new Player(1, [])];
       const game = Move.createGame(123, ["2"], players);
@@ -109,6 +111,6 @@ describe("GameMove", function () {
             success: false });
         }
       }
-    });
+    }); */
   });
 });
