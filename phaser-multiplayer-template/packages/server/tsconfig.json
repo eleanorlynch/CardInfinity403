@@ -9,6 +9,8 @@
       "forceConsistentCasingInFileNames": true,
       "experimentalDecorators": true,
       "emitDecoratorMetadata": true,
+      "noEmit": false,
+      "moduleResolution": "node",
 
     },
     "include": ["src/**/*.ts", "./environment.d.ts"],

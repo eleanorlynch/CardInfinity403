@@ -4,22 +4,27 @@
   "description": "Card Infinity project package",
   "main": "index.js",
   "scripts": {
-    "test": "mocha",
-    "coverage": "c8 node server/GameMove.js" 
+    "test": "mocha -r ts-node/register \"test/**/*.spec.ts\"",
+    "coverage": "c8 --extension .ts --enable-source-maps -- mocha -r ts-node/register test/**/*.spec.ts"
   },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/eleanorlynch/CardInfinity403.git"
   },
   "author": "eleanorlynch",
-  "type": "module", 
   "license": "ISC",
   "bugs": {
     "url": "https://github.com/eleanorlynch/CardInfinity403/issues"
   },
   "homepage": "https://github.com/eleanorlynch/CardInfinity403#readme",
   "devDependencies": {
+    "@types/chai": "^5.2.3",
+    "@types/mocha": "^10.0.10",
+    "@types/node": "^25.2.3",
+    "c8": "^10.1.3",
+    "chai": "^6.2.2",
     "mocha": "^11.3.0",
-    "c8": "^10.1.3"
+    "ts-node": "^10.9.2",
+    "typescript": "^5.9.3"
   }
 }
