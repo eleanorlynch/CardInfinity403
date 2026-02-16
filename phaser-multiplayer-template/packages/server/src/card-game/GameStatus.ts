@@ -392,7 +392,7 @@ export class GameStatus {
         const winnerInfo = Winner.checkWinner(this);
         if (winnerInfo !== null) {
             this.gameOver = true;
-            if (winnerInfo.tie === true) {
+           /* if (winnerInfo.tie === true) {
                 this.tied = true;
                 if (winnerInfo.winners !== undefined) {
                     this.winners = winnerInfo.winners;
@@ -402,7 +402,7 @@ export class GameStatus {
                 if (winnerInfo.winner !== undefined) {
                     this.winner = winnerInfo.winner;
                 }
-            }
+            } */
         }
     }
 
