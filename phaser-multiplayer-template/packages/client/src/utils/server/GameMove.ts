@@ -44,8 +44,8 @@ export class GameMove {
             };
         }
         
-        if (game.getDrawsThisTurn() < 1) {
-            if (game.getPlayers()[0].getHand().length < 4) { // current beta ruleset has a hand size limit of 5
+        if (game.getDrawsThisTurn() < 1 && game.getPlaysThisTurn() < 1) { // uno lets you either draw or play once per turn
+            if (game.getPlayers()[0].getHand().length > -1) { // uno has no hand size limit
                 return game.drawCard(playerId);
             }
             else {
@@ -75,7 +75,7 @@ export class GameMove {
             };
         }
         
-        if (game.getPlaysThisTurn() < 0) { // current beta rules don't allow for playing cards
+        if (game.getPlaysThisTurn() < 1 && game.getDrawsThisTurn() < 1) { // uno lets you either draw or play once per turn
             return game.playCard(playerId, cardId);
         }
 
@@ -96,8 +96,8 @@ export class GameMove {
             };
         }
         
-        if (game.getDiscardsThisTurn() < 1) {
-            if (game.getDrawsThisTurn() >= 1) { // haven't discarded yet and have drawn a card to start your turn
+        if (game.getDiscardsThisTurn() < 0) { // uno doesn't have a discard feature
+            if (game.getDrawsThisTurn() >= 1) {
                 return game.discardCard(playerId, cardId);
             }
             return { 

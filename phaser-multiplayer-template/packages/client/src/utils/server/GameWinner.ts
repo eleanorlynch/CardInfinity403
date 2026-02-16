@@ -18,7 +18,7 @@ export class GameWinner {
         for (const player of gameState.getPlayers()) {
             if (player.getHand() !== undefined && player.getHand().length === 0) {
                 return {
-                    winner: gameState.currentTurn,
+                    winner: player.getID(),
                     winCondition: 'empty_hand',
                     message: "Player has no cards left!"
                 };

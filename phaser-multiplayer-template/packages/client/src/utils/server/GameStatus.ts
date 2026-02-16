@@ -98,7 +98,7 @@ export class GameStatus {
         });
         
         // Deal cards (default 7 cards per player)
-        const cardsPerPlayer = /*this.ruleset.cardsPerPlayer || */3;
+        const cardsPerPlayer = /*this.ruleset.cardsPerPlayer || */7;
         
         for (let i = 0; i < cardsPerPlayer; i++) {
             this.players.forEach(player => {

@@ -1,8 +1,8 @@
 import assert from "node:assert";
-import { GameStatus } from "../phaser-multiplayer-template/packages/server/src/card-game/GameStatus.ts";
-import { GameWinner } from "../phaser-multiplayer-template/packages/server/src/card-game/GameWinner.ts";
-import { Card } from "../phaser-multiplayer-template/packages/server/src/card-game/Card.ts";
-import { Player } from "../phaser-multiplayer-template/packages/server/src/card-game/Player.ts";
+import { GameStatus } from "../phaser-multiplayer-template/packages/client/src/utils/server/GameStatus.ts";
+import { GameWinner } from "../phaser-multiplayer-template/packages/client/src/utils/server/GameWinner.ts";
+import { Card } from "../phaser-multiplayer-template/packages/client/src/utils/server/Card.ts";
+import { Player } from "../phaser-multiplayer-template/packages/client/src/utils/server/Player.ts";
 
 describe("GameWinner", function () {
     describe("#checkMostSuit()", function () {
@@ -46,13 +46,12 @@ describe("GameWinner", function () {
     });
     describe("#checkWinner()", function() {
         it("should return the winner of the game based on the ruleset", function() { // currently ruleset is hardcoded in for the beta, update this test after the beta
-            const players = [new Player(0, [new Card("diamonds", 2), new Card("hearts", 2), new Card("diamonds", 2), new Card("hearts", 2), new Card("hearts", 2)]), 
-                new Player(1, [new Card("diamonds", 2), new Card("spades", 2), new Card("diamonds", 2), new Card("hearts", 2), new Card("hearts", 2)])];
+            const players = [new Player(0, [new Card("hearts", 2), new Card("hearts", 2)]), 
+                new Player(1, [])];
             const ruleset = ["1"];
             const game = new GameStatus(1, ruleset, players);
-            game.setRound(3);
             const winner = new GameWinner;
-            assert.deepStrictEqual(winner.checkWinner(game), {tie: false, winner: 0});
+            assert.deepStrictEqual(winner.checkWinner(game), { message: 'Player has no cards left!', winCondition: 'empty_hand', winner: 1 });
         });
     });
     describe("#emptyHand()", function() {

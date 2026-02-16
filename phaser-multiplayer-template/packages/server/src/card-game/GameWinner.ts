@@ -3,14 +3,14 @@ import { GameStatus } from "./GameStatus";
 export class GameWinner {
     // Check if any player has won
     checkWinner(gameState: GameStatus) { // TODO: Make which method it calls variable based on chosen rules
-        return this.checkMostSuit(gameState);
+        return this.emptyHand(gameState);
     }
 
     emptyHand(gameState: GameStatus) { // Player with empty hand wins
         for (const player of gameState.getPlayers()) {
             if (player.getHand() !== undefined && player.getHand().length === 0) {
                 return {
-                    winner: gameState.currentTurn,
+                    winner: player.getID(),
                     winCondition: 'empty_hand',
                     message: "Player has no cards left!"
                 };
