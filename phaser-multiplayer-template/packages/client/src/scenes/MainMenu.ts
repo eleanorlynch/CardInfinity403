@@ -91,9 +91,18 @@ export class MainMenu extends Scene {
     });
 
     button_start_game.on('pointerdown', async () => {
+      console.log("Start game clicked");
       await authorizeDiscordUser();
       this.scene.start("Game");
     });
+
+    // for testing in discord without authorized user
+    // button_start_game.on('pointerdown', /*async*/ () => {
+      // console.log("Start game clicked");
+      // await authorizeDiscordUser();
+      // console.log("Discord authorized");
+      // this.scene.start("Game");
+    // });
 
 
     // this.input.once("pointerdown", async () => {

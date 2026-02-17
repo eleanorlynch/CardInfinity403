@@ -10,6 +10,12 @@ export class GameMove {
     // Create a new game
     createGame(gameId: number, ruleset: string[], players: any[]) {
         const game = new GameStatus(gameId, ruleset, players);
+
+        //initialize deck + shuffle + initial deal
+        game.createDeck();
+        game.shuffleDeck();
+        game.dealCards();
+
         this.activeGames.set(gameId, game);
         return game;
     }
@@ -29,9 +35,16 @@ export class GameMove {
                 message: "Game not found" 
             };
         }
+
+        if (game.getCurrentTurn() !== playerId) {
+            return {
+                success: false,
+                message: "Not your turn"
+            };
+        }
         
         if (game.getDrawsThisTurn() < 1) {
-            if (game.getPlayers()[0].getHand().length < 4) { // current beta ruleset has a hand size limit of 5
+            if (game.getPlayers()[playerId].getHand().length < 4) { // current beta ruleset has a hand size limit of 5 ||| Shouldnt it be <= 4 then?
                 return game.drawCard(playerId);
             }
             else {

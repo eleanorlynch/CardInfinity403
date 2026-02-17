@@ -2,6 +2,7 @@ import { Scene } from "phaser";
 import { GameMove } from "../utils/server/GameMove.js";
 import { GameWinner } from "../utils/server/GameWinner.js";
 import { Player } from "../utils/server/Player.js";
+import {Client as ColyseusClient, Room} from "colyseus.js"
 
 interface Card {
   suit: string;
@@ -21,6 +22,12 @@ export class Game extends Scene {
   deckSprite: Phaser.GameObjects.Container | null = null;
   statusText: Phaser.GameObjects.Text | null = null;
   drawButton: Phaser.GameObjects.Text | null = null;
+  // temp end-turn button since we dont have automated end turn based on a specific rule(s)
+  endTurnButton: Phaser.GameObjects.Text | null = null;
+  // Colyseus multiplayer:
+  private netClient?: ColyseusClient;
+  private room?: Room;
+  private netState: any = null;
 
   constructor() {
     super("Game");
@@ -139,8 +146,45 @@ export class Game extends Scene {
       }
     });
 
+    // =========================
+    // END TURN BUTTON
+    // =========================
+    this.endTurnButton = this.add
+      .text(width * 0.5, height * 0.72, "End Turn", {
+        fontFamily: "Arial",
+        fontSize: "24px",
+        color: "#101814",
+        backgroundColor: "#EBC9B3",
+        padding: { x: 20, y: 10 }
+      })
+      .setOrigin(0.5)
+      .setInteractive({ useHandCursor: true });
+
+    this.endTurnButton.on("pointerover", () => {
+      if (this.endTurnButton && !this.isGameOver()) {
+        this.endTurnButton.setStyle({ backgroundColor: "#D4B89A" });
+      }
+    });
+
+    this.endTurnButton.on("pointerout", () => {
+      if (this.endTurnButton) {
+        this.endTurnButton.setStyle({ backgroundColor: "#EBC9B3" });
+      }
+    });
+    
+    this.endTurnButton.on("pointerdown", () => {
+      if (!this.room) return;
+      if (this.netState?.gameOver) return;
+      this.room.send("END_TURN");
+    });
+
+
     // Initialize game
-    this.initializeGame();
+    // this.initializeGame(); {replaced with below}
+    this.connectToRoom().catch((err) => {
+      console.error(err);
+      if(this.statusText) this.statusText.setText("Failed to connect");
+    });
   }
 
   resetGameState() {
@@ -355,28 +399,22 @@ export class Game extends Scene {
   }
 
   isGameOver(): boolean {
-    if (!this.gameMove) return false;
-    
-    const stateResult = this.gameMove.getGameState(this.gameId, this.playerId);
-    return stateResult.success && stateResult.gameState?.gameOver || false;
+    return !!this.netState?.gameOver;
   }
 
+  // multiplayer handle draw using room
   handleDrawCard() {
-    if (!this.gameMove || this.isGameOver()) {
+    if (!this.room) {
+      console.warn("No room connection");
       return;
     }
 
-    // Use GameMove to handle drawing a card
-    const result = this.gameMove.handleDrawCard(this.gameId, this.playerId);
-    
-    if (result.success) {
-      this.updateDisplay();
-    } else {
-      // Handle error message
-      if (this.statusText) {
-        this.statusText.setText(result.message || "无法抽牌");
-      }
+    if (this.netState?.gameOver) {
+      return;
     }
+
+    console.log("Sending DRAW to server");
+    this.room.send("DRAW");
   }
 
   handlePlayCard(cardId: string) {
@@ -409,4 +447,76 @@ export class Game extends Scene {
       }
     }
   }
+
+  private async connectToRoom() {
+    const channelId = "dev-channel-1";
+
+    // ===== LOCAL DEV (comment this out when using tunnel) =====
+    const wsEndpoint = "ws://localhost:3001";
+
+    // ===== TUNNEL / DISCORD (comment this out when using local) =====
+    // Browser Colyseus must use ws:// or wss:// (not http://)
+    // const wsEndpoint = window.location.origin.replace(/^http/, "ws");
+
+    this.netClient = new ColyseusClient(wsEndpoint);
+
+    this.room = await this.netClient.joinOrCreate("game", { channelId });
+
+    this.room.onMessage("PRIVATE_STATE", (state) => {
+      this.netState = state;
+      this.updateDisplayFromNet();
+    });
+
+    this.room.onMessage("ERROR", (msg: any) => {
+      if (this.statusText) this.statusText.setText(msg?.message ?? "Error");
+    });
+
+    if (this.statusText) this.statusText.setText("Connected...");
+  }
+
+    private updateDisplayFromNet() {
+    if (!this.netState) return;
+
+    const width = Number(this.game.config.width);
+    const height = Number(this.game.config.height);
+
+    // Clear existing card sprites
+    this.cardSprites.forEach(sprite => sprite.destroy());
+    this.cardSprites.clear();
+
+    const myHand: Card[] = this.netState.myHand ?? [];
+    const discardTop: Card | null = this.netState.discardTop ?? null;
+    const deckCount: number = this.netState.deckCount ?? 0;
+    const gameOver: boolean = this.netState.gameOver ?? false;
+
+    if (this.statusText) {
+      if (gameOver) {
+        this.statusText.setText("Game Over!");
+      } else {
+        this.statusText.setText(
+          this.netState.isMyTurn
+            ? `Your turn | Hand: ${myHand.length} | Deck: ${deckCount}`
+            : `Opponent turn | Hand: ${myHand.length} | Deck: ${deckCount}`
+        );
+      }
+    }
+
+    if (this.drawButton) {
+      this.drawButton.setVisible(!gameOver && !!this.netState?.isMyTurn);
+    }
+
+    if (this.endTurnButton) {
+      this.endTurnButton.setVisible(!gameOver && !!this.netState?.isMyTurn);
+    }
+
+    // Render from server state
+    this.displayHand(myHand, width * 0.5, height * 0.82);
+
+    if (discardTop) {
+      this.displayDiscardPile(discardTop, width * 0.5, height * 0.45);
+    }
+
+    this.displayDeckCount(deckCount, width * 0.3, height * 0.45);
+  }
+
 }

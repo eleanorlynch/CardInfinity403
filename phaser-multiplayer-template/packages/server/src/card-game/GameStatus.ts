@@ -422,6 +422,28 @@ export class GameStatus {
             this.players[player].setHand(hand);
         }
     }
-}
 
-    
+    getGameState(playerId: number) {
+    return {
+        gameId: this.gameId,
+        ruleset: this.ruleset,
+
+        players: this.players.map((p) => ({
+        id: p.getID(),
+        name: `Player ${p.getID()}`,
+        handCount: p.getHand()?.length ?? 0,
+        })),
+
+        currentTurn: this.currentTurn,
+        isMyTurn: this.currentTurn === playerId,
+
+        myHand: this.players[playerId]?.getHand() ?? [],
+        discardTop: this.getTopDiscard(),
+        deckCount: this.getDeckCount(),
+
+        gameOver: this.gameOver,
+        winner: this.winner,
+    };
+    }
+
+}
