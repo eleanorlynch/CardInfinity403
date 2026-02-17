@@ -23,6 +23,7 @@
     "@colyseus/uwebsockets-transport": "^0.16.0",
     "@colyseus/ws-transport": "^0.16.0",
     "colyseus": "^0.16.0",
+    "colyseus.js": "^0.16.22",
     "dotenv": "^16.0.1",
     "express": "^4.17.1",
     "http-proxy-middleware": "^2.0.6",

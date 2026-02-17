@@ -1,5 +1,6 @@
 import { ScaleFlow } from "./utils/ScaleFlow";
 import { initiateDiscordSDK } from "./utils/discordSDK";
+import "./wsPatch" // to fix how colyseus' transport code is evaluated
 
 import { Boot } from "./scenes/Boot";
 import { Game } from "./scenes/Game";

@@ -1,7 +1,8 @@
 import assert from "node:assert";
-import { GameMove } from "../phaser-multiplayer-template/packages/client/src/utils/server/GameMove.ts";
-import { GameStatus } from "../phaser-multiplayer-template/packages/client/src/utils/server/GameStatus.ts";
-import { Player } from "../phaser-multiplayer-template/packages/client/src/utils/server/Player.ts";
+import { GameMove } from "../phaser-multiplayer-template/packages/server/src/card-game/GameMove.ts";
+import { GameStatus } from "../phaser-multiplayer-template/packages/server/src/card-game/GameStatus.ts";
+import { Player } from "../phaser-multiplayer-template/packages/server/src/card-game/Player.ts";
+import { Card } from "../phaser-multiplayer-template/packages/server/src/card-game/Card.ts";
 
 describe("GameMove", function () {
   describe("#createGame()", function () {
@@ -112,5 +113,39 @@ describe("GameMove", function () {
         }
       }
     }); */
+  });
+  describe("#handlePlayCard()", function() {
+    it("should allow the user to play a card when they have not yet reached the play limit, have not drawn a card this turn,"
+      + " and the card matches the rank of the top discard", function() {
+      const Move = new GameMove();
+      const players = [new Player(0, []), new Player(1, [])];
+      const game = Move.createGame(123, ["2"], players);
+      game.setPlayerHand([new Card("clubs", 2)], 0);
+      game.setDiscardPile([new Card("hearts", 2)]);
+      if (players !== undefined && players[0] !== undefined) {
+        const hand = players[0].getHand();
+        if (hand !== undefined && hand[0] !== undefined) {
+          const cardToPlay = hand[0];
+          assert.deepStrictEqual(Move.handlePlayCard(123, 0, cardToPlay.getId()), {success: true, message: "Card played successfully",
+            playerHand: [], discardTop: cardToPlay, nextPlayer: 0 });
+        }
+      }
+    });
+    it("should allow the user to play a card when they have not yet reached the play limit, have not drawn a card this turn,"
+      + " and the card matches the suit of the top discard", function() {
+      const Move = new GameMove();
+      const players = [new Player(0, [new Card("clubs", 2)]), new Player(1, [])];
+      const game = Move.createGame(123, ["2"], players);
+      game.setDiscardPile([new Card("clubs", 3)]);
+      game.setPlayerHand([new Card("clubs", 2)], 0);
+      if (players !== undefined && players[0] !== undefined) {
+        const hand = players[0].getHand();
+        if (hand !== undefined && hand[0] !== undefined) {
+          const cardToPlay = hand[0];
+          assert.deepStrictEqual(Move.handlePlayCard(123, 0, cardToPlay.getId()), {success: true, message: "Card played successfully",
+            playerHand: [], discardTop: cardToPlay, nextPlayer: 0 });
+        }
+      }
+    });
   });
 });

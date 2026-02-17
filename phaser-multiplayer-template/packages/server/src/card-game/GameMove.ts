@@ -1,4 +1,5 @@
 import { GameStatus } from "./GameStatus";
+import { Card } from "./Card";
 
 // TODO: Once objects have been defined, replace the any datatypes with the object
 export class GameMove {
@@ -10,6 +11,12 @@ export class GameMove {
     // Create a new game
     createGame(gameId: number, ruleset: string[], players: any[]) {
         const game = new GameStatus(gameId, ruleset, players);
+
+        //initialize deck + shuffle + initial deal
+        game.createDeck();
+        game.shuffleDeck();
+        game.dealCards();
+
         this.activeGames.set(gameId, game);
         return game;
     }
@@ -29,17 +36,32 @@ export class GameMove {
                 message: "Game not found" 
             };
         }
+
+        if (game.getCurrentTurn() !== playerId) {
+            return {
+                success: false,
+                message: "Not your turn"
+            };
+        }
         
-        if (game.getDrawsThisTurn() < 1) {
-            if (game.getPlayers()[0].getHand().length < 4) { // current beta ruleset has a hand size limit of 5
+        if (game.getDrawsThisTurn() < 1) { // uno lets you either draw or play once per turn
+           // if (game.getPlayers()[playerId].getHand().length < 4) { // current beta ruleset has no hand size limit
+           if (game.getPlaysThisTurn() < 1) {
                 return game.drawCard(playerId);
+            }  
+           else {
+                return { 
+                    success: false, 
+                    message: "User cannot both play and draw a card in the same turn" 
+                };
             }
-            else {
+           // }
+           /* else {
                 return { 
                     success: false, 
                     message: "User cannot draw more cards, hand size limit reached" 
                 };
-            }
+            } */
         }
 
         else {
@@ -61,8 +83,37 @@ export class GameMove {
             };
         }
         
-        if (game.getPlaysThisTurn() < 0) { // current beta rules don't allow for playing cards
-            return game.playCard(playerId, cardId);
+        if (game.getPlaysThisTurn() < 1) { // current beta rules allow for either playing or drawing once per turn
+            if (game.getDrawsThisTurn() < 1) {
+                const hand = game.getPlayers()[playerId].getHand();
+                if (hand !== undefined) {
+                    for (const card of hand) {
+                        if (card.getId() === cardId) {
+                            if (card.getRank() === game.getTopDiscard().getRank() || card.getSuit() === game.getTopDiscard().getSuit()) {
+                                return game.playCard(playerId, cardId);
+                            }
+                            else {
+                                return { 
+                                    success: false, 
+                                    message: "Card does not match rank or suit of top card" 
+                                };
+                            }
+                        }
+                    }
+                    return {
+                        success: false,
+                        message: "Card not found in player's hand"
+                    };
+                }
+                return {
+                    success: false,
+                    message: "Player hand not found"
+                };
+            }
+            return {
+                success: false,
+                message: "User cannot both play and draw a card in the same turn"
+            }
         }
 
         return { 
