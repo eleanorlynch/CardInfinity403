@@ -426,6 +426,11 @@ export class GameStatus {
         }
     }
 
+    // FOR TESTING PURPOSES
+    setDiscardPile(pile: Card[]) {
+        this.discardPile = pile;
+    }
+
     getGameState(playerId: number) {
     return {
         gameId: this.gameId,
