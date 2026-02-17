@@ -1,6 +1,7 @@
 import { Scene } from "phaser";
 import { GameMove } from "../utils/server/GameMove.js";
 import { GameWinner } from "../utils/server/GameWinner.js";
+import { Player } from "../utils/server/Player.js";
 
 interface Card {
   suit: string;
@@ -11,8 +12,10 @@ interface Card {
 
 export class Game extends Scene {
   gameMove: GameMove | null = null;
-  gameId: string = "single-player-game";
-  playerId: string = "player1";
+  //gameId: string = "single-player-game";
+  gameId: number = 1;
+  //playerId: string = "player1";
+  playerId: number = 0;
   cardSprites: Map<string, Phaser.GameObjects.Container> = new Map();
   discardPileSprite: Phaser.GameObjects.Container | null = null;
   deckSprite: Phaser.GameObjects.Container | null = null;
@@ -168,11 +171,14 @@ export class Game extends Scene {
     this.gameMove = new GameMove();
     
     // Create a single-player game using GameMove
-    const players = [{ id: this.playerId, name: "You" }];
-    const ruleset = { cardsPerPlayer: 7 };
+    const players = [new Player(this.playerId, [])];
+    const ruleset = ["2"]; // Standard rule set
     
     // GameMove.createGame will handle deck creation, shuffling, and dealing
-    this.gameMove.createGame(this.gameId, ruleset, players);
+    this.gameMove.createGame(1, ruleset, players);
+    
+    // Update game ID reference
+    this.gameId = 1;
     
     // Update display
     this.updateDisplay();
@@ -180,6 +186,10 @@ export class Game extends Scene {
 
   updateDisplay() {
     if (!this.gameMove) return;
+
+    // Get the actual game object for winner checking
+    const game = this.gameMove.getGame(this.gameId);
+    if (!game) return;
 
     // Get game state through GameMove
     const stateResult = this.gameMove.getGameState(this.gameId, this.playerId);
@@ -192,8 +202,10 @@ export class Game extends Scene {
     const width = Number(this.game.config.width);
     const height = Number(this.game.config.height);
 
-    // Check for winner using GameWinner
-    const winnerResult = GameWinner.checkWinner(gameState);
+    const Winner = new GameWinner();
+
+    // Check for winner using GameWinner (pass the actual GameStatus object, not the state result)
+    const winnerResult = Winner.checkWinner(game);
 
     // Update status text
     if (this.statusText) {
@@ -381,7 +393,8 @@ export class Game extends Scene {
       // Check for winner after playing card
       const stateResult = this.gameMove.getGameState(this.gameId, this.playerId);
       if (stateResult.success && stateResult.gameState) {
-        const winnerResult = GameWinner.checkWinner(stateResult.gameState);
+        const Winner = new GameWinner;
+        const winnerResult = Winner.checkWinner(stateResult.gameState);
         if (winnerResult) {
           // Winner detected
           if (this.statusText) {

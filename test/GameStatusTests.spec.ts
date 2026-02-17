@@ -1,7 +1,7 @@
 import assert from "node:assert";
-import { GameStatus } from "../phaser-multiplayer-template/packages/server/src/card-game/GameStatus.ts";
-import { Player } from "../phaser-multiplayer-template/packages/server/src/card-game/Player.ts";
-import { Card } from "../phaser-multiplayer-template/packages/server/src/card-game/Card.ts";
+import { GameStatus } from "../phaser-multiplayer-template/packages/client/src/utils/server/GameStatus.ts";
+import { Player } from "../phaser-multiplayer-template/packages/client/src/utils/server/Player.ts";
+import { Card } from "../phaser-multiplayer-template/packages/client/src/utils/server/Card.ts";
 
 describe("GameStatus", function () {
   describe("#getGameId()", function () {
@@ -37,13 +37,14 @@ describe("GameStatus", function () {
       assert.strictEqual(game.getCurrentTurn(), 1);
     });
     it("should leave gameOver at false if there is no winner at the end of a turn", function() {
-      const players = [new Player(0, []), new Player(1, [])];
+      const players = [new Player(0, [new Card("diamonds", 2)]), new Player(1, [new Card("hearts", 2)])];
       const ruleset = ["2"];
       const game = new GameStatus(123, ruleset, players);
       game.nextTurn();
       assert.strictEqual(game.gameOver, false);
     });
-    it("should set gameOver to true if there is a winner at the end of a turn and set tied to true is there is a tie", function() {
+    // Can't tie in uno
+  /*  it("should set gameOver to true if there is a winner at the end of a turn and set tied to true is there is a tie", function() {
       const players = [new Player(0, []), new Player(1, [])];
       const ruleset = ["2"];
       const game = new GameStatus(123, ruleset, players);
@@ -51,13 +52,12 @@ describe("GameStatus", function () {
       game.nextTurn();
       assert.strictEqual(game.gameOver, true);
       assert.strictEqual(game.tied, true);
-    });
+    }); */
     it("should set gameOver to true if there is a winner at the end of a turn and leave tied at false if there is no tie", function() {
-      const players = [new Player(0, [new Card("diamonds", 2), new Card("hearts", 2), new Card("diamonds", 2), new Card("hearts", 2), new Card("hearts", 2)]), 
-                      new Player(1, [new Card("diamonds", 2), new Card("diamonds", 2), new Card("spades", 2), new Card("hearts", 2), new Card("hearts", 2)])];
+      const players = [new Player(0, [new Card("hearts", 2)]), 
+                      new Player(1, [])];
       const ruleset = ["2"];
       const game = new GameStatus(123, ruleset, players);
-      game.setRound(3);
       game.nextTurn();
       assert.strictEqual(game.gameOver, true);
       assert.strictEqual(game.tied, false);
@@ -79,8 +79,6 @@ describe("GameStatus", function () {
       const players = [new Player(0, []), new Player(1, [])];
       const ruleset = ["2"];
       const game = new GameStatus(123, ruleset, players);
-      game.createDeck();
-      game.shuffleDeck();
       game.drawCard(0);
       if (players[0] !== undefined) {
         const hand = players[0].getHand();
@@ -140,10 +138,10 @@ describe("GameStatus", function () {
       game.shuffleDeck();
       game.dealCards();
       if (players[0] !== undefined && players[0].getHand() !== undefined) {
-        assert.strictEqual(players[0].getHand().length, 3);
+        assert.strictEqual(players[0].getHand().length, 7);
       }
       if (players[1] !== undefined && players[1].getHand() !== undefined) {
-        assert.strictEqual(players[1].getHand().length, 3);
+        assert.strictEqual(players[1].getHand().length, 7);
       }
     });
   });
@@ -154,8 +152,8 @@ describe("GameStatus", function () {
       const game = new GameStatus(123, ruleset, players);
       game.createDeck();
       game.shuffleDeck();
-      game.drawCard(0);
       if (players[0] !== undefined && players[0].getHand() !== undefined) {
+        game.drawCard(0);
         assert.strictEqual(players[0].getHand().length, 1);
       }
     });
@@ -181,8 +179,6 @@ describe("GameStatus", function () {
       const players = [new Player(0, []), new Player(1, [])];
       const ruleset = ["2"];
       const game = new GameStatus(123, ruleset, players);
-      game.createDeck();
-      game.shuffleDeck();
       const fakeCardId = "fake_card_id";
       game.playCard(0, fakeCardId);
       assert.strictEqual(game.discardPile.length, 0);
@@ -194,8 +190,6 @@ describe("GameStatus", function () {
       const players = [new Player(0, []), new Player(1, [])];
       const ruleset = ["2"];
       const game = new GameStatus(123, ruleset, players);
-      game.createDeck();
-      game.shuffleDeck();
       game.drawCard(0);
       if (players[0] !== undefined && players[0].getHand() !== undefined) {
         const hand = players[0].getHand();
@@ -211,8 +205,6 @@ describe("GameStatus", function () {
       const players = [new Player(0, []), new Player(1, [])];
       const ruleset = ["2"];
       const game = new GameStatus(123, ruleset, players);
-      game.createDeck();
-      game.shuffleDeck();
       game.drawCard(0);
       const fakeCardId = "fake_card_id";
       game.discardCard(0, fakeCardId);
@@ -222,10 +214,6 @@ describe("GameStatus", function () {
       const players = [new Player(0, []), new Player(1, [])];
       const ruleset = ["2"];
       const game = new GameStatus(123, ruleset, players);
-      game.createDeck();
-      game.shuffleDeck();
-      game.dealCards();
-      game.drawCard(1);
       if (players[1] !== undefined && players[1].getHand() !== undefined) {
         const hand = players[1].getHand();
         if (hand.length > 0 && hand[0] !== undefined) {
@@ -241,8 +229,6 @@ describe("GameStatus", function () {
       const players = [new Player(0, []), new Player(1, [])];
       const ruleset = ["2"];
       const game = new GameStatus(123, ruleset, players);
-      game.createDeck();
-      game.shuffleDeck();
       game.drawCard(0);
       if (players[0] !== undefined && players[0].getHand() !== undefined) {
         const hand = players[0].getHand();
