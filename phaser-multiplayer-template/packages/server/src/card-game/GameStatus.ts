@@ -113,6 +113,9 @@ export class GameStatus {
                 }
             });
         }
+
+        // uno needs a card in the discard pile to start
+        this.discardPile.push(this.deck.pop()!); // TODO: add error message for if undefined
     }
  
     //Player drawing a card from the deck 

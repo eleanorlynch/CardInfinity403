@@ -418,12 +418,23 @@ export class Game extends Scene {
   }
 
   handlePlayCard(cardId: string) {
-    if (!this.gameMove || this.isGameOver()) {
+    if (!this.room) {
+      console.warn("No room connection");
       return;
     }
 
+    if (this.netState?.gameOver) {
+      return;
+    }
+
+    console.log(`Sending PLAY_CARD with id ${cardId} to server`);
+    this.room.send("PLAY_CARD", { cardId });
+
+    if (this.isGameOver()) {
+      this.room.send("WINNER_CHECK");
+    }
     // Use GameMove to handle playing a card
-    const result = this.gameMove.handlePlayCard(this.gameId, this.playerId, cardId);
+  /*  const result = this.gameMove.handlePlayCard(this.gameId, this.playerId, cardId);
     
     if (result.success) {
       this.updateDisplay();
@@ -445,7 +456,7 @@ export class Game extends Scene {
       if (this.statusText) {
         this.statusText.setText(result.message || "Cannot play card");
       }
-    }
+    } */
   }
 
   private async connectToRoom() {

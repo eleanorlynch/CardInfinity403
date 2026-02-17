@@ -1,4 +1,5 @@
 import { GameStatus } from "./GameStatus";
+import { Card } from "./Card";
 
 // TODO: Once objects have been defined, replace the any datatypes with the object
 export class GameMove {
@@ -43,16 +44,24 @@ export class GameMove {
             };
         }
         
-        if (game.getDrawsThisTurn() < 1) {
-            if (game.getPlayers()[playerId].getHand().length < 4) { // current beta ruleset has a hand size limit of 5 ||| Shouldnt it be <= 4 then?
+        if (game.getDrawsThisTurn() < 1) { // uno lets you either draw or play once per turn
+           // if (game.getPlayers()[playerId].getHand().length < 4) { // current beta ruleset has no hand size limit
+           if (game.getPlaysThisTurn() < 1) {
                 return game.drawCard(playerId);
+            }  
+           else {
+                return { 
+                    success: false, 
+                    message: "User cannot both play and draw a card in the same turn" 
+                };
             }
-            else {
+           // }
+           /* else {
                 return { 
                     success: false, 
                     message: "User cannot draw more cards, hand size limit reached" 
                 };
-            }
+            } */
         }
 
         else {
@@ -74,8 +83,37 @@ export class GameMove {
             };
         }
         
-        if (game.getPlaysThisTurn() < 0) { // current beta rules don't allow for playing cards
-            return game.playCard(playerId, cardId);
+        if (game.getPlaysThisTurn() < 1) { // current beta rules allow for either playing or drawing once per turn
+            if (game.getDrawsThisTurn() < 1) {
+                const hand = game.getPlayers()[playerId].getHand();
+                if (hand !== undefined) {
+                    for (const card of hand) {
+                        if (card.getId() === cardId) {
+                            if (card.getRank() === game.getTopDiscard().getRank() || card.getSuit() === game.getTopDiscard().getSuit()) {
+                                return game.playCard(playerId, cardId);
+                            }
+                            else {
+                                return { 
+                                    success: false, 
+                                    message: "Card does not match rank or suit of top card" 
+                                };
+                            }
+                        }
+                    }
+                    return {
+                        success: false,
+                        message: "Card not found in player's hand"
+                    };
+                }
+                return {
+                    success: false,
+                    message: "Player hand not found"
+                };
+            }
+            return {
+                success: false,
+                message: "User cannot both play and draw a card in the same turn"
+            }
         }
 
         return { 

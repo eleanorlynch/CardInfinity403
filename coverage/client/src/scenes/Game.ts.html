@@ -25,7 +25,7 @@
             <div class='fl pad1y space-right2'>
                 <span class="strong">0% </span>
                 <span class="quiet">Statements</span>
-                <span class='fraction'>0/399</span>
+                <span class='fraction'>0/412</span>
             </div>
         
             
@@ -46,7 +46,7 @@
             <div class='fl pad1y space-right2'>
                 <span class="strong">0% </span>
                 <span class="quiet">Lines</span>
-                <span class='fraction'>0/399</span>
+                <span class='fraction'>0/412</span>
             </div>
         
             
@@ -462,7 +462,33 @@
 <a name='L397'></a><a href='#L397'>397</a>
 <a name='L398'></a><a href='#L398'>398</a>
 <a name='L399'></a><a href='#L399'>399</a>
-<a name='L400'></a><a href='#L400'>400</a></td><td class="line-coverage quiet"><span class="cline-any cline-no">&nbsp;</span>
+<a name='L400'></a><a href='#L400'>400</a>
+<a name='L401'></a><a href='#L401'>401</a>
+<a name='L402'></a><a href='#L402'>402</a>
+<a name='L403'></a><a href='#L403'>403</a>
+<a name='L404'></a><a href='#L404'>404</a>
+<a name='L405'></a><a href='#L405'>405</a>
+<a name='L406'></a><a href='#L406'>406</a>
+<a name='L407'></a><a href='#L407'>407</a>
+<a name='L408'></a><a href='#L408'>408</a>
+<a name='L409'></a><a href='#L409'>409</a>
+<a name='L410'></a><a href='#L410'>410</a>
+<a name='L411'></a><a href='#L411'>411</a>
+<a name='L412'></a><a href='#L412'>412</a>
+<a name='L413'></a><a href='#L413'>413</a></td><td class="line-coverage quiet"><span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
@@ -864,6 +890,7 @@
 <span class="cline-any cline-neutral">&nbsp;</span></td><td class="text"><pre class="prettyprint lang-js"><span class="cstat-no" title="statement not covered" ><span class="fstat-no" title="function not covered" ><span class="branch-0 cbranch-no" title="branch not covered" >import { Scene } from "phaser";</span></span></span>
 <span class="cstat-no" title="statement not covered" >import { GameMove } from "../utils/server/GameMove.js";</span>
 <span class="cstat-no" title="statement not covered" >import { GameWinner } from "../utils/server/GameWinner.js";</span>
+<span class="cstat-no" title="statement not covered" >import { Player } from "../utils/server/Player.js";</span>
 <span class="cstat-no" title="statement not covered" ></span>
 <span class="cstat-no" title="statement not covered" >interface Card {</span>
 <span class="cstat-no" title="statement not covered" >  suit: string;</span>
@@ -874,8 +901,10 @@
 <span class="cstat-no" title="statement not covered" ></span>
 <span class="cstat-no" title="statement not covered" >export class Game extends Scene {</span>
 <span class="cstat-no" title="statement not covered" >  gameMove: GameMove | null = null;</span>
-<span class="cstat-no" title="statement not covered" >  gameId: string = "single-player-game";</span>
-<span class="cstat-no" title="statement not covered" >  playerId: string = "player1";</span>
+<span class="cstat-no" title="statement not covered" >  //gameId: string = "single-player-game";</span>
+<span class="cstat-no" title="statement not covered" >  gameId: number = 1;</span>
+<span class="cstat-no" title="statement not covered" >  //playerId: string = "player1";</span>
+<span class="cstat-no" title="statement not covered" >  playerId: number = 0;</span>
 <span class="cstat-no" title="statement not covered" >  cardSprites: Map&lt;string, Phaser.GameObjects.Container&gt; = new Map();</span>
 <span class="cstat-no" title="statement not covered" >  discardPileSprite: Phaser.GameObjects.Container | null = null;</span>
 <span class="cstat-no" title="statement not covered" >  deckSprite: Phaser.GameObjects.Container | null = null;</span>
@@ -1031,11 +1060,14 @@
 <span class="cstat-no" title="statement not covered" >    this.gameMove = new GameMove();</span>
 <span class="cstat-no" title="statement not covered" >    </span>
 <span class="cstat-no" title="statement not covered" >    // Create a single-player game using GameMove</span>
-<span class="cstat-no" title="statement not covered" >    const players = [{ id: this.playerId, name: "You" }];</span>
-<span class="cstat-no" title="statement not covered" >    const ruleset = { cardsPerPlayer: 7 };</span>
+<span class="cstat-no" title="statement not covered" >    const players = [new Player(this.playerId, [])];</span>
+<span class="cstat-no" title="statement not covered" >    const ruleset = ["2"]; // Standard rule set</span>
 <span class="cstat-no" title="statement not covered" >    </span>
 <span class="cstat-no" title="statement not covered" >    // GameMove.createGame will handle deck creation, shuffling, and dealing</span>
-<span class="cstat-no" title="statement not covered" >    this.gameMove.createGame(this.gameId, ruleset, players);</span>
+<span class="cstat-no" title="statement not covered" >    this.gameMove.createGame(1, ruleset, players);</span>
+<span class="cstat-no" title="statement not covered" >    </span>
+<span class="cstat-no" title="statement not covered" >    // Update game ID reference</span>
+<span class="cstat-no" title="statement not covered" >    this.gameId = 1;</span>
 <span class="cstat-no" title="statement not covered" >    </span>
 <span class="cstat-no" title="statement not covered" >    // Update display</span>
 <span class="cstat-no" title="statement not covered" >    this.updateDisplay();</span>
@@ -1043,6 +1075,10 @@
 <span class="cstat-no" title="statement not covered" ></span>
 <span class="cstat-no" title="statement not covered" >  updateDisplay() {</span>
 <span class="cstat-no" title="statement not covered" >    if (!this.gameMove) return;</span>
+<span class="cstat-no" title="statement not covered" ></span>
+<span class="cstat-no" title="statement not covered" >    // Get the actual game object for winner checking</span>
+<span class="cstat-no" title="statement not covered" >    const game = this.gameMove.getGame(this.gameId);</span>
+<span class="cstat-no" title="statement not covered" >    if (!game) return;</span>
 <span class="cstat-no" title="statement not covered" ></span>
 <span class="cstat-no" title="statement not covered" >    // Get game state through GameMove</span>
 <span class="cstat-no" title="statement not covered" >    const stateResult = this.gameMove.getGameState(this.gameId, this.playerId);</span>
@@ -1055,8 +1091,10 @@
 <span class="cstat-no" title="statement not covered" >    const width = Number(this.game.config.width);</span>
 <span class="cstat-no" title="statement not covered" >    const height = Number(this.game.config.height);</span>
 <span class="cstat-no" title="statement not covered" ></span>
-<span class="cstat-no" title="statement not covered" >    // Check for winner using GameWinner</span>
-<span class="cstat-no" title="statement not covered" >    const winnerResult = GameWinner.checkWinner(gameState);</span>
+<span class="cstat-no" title="statement not covered" >    const Winner = new GameWinner();</span>
+<span class="cstat-no" title="statement not covered" ></span>
+<span class="cstat-no" title="statement not covered" >    // Check for winner using GameWinner (pass the actual GameStatus object, not the state result)</span>
+<span class="cstat-no" title="statement not covered" >    const winnerResult = Winner.checkWinner(game);</span>
 <span class="cstat-no" title="statement not covered" ></span>
 <span class="cstat-no" title="statement not covered" >    // Update status text</span>
 <span class="cstat-no" title="statement not covered" >    if (this.statusText) {</span>
@@ -1244,7 +1282,8 @@
 <span class="cstat-no" title="statement not covered" >      // Check for winner after playing card</span>
 <span class="cstat-no" title="statement not covered" >      const stateResult = this.gameMove.getGameState(this.gameId, this.playerId);</span>
 <span class="cstat-no" title="statement not covered" >      if (stateResult.success &amp;&amp; stateResult.gameState) {</span>
-<span class="cstat-no" title="statement not covered" >        const winnerResult = GameWinner.checkWinner(stateResult.gameState);</span>
+<span class="cstat-no" title="statement not covered" >        const Winner = new GameWinner;</span>
+<span class="cstat-no" title="statement not covered" >        const winnerResult = Winner.checkWinner(stateResult.gameState);</span>
 <span class="cstat-no" title="statement not covered" >        if (winnerResult) {</span>
 <span class="cstat-no" title="statement not covered" >          // Winner detected</span>
 <span class="cstat-no" title="statement not covered" >          if (this.statusText) {</span>
@@ -1267,7 +1306,7 @@
             <div class='footer quiet pad2 space-top1 center small'>
                 Code coverage generated by
                 <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
-                at 2026-02-16T21:43:44.589Z
+                at 2026-02-17T19:33:55.338Z
             </div>
         <script src="../../../prettify.js"></script>
         <script>

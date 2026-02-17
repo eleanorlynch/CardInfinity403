@@ -19,6 +19,7 @@ export class GameRoom extends Room {
       this.handlePlayCard(client, msg.cardId)
     );
     this.onMessage("END_TURN", (client) => this.handleEndTurn(client));
+    this.onMessage("CHECK_WINNER", (client) => this.handleCheckWinner(client));
   }
 
   onJoin(client: Client) {
@@ -109,6 +110,21 @@ export class GameRoom extends Room {
     }
 
     game.nextTurn();
+    this.broadcastPrivateStates();
+  }
+
+  private handleCheckWinner(client: Client) {
+    const seat = this.seatBySessionId.get(client.sessionId);
+    if (seat === undefined) return;
+
+    const game = this.gameMove.getGame(this.gameId);
+    if (!game) return;  
+
+    const winnerId = game.checkWinner();
+    if (winnerId !== null) {
+      this.broadcast("GAME_OVER", { winnerId });
+    }
+
     this.broadcastPrivateStates();
   }
 
