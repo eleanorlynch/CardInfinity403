@@ -68,16 +68,15 @@ Instructions for setting up 2FA in Discord can be found here: https://support.di
 
 a) In the Discord dev portal applications screen, create a new Discord activity through the "New Activity" button at the top right of the screen
 b) Go to the OAuth2 tab under the Settings section of your activity through the Discord developer portal and add https://127.0.0.1 as a new redirect under Redirects 
-c) Open example.env and put the client id and client secret keys from your OAuth2 page into the values for VITE_CLIENT_ID and CLIENT_SECRET respectively with no quotes (You may need to reset the client secret on the app in order to do this. 
-   *Whenever you reset this secret, make sure to update it here as well or the app will not work afterwards). 
-d) While still in example.env, make sure the NODE_ENV value is set to 'production'. Rename example.env to .env
-e) Make sure 'npm run dev' has been run and is still running (ie: that the server is still up). Open a new terminal window in the same directory and run 'npm run tunnel'
-f) Copy the generated cloudflared link, go to the Discord developer portal for your activity, and navigate to the URL Mappings tab under the Activities section. Paste the link here. 
+c) Open example.env and put the client id and client secret keys from your OAuth2 page into the values for VITE_CLIENT_ID and CLIENT_SECRET respectively with no quotes (You may need to reset the client secret on the app in order to do this. Rename example.env to .env and ensure the NODE_ENV value is set to 'production' (including quotes)
+   *Whenever you reset this secret, make sure to update it here as well or the app will not work afterwards. 
+d) Make sure 'npm run dev' has been run and is still running (ie: that the server is still up). Open a new terminal window in the same directory and run 'npm run tunnel'
+e) Copy the generated cloudflared link, go to the Discord developer portal for your activity, and navigate to the URL Mappings tab under the Activities section. Paste the link here. 
    *Every time you run 'npm run tunnel' you will need to update this mapping due to cloudflared only providing temporary hosting services. This is annoying and something we are working on fixing, but we have not found a better solution yet.
-g) Scroll down to the Settings tab under the Activities section (As opposed to the Settings section higher up) and make sure that "Enable Activities" is set to true. This setting will not be able to be changed if no URL mapping has been set.
-h) Scroll to the Installation tab under the Settings section and open the installation link. It should prompt you to open Discord through the non-developer interface and ask you to add the activity. You can either add it to a specific server or to your apps; choosing a specific server means that anyone in that server can use this activity in that server, while adding it to your apps allows you to start the app in any server or dm. 
-i) If you added it to a server, navigate to a text or voice channel within that server, open the Activities menu, and you should be able to launch the activity from there.
-j) If you added it to your apps, navigate to any Discord chat or call and open the Activities menu. You should be able to launch the activity through here. 
+f) Scroll down to the Settings tab under the Activities section (As opposed to the Settings section higher up) and make sure that "Enable Activities" is set to true. This setting will not be able to be changed if no URL mapping has been set.
+g) Scroll to the Installation tab under the Settings section and open the installation link. It should prompt you to open Discord through the non-developer interface and ask you to add the activity. You can either add it to a specific server or to your apps; choosing a specific server means that anyone in that server can use this activity in that server, while adding it to your apps allows you to start the app in any server or dm. 
+h) If you added it to a server, navigate to a text or voice channel within that server, open the Activities menu, and you should be able to launch the activity from there.
+i) If you added it to your apps, navigate to any Discord chat or call and open the Activities menu. You should be able to launch the activity through here. 
 
 
 ## How to Generate a Coverage Report
