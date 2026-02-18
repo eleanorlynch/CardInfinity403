@@ -36,9 +36,47 @@ To change what command is executed for "npm test", go to CardInfinity403/package
 
 Note that the "ExperimentalWarning" which pops up before the test results can be safely ignored.
 
-## How to Build/Test the System
+## Fresh Setup/Installation
 
-See step 7 of How to Add a New Test to the Codebase.
+**DISCLAIMER**
+This is for setting up a personal instance of the application. If you want to use ours, use this installation link: https://discord.com/oauth2/authorize?client_id=1471216962213511294
+Please be aware that our current hosting service is EXTREMELY temporary and that this link will not be working most of the time for now. If you want to run the app on your own time, we'd recommend setting up a personal instance. 
+
+**PREREQUISITES**
+A current version of npm and pnpm must be installed, 
+Instructions for setting up npm can be found here: https://www.ramotion.com/blog/how-to-install-npm/
+Instructions for setting up pnpm: https://pnpm.io/cli/setup 
+
+
+1) Clone repository
+2) Navigate into the phaser-multiplayer-template directory
+3) Run npm install 
+4) Run npm run dev
+
+**IF RUNNING THROUGH LOCALHOST** (easier, but with limited capabilities. Recommended for testing)
+a) Go to http://localhost:3000/, you can access a singleplayer game through here.
+   * Note that this can currently only handle singleplayer connections
+   ** This is the only step. lol. 
+
+**IF RUNNING AS A DISCORD ACTIVITY**
+You will need to set up an activity through the Discord developer portal.
+You can create a new application here: https://discord.com/developers/applications/ 
+To access this page, you will need to have a Discord account with 2FA enabled. 
+Instructions for setting up 2FA in Discord can be found here: https://support.discord.com/hc/en-us/articles/219576828-Setting-up-Multi-Factor-Authentication
+
+a) In the Discord dev portal applications screen, create a new Discord activity through the "New Activity" button at the top right of the screen
+b) Go to the OAuth2 tab under the Settings section of your activity through the Discord developer portal and add https://127.0.0.1 as a new redirect under Redirects 
+c) Open example.env and put the client id and client secret keys from your OAuth2 page into the values for VITE_CLIENT_ID and CLIENT_SECRET respectively with no quotes (You may need to reset the client secret on the app in order to do this. 
+   *Whenever you reset this secret, make sure to update it here as well or the app will not work afterwards). 
+d) While still in example.env, make sure the NODE_ENV value is set to 'production'. Rename example.env to .env
+e) Make sure 'npm run dev' has been run and is still running (ie: that the server is still up). Open a new terminal window in the same directory and run 'npm run tunnel'
+f) Copy the generated cloudflared link, go to the Discord developer portal for your activity, and navigate to the URL Mappings tab under the Activities section. Paste the link here. 
+   *Every time you run 'npm run tunnel' you will need to update this mapping due to cloudflared only providing temporary hosting services. This is annoying and something we are working on fixing, but we have not found a better solution yet.
+g) Scroll down to the Settings tab under the Activities section (As opposed to the Settings section higher up) and make sure that "Enable Activities" is set to true. This setting will not be able to be changed if no URL mapping has been set.
+h) Scroll to the Installation tab under the Settings section and open the installation link. It should prompt you to open Discord through the non-developer interface and ask you to add the activity. You can either add it to a specific server or to your apps; choosing a specific server means that anyone in that server can use this activity in that server, while adding it to your apps allows you to start the app in any server or dm. 
+i) If you added it to a server, navigate to a text or voice channel within that server, open the Activities menu, and you should be able to launch the activity from there.
+j) If you added it to your apps, navigate to any Discord chat or call and open the Activities menu. You should be able to launch the activity through here. 
+
 
 ## How to Generate a Coverage Report
 
