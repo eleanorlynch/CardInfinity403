@@ -6,6 +6,11 @@ https://docs.google.com/document/d/1vaf-CghzvI5Mc5vX6ApmFMtWVwOa-FC2knaWr3sJ9AI/
 ## Product Description
 Card Infinity is a free customizable Discord app where you can set up an online card game with other player(s). Users can set certain conditions and rules of games themselves from a set list (ie. discard pile rules, hand rules, etc.) or choose from a list of precreated games. The interface will consist of the “table”, where cards are set out for play, and the users’ “hands” of cards if relevant to the current game. This will be in the form of a Discord app in order to make communication simpler and allow people to play with each other while on a call. If time allows, additional factors besides cards can be included, such as tokens and dice.
 
+## Beta Use Case
+The current beta allows up to two users to play a very simple game of Uno through Discord. Clicking "Start Game" will add the user to a current lobby with only one person, or if no such lobby exists, creates a new one. The game starts with a single, randomly-drawn card placed face up on the table, and players take turns playing cards that match either the suit or rank of the last-played card. If a user cannot play a card, then they must draw a card, though they are also able to choose to draw a card even if they are able to play a card. A user may only draw once or play a single card during their turn, after which they are barred from any action other than ending their turn by clicking on the "End Turn" button. As by typical Uno rules, the first player to empty their hand wins. 
+
+We are currently combining the usage of "Start Game" and "Join Game" for the sake of time, though in the full release this will not be how joining a lobby works. Similarly, while rules are currently implemented, the ability to create and manage them are not; the only ruleset right now is hardcoded to be our simplified version of Uno.
+
 ## Repo Layout (Under Construction)
 
 ### Status Reports
