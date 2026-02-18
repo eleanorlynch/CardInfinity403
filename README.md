@@ -36,6 +36,9 @@ To change what command is executed for "npm test", go to CardInfinity403/package
 
 Note that the "ExperimentalWarning" which pops up before the test results can be safely ignored.
 
+## How to Build/Test the System
+See step 7 of How to Add a New Test to the Codebase.
+
 ## Fresh Setup/Installation
 
 **DISCLAIMER**
@@ -46,7 +49,6 @@ Please be aware that our current hosting service is EXTREMELY temporary and that
 A current version of npm and pnpm must be installed, 
 Instructions for setting up npm can be found here: https://www.ramotion.com/blog/how-to-install-npm/
 Instructions for setting up pnpm: https://pnpm.io/cli/setup 
-
 
 1) Clone repository
 2) Navigate into the phaser-multiplayer-template directory
