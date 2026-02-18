@@ -1,5 +1,7 @@
 # CardInfinity403
 
+CURRENT VERSION: 1.0.0-b
+
 ## Living Document
 https://docs.google.com/document/d/1vaf-CghzvI5Mc5vX6ApmFMtWVwOa-FC2knaWr3sJ9AI/edit?usp=sharing
 
