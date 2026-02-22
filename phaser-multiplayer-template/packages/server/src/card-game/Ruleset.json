@@ -65,15 +65,15 @@
         },
         "mostOfOneSuit": { // only allow if max number of rounds is set
             "chosen": true,
-            "suit": "hearts" || "diamonds" || "clubs" || "spades"
+            "suit": "hearts" || "diamonds" || "clubs" || "spades" || "any"
         },
         "mostOfOneRank": { // only allow if max number of rounds is set, A is 1 or 14 in rank list depending on chosen rule
             "chosen": true,
-            "rank": 1 || 2 || 3 || 4 || 5 || 6 || 7 || 8 || 9 || 10 || 11 /* Jack */ || 12 /* Queen */ || 13 /* King */
+            "rank": 1 || 2 || 3 || 4 || 5 || 6 || 7 || 8 || 9 || 10 || 11 /* Jack */ || 12 /* Queen */ || 13 /* King */ || -1 /* any rank */
         },
         "mostOfOneColor": { // only allow if max number of rounds is set
             "chosen": true,
-            "color": "red" || "black"
+            "color": "red" || "black" || "any"
         },
         "collectsSetOfCards": {
             "chosen": true,
@@ -169,6 +169,8 @@
             "canChooseRank": true // if true, player can choose rank when playing this card
         }
     },
+    "ranks": [1,2,3,4,5,6,7,8,9,10,11,12,13],
+    "suits": ["hearts","diamonds","clubs","spades"],
     "deckContents": {
         "cards": [
             {"rank": 1, "suit": "hearts"},
