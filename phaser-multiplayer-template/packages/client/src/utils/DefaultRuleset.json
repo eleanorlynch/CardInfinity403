@@ -1,0 +1,212 @@
+{
+    "name": "Card Game",
+    "description": "A simple card game ruleset.",
+    "maxPlayers": 10,
+    "minPlayers": 1,
+    "AValue": 1,
+    "turnOrder": "clockwise",
+    "startRules": {
+        "host": {
+            "chosen": true
+        },
+        "highestCard": {
+            "chosen": false
+        },
+        "lowestCard": {
+            "chosen": false
+        },
+        "mostOfOneSuit": {
+            "chosen": false,
+            "suit": "hearts"
+        },
+        "mostOfOneRank": {
+            "chosen": false,
+            "rank": 2
+        }
+    },
+    "drawRules": {
+        "whenToDraw": "any",
+        "minCardsToDraw": 0,
+        "maxCardsToDraw": 0,
+        "drawFrom": "deck"
+    },
+    "discardRules": {
+        "whenToDiscard": "any",
+        "minCardsToDiscard": 0,
+        "maxCardsToDiscard": 0,
+        "cardMustMatch": "none",
+        "cardMustNotMatch": "none"
+    },
+    "playRules": {
+        "whenToPlay": "any",
+        "cardMustMatch": "none",
+        "cardMustNotMatch": "none",
+        "minCardsToPlay": 0,
+        "maxCardsToPlay": 0
+    },
+    "handRules": {
+        "startingHandSize": 0,
+        "maxHandSize": 0,
+        "minHandSize": 0
+    },
+    "minNumRounds": 0,
+    "hasMaxNumRounds": false,
+    "maxNumRounds": 0,
+    "winConditions": {
+        "firstToScore": {  
+            "chosen": false,
+            "scoreTarget": 0
+        },
+        "firstToHandSize": {
+            "chosen": true,
+            "handSizeTarget": 0
+        },
+        "mostOfOneSuit": {
+            "chosen": false,
+            "suit": "hearts"
+        },
+        "mostOfOneRank": {
+            "chosen": false,
+            "rank": 2
+        },
+        "mostOfOneColor": {
+            "chosen": false,
+            "color": "red"
+        },
+        "collectsSetOfCards": {
+            "chosen": false,
+            "set": [
+                {"rank": "any", "suit": "hearts"},
+                {"rank": "any", "suit": "hearts"},
+                {"rank": "any", "suit": "hearts"},
+                {"rank": "any", "suit": "hearts"}
+            ]
+        },
+        "mostCardsInHand": { 
+            "chosen": false
+        },
+        "leastCardsInHand": {
+            "chosen": false
+        },
+        "lastToHaveCardsInHand": {
+            "chosen": false
+        }
+    },
+    "cardAbilities": {
+        "skipNextPlayer": {
+            "chosen": false,
+            "activatesOn": "play",
+            "card": []
+        },
+        "skipTargetedPlayer": {
+            "chosen": false,
+            "activatesOn": "play",
+            "card": [],
+            "player": 1
+        },
+        "reverseTurnOrder": {
+            "chosen": false,
+            "activatesOn": "play",
+            "card": []
+        },
+        "drawCardsForNextPlayer": {
+            "chosen": false,
+            "activatesOn": "play",
+            "card": [],
+            "numDraws": 1
+        },
+        "drawCardsForTargetedPlayer": {
+            "chosen": false,
+            "activatesOn": "play",
+            "card": [],
+            "numDraws": 1,
+            "player": 1
+        },
+        "extraTurn": {
+            "chosen": false,
+            "activatesOn": "play",
+            "card": []
+        },
+        "extraDraw": {
+            "chosen": false,
+            "activatesOn": "play",
+            "card": [],
+            "numExtraDraws": 1
+        },
+        "extraDiscard": {
+            "chosen": false,
+            "activatesOn": "play",
+            "card": [],
+            "numExtraDiscards": 1
+        },
+        "extraPlay": {
+            "chosen": false,
+            "activatesOn": "play",
+            "card": [],
+            "numExtraPlays": 1
+        },
+        "wildCard": {
+            "chosen": false,
+            "activatesOn": "play",
+            "card": [],
+            "canChooseSuit": false,
+            "canChooseRank": false
+        }
+    },
+    "deckContents": {
+        "cards": [
+            {"rank": 1, "suit": "hearts"},
+            {"rank": 2, "suit": "hearts"},
+            {"rank": 3, "suit": "hearts"},
+            {"rank": 4, "suit": "hearts"},
+            {"rank": 5, "suit": "hearts"},
+            {"rank": 6, "suit": "hearts"},
+            {"rank": 7, "suit": "hearts"},
+            {"rank": 8, "suit": "hearts"},
+            {"rank": 9, "suit": "hearts"},
+            {"rank": 10, "suit": "hearts"},
+            {"rank": 11, "suit": "hearts"},
+            {"rank": 12, "suit": "hearts"},
+            {"rank": 13, "suit": "hearts"},
+            {"rank": 1, "suit": "diamonds"},
+            {"rank": 2, "suit": "diamonds"},
+            {"rank": 3, "suit": "diamonds"},
+            {"rank": 4, "suit": "diamonds"},
+            {"rank": 5, "suit": "diamonds"},
+            {"rank": 6, "suit": "diamonds"},
+            {"rank": 7, "suit": "diamonds"},
+            {"rank": 8, "suit": "diamonds"},
+            {"rank": 9, "suit": "diamonds"},
+            {"rank": 10, "suit": "diamonds"},
+            {"rank": 11, "suit": "diamonds"},
+            {"rank": 12, "suit": "diamonds"},
+            {"rank": 13, "suit": "diamonds"},
+            {"rank": 1, "suit": "clubs"},
+            {"rank": 2, "suit": "clubs"},
+            {"rank": 3, "suit": "clubs"},
+            {"rank": 4, "suit": "clubs"},
+            {"rank": 5, "suit": "clubs"},
+            {"rank": 6, "suit": "clubs"},
+            {"rank": 7, "suit": "clubs"},
+            {"rank": 8, "suit": "clubs"},
+            {"rank": 9, "suit": "clubs"},
+            {"rank": 10, "suit": "clubs"},
+            {"rank": 11, "suit": "clubs"},
+            {"rank": 12, "suit": "clubs"},
+            {"rank": 13, "suit": "clubs"},
+            {"rank": 1, "suit": "spades"},
+            {"rank": 2, "suit": "spades"},
+            {"rank": 3, "suit": "spades"},
+            {"rank": 4, "suit": "spades"},
+            {"rank": 5, "suit": "spades"},
+            {"rank": 6, "suit": "spades"},
+            {"rank": 7, "suit": "spades"},
+            {"rank": 8, "suit": "spades"},
+            {"rank": 9, "suit": "spades"},
+            {"rank": 10, "suit": "spades"},
+            {"rank": 11, "suit": "spades"},
+            {"rank": 12, "suit": "spades"},
+            {"rank": 13, "suit": "spades"}
+        ]
+    }
+}

@@ -1,8 +1,9 @@
 {
     "name": "Card Game",
     "description": "A simple card game ruleset.",
-    "maxPlayers": 4, // decide on max possible num of players at some point
-    "minPlayers": 2, // 0 if no min
+    "maxPlayers": 10, // decide on max possible num of players at some point
+    "minPlayers": 1,
+    "AValue": 1, // can be 1 or 14
     "turnOrder": "clockwise" || "counterclockwise",
     "startRules": {
         "host": {
