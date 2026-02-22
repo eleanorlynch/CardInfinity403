@@ -34,6 +34,37 @@ export class GameWinner {
         }
     }
 
+    checkCollectsSetOfCards(gameState: GameStatus) { // Player who collects a certain set of cards wins
+        for (const player of gameState.getPlayers()) {
+            const hand = player.getHand();
+            if (hand !== undefined) {
+                var hasAllCards: boolean = true;
+                const counts = new Map<string, number>();
+                const main = gameState.collectsSetOfCards.set.map((card: { rank: string; suit: string; }) => `${card.rank}_${card.suit}`);
+                const sub = hand.map(card => `${card.getRank()}_${card.getSuit()}`);
+                for (const item of main) {
+                    counts.set(item, (counts.get(item) ?? 0) + 1);
+                }
+
+                for (const item of sub) {
+                    const current = counts.get(item);
+                    if (!current) return false;
+                    counts.set(item, current - 1);
+                }
+
+                return true;
+                if (hasAllCards) {
+                    return {
+                        winner: player.getID(),
+                        winCondition: 'collects_set_of_cards',
+                        message: `Player has collected the set of cards!`
+                    };
+                }
+            }
+        }
+        return null; // No winner yet
+    }
+
     checkFirstToScore(gameState: GameStatus) { // Player who reaches target score first wins
         for (const player of gameState.getPlayers()) {
             var score: number = 0;
