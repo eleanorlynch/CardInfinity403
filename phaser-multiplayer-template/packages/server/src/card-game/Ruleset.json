@@ -1,0 +1,229 @@
+{
+    "name": "Card Game",
+    "description": "A simple card game ruleset.",
+    "maxPlayers": 4, // decide on max possible num of players at some point
+    "minPlayers": 2, // 0 if no min
+    "turnOrder": "clockwise" || "counterclockwise",
+    "startRules": {
+        "host": {
+            "chosen": true // only one of these can be true
+        },
+        "highestCard": {
+            "chosen": false // player with highest rank card in starting hand goes first
+        },
+        "lowestCard": {
+            "chosen": false // player with lowest rank card in starting hand goes first
+        },
+        "mostOfOneSuit": {
+            "chosen": false,
+            "suit": "hearts" || "diamonds" || "clubs" || "spades"
+        },
+        "mostOfOneRank": { // A is 1 or 14 in rank list depending on chosen rule
+            "chosen": false,
+            "rank": 1 || 2 || 3 || 4 || 5 || 6 || 7 || 8 || 9 || 10 || 11 /* Jack */ || 12 /* Queen */ || 13 /* King */
+        }
+    },
+    "drawRules": {
+        "whenToDraw": "startOfTurn" || "endOfTurn" || "afterPlay" || "afterDiscard" || "any",
+        "minCardsToDraw": 1, // 0 if no min
+        "maxCardsToDraw": 3, // size of deck + 1 if no max
+        "drawFrom": "deck" || "discardPile" /* <- optional, add this if we have time */
+    },
+    "discardRules": {
+        "whenToDiscard": "startOfTurn" || "endOfTurn" || "afterPlay" || "afterDraw" || "any",
+        "minCardsToDiscard": 1, // 0 if no min
+        "maxCardsToDiscard": 3, // size of deck + 1 if no max
+        "cardMustMatch": "suit" || "rank" || "rankUp" /* increment rank up by 1 */ || "rankDown" /* decrement rank down by 1 */
+            || "color" || "none", // for if card must match top of discard pile
+        "cardMustNotMatch": "suit" || "rank" || "color" || "none" // for if card must not match top of discard pile
+    },
+    "playRules": {
+        "whenToPlay": "startOfTurn" || "endOfTurn" || "afterDraw" || "afterDiscard" || "any",
+        "cardMustMatch": "suit" || "rank" || "rankUp" /* increment rank up by 1 */ || "rankDown" /* decrement rank down by 1 */
+            || "color" || "none", // for if card must match top of discard pile
+        "cardMustNotMatch": "suit" || "rank" || "color" || "none", // for if card must not match top of discard pile
+        "minCardsToPlay": 1, // 0 if no min
+        "maxCardsToPlay": 3 // size of hand + 1 if no max
+    },
+    "handRules": {
+        "startingHandSize": 5,
+        "maxHandSize": 10, // size of deck + 1 if no max
+        "minHandSize": 1 // 0 if no min
+    },
+    "minNumRounds": 1, // 0 if no min
+    "hasMaxNumRounds": true,
+    "maxNumRounds": 5,
+    "winConditions": {
+        "firstToScore": {  
+            "chosen": true, // true means this is a win condition chosen, can have multiple of these true at once
+            "scoreTarget": 10 // sum of card ranks in hand
+        },
+        "firstToHandSize": {
+            "chosen": true,
+            "handSizeTarget": 0 // 0 means target is to have empty hand
+        },
+        "mostOfOneSuit": { // only allow if max number of rounds is set
+            "chosen": true,
+            "suit": "hearts" || "diamonds" || "clubs" || "spades"
+        },
+        "mostOfOneRank": { // only allow if max number of rounds is set, A is 1 or 14 in rank list depending on chosen rule
+            "chosen": true,
+            "rank": 1 || 2 || 3 || 4 || 5 || 6 || 7 || 8 || 9 || 10 || 11 /* Jack */ || 12 /* Queen */ || 13 /* King */
+        },
+        "mostOfOneColor": { // only allow if max number of rounds is set
+            "chosen": true,
+            "color": "red" || "black"
+        },
+        "collectsSetOfCards": {  // only allow if max number of rounds is set
+            "chosen": true,
+            "set": [ // first to collect a set of specific cards
+                {"rank": "A", "suit": "hearts"},
+                {"rank": "2", "suit": "hearts"},
+                {"rank": "3", "suit": "hearts"}
+            ] || [ // first to collect a set of 4 cards of a specific suit, rank can be any
+                {"rank": "any", "suit": "hearts"},
+                {"rank": "any", "suit": "hearts"},
+                {"rank": "any", "suit": "hearts"},
+                {"rank": "any", "suit": "hearts"}
+            ]
+        },
+        "mostCardsInHand": {  // only allow if max number of rounds is set
+            "chosen": false
+        },
+        "leastCardsInHand": {  // only allow if max number of rounds is set
+            "chosen": false
+        },
+        "lastToHaveCardsInHand": {  // only allow if max number of rounds is set
+            "chosen": false // last player to have cards in hand wins
+        }
+    },
+    "cardAbilities": {
+        "skipNextPlayer": {
+            "chosen": true,
+            "activatesOn": "play" || "draw", // when this ability activates
+            "card": [{"rank": 1 || 2 || 3 || 4 || 5 || 6 || 7 || 8 || 9 || 10 || 11 /* Jack */ || 12 /* Queen */ || 13 /* King */, // -1 means any rank
+                        "suit": "hearts" || "diamonds" || "clubs" || "spades" || "any"}] // the card(s) that gives this ability when played
+        },
+        "skipTargetedPlayer": { // add only if we have time
+            "chosen": true,
+            "activatesOn": "play" || "draw",
+            "card": [{"rank": -1 || 1 || 2 || 3 || 4 || 5 || 6 || 7 || 8 || 9 || 10 || 11 /* Jack */ || 12 /* Queen */ || 13 /* King */, 
+                        "suit": "hearts" || "diamonds" || "clubs" || "spades" || "any"}],
+            "player": 1
+        },
+        "reverseTurnOrder": {
+            "chosen": true,
+            "activatesOn": "play" || "draw",
+            "card": [{"rank": -1 || 1 || 2 || 3 || 4 || 5 || 6 || 7 || 8 || 9 || 10 || 11 /* Jack */ || 12 /* Queen */ || 13 /* King */, 
+                        "suit": "hearts" || "diamonds" || "clubs" || "spades" || "any"}]
+        },
+        "drawCardsForNextPlayer": {
+            "chosen": true,
+            "activatesOn": "play" || "draw",
+            "card": [{"rank": -1 || 1 || 2 || 3 || 4 || 5 || 6 || 7 || 8 || 9 || 10 || 11 /* Jack */ || 12 /* Queen */ || 13 /* King */,
+                        "suit": "hearts" || "diamonds" || "clubs" || "spades" || "any"}],
+            "numDraws": 2
+        },
+        "drawCardsForTargetedPlayer": { // add only if we have time
+            "chosen": true,
+            "activatesOn": "play" || "draw",
+            "card": [{"rank": -1 || 1 || 2 || 3 || 4 || 5 || 6 || 7 || 8 || 9 || 10 || 11 /* Jack */ || 12 /* Queen */ || 13 /* King */,
+                        "suit": "hearts" || "diamonds" || "clubs" || "spades" || "any"}],
+            "numDraws": 2,
+            "player": 1
+        },
+        "extraTurn": { // gives current player another turn immediately after this one
+            "chosen": true,
+            "activatesOn": "play" || "draw",
+            "card": [{"rank": -1 || 1 || 2 || 3 || 4 || 5 || 6 || 7 || 8 || 9 || 10 || 11 /* Jack */ || 12 /* Queen */ || 13 /* King */, 
+                        "suit": "hearts" || "diamonds" || "clubs" || "spades" || "any"}]
+        },
+        "extraDraw": { // gives current player extra draw(s) this turn
+            "chosen": true,
+            "activatesOn": "play" || "draw",
+            "card": [{"rank": -1 || 1 || 2 || 3 || 4 || 5 || 6 || 7 || 8 || 9 || 10 || 11 /* Jack */ || 12 /* Queen */ || 13 /* King */, 
+                        "suit": "hearts" || "diamonds" || "clubs" || "spades" || "any"}],
+            "numExtraDraws": 1
+        },
+        "extraDiscard": { // gives current player extra discard(s) this turn
+            "chosen": true,
+            "activatesOn": "play" || "draw",
+            "card": [{"rank": -1 || 1 || 2 || 3 || 4 || 5 || 6 || 7 || 8 || 9 || 10 || 11 /* Jack */ || 12 /* Queen */ || 13 /* King */, 
+                        "suit": "hearts" || "diamonds" || "clubs" || "spades" || "any"}],
+            "numExtraDiscards": 1
+        },
+        "extraPlay": { // gives current player extra play(s) this turn
+            "chosen": true,
+            "activatesOn": "play" || "draw",
+            "card": [{"rank": -1 || 1 || 2 || 3 || 4 || 5 || 6 || 7 || 8 || 9 || 10 || 11 /* Jack */ || 12 /* Queen */ || 13 /* King */, 
+                        "suit": "hearts" || "diamonds" || "clubs" || "spades" || "any"}],
+            "numExtraPlays": 1
+        },
+        "wildCard": {
+            "chosen": true,
+            "activatesOn": "play" || "draw",
+            "card": [{"rank": -1 || 1 || 2 || 3 || 4 || 5 || 6 || 7 || 8 || 9 || 10 || 11 /* Jack */ || 12 /* Queen */ || 13 /* King */, 
+                        "suit": "hearts" || "diamonds" || "clubs" || "spades" || "any"}],
+            "canChooseSuit": true, // if true, player can choose suit when playing this card
+            "canChooseRank": true // if true, player can choose rank when playing this card
+        }
+    },
+    "deckContents": {
+        "cards": [
+            {"rank": 1, "suit": "hearts"},
+            {"rank": 2, "suit": "hearts"},
+            {"rank": 3, "suit": "hearts"},
+            {"rank": 4, "suit": "hearts"},
+            {"rank": 5, "suit": "hearts"},
+            {"rank": 6, "suit": "hearts"},
+            {"rank": 7, "suit": "hearts"},
+            {"rank": 8, "suit": "hearts"},
+            {"rank": 9, "suit": "hearts"},
+            {"rank": 10, "suit": "hearts"},
+            {"rank": 11, "suit": "hearts"},
+            {"rank": 12, "suit": "hearts"},
+            {"rank": 13, "suit": "hearts"},
+            {"rank": 1, "suit": "diamonds"},
+            {"rank": 2, "suit": "diamonds"},
+            {"rank": 3, "suit": "diamonds"},
+            {"rank": 4, "suit": "diamonds"},
+            {"rank": 5, "suit": "diamonds"},
+            {"rank": 6, "suit": "diamonds"},
+            {"rank": 7, "suit": "diamonds"},
+            {"rank": 8, "suit": "diamonds"},
+            {"rank": 9, "suit": "diamonds"},
+            {"rank": 10, "suit": "diamonds"},
+            {"rank": 11, "suit": "diamonds"},
+            {"rank": 12, "suit": "diamonds"},
+            {"rank": 13, "suit": "diamonds"},
+            {"rank": 1, "suit": "clubs"},
+            {"rank": 2, "suit": "clubs"},
+            {"rank": 3, "suit": "clubs"},
+            {"rank": 4, "suit": "clubs"},
+            {"rank": 5, "suit": "clubs"},
+            {"rank": 6, "suit": "clubs"},
+            {"rank": 7, "suit": "clubs"},
+            {"rank": 8, "suit": "clubs"},
+            {"rank": 9, "suit": "clubs"},
+            {"rank": 10, "suit": "clubs"},
+            {"rank": 11, "suit": "clubs"},
+            {"rank": 12, "suit": "clubs"},
+            {"rank": 13, "suit": "clubs"},
+            {"rank": 1, "suit": "spades"},
+            {"rank": 2, "suit": "spades"},
+            {"rank": 3, "suit": "spades"},
+            {"rank": 4, "suit": "spades"},
+            {"rank": 5, "suit": "spades"},
+            {"rank": 6, "suit": "spades"},
+            {"rank": 7, "suit": "spades"},
+            {"rank": 8, "suit": "spades"},
+            {"rank": 9, "suit": "spades"},
+            {"rank": 10, "suit": "spades"},
+            {"rank": 11, "suit": "spades"},
+            {"rank": 12, "suit": "spades"},
+            {"rank": 13, "suit": "spades"},
+            {"rank": 0, "suit": "joker"}, // jokers are optional
+            {"rank": 0, "suit": "joker"}
+        ]
+    }
+}
