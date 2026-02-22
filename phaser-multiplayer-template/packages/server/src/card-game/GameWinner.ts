@@ -3,6 +3,17 @@ import { GameStatus } from "./GameStatus";
 export class GameWinner {
     // Check if any player has won
     checkWinner(gameState: GameStatus) { // TODO: Make which method it calls variable based on chosen rules
+        if (gameState.hasMaxNumRounds === true && gameState.totalRounds >= gameState.maxNumRounds) {
+            if (gameState.mostOfOneSuit.chosen === true) {  
+                return this.checkMostSuit(gameState);
+            }
+            else if (gameState.mostOfOneRank.chosen === true) {
+                return this.checkMostRank(gameState);
+            }
+            else if (gameState.mostOfOneColor.chosen === true) {
+                return this.checkMostColor(gameState);
+            }
+        }
         return this.emptyHand(gameState);
     }
 

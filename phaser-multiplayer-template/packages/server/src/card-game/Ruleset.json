@@ -75,7 +75,7 @@
             "chosen": true,
             "color": "red" || "black"
         },
-        "collectsSetOfCards": {  // only allow if max number of rounds is set
+        "collectsSetOfCards": {
             "chosen": true,
             "set": [ // first to collect a set of specific cards
                 {"rank": "A", "suit": "hearts"},
@@ -94,7 +94,7 @@
         "leastCardsInHand": {  // only allow if max number of rounds is set
             "chosen": false
         },
-        "lastToHaveCardsInHand": {  // only allow if max number of rounds is set
+        "lastToHaveCardsInHand": {
             "chosen": false // last player to have cards in hand wins
         }
     },
