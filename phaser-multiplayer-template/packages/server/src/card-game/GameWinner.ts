@@ -1,4 +1,5 @@
 import { GameStatus } from "./GameStatus";
+import { Card } from "./Card";
 
 export class GameWinner {
     // Check if any player has won
@@ -34,25 +35,50 @@ export class GameWinner {
         }
     }
 
+    checkLastToHaveCardsInHand(gameState: GameStatus) { // Last player to have cards in hand wins
+        var lastPlayerWithCards: number = -1;
+        var allButOneEmpty = true;
+        for (const player of gameState.getPlayers()) {
+            if (player.getHand() !== undefined && player.getHand().length > 0) {
+                if (lastPlayerWithCards !== -1) {
+                    allButOneEmpty = false;
+                    break;
+                }
+                lastPlayerWithCards = player.getID();
+            }
+        }
+        if (allButOneEmpty && lastPlayerWithCards !== -1) {
+            return {
+                winner: lastPlayerWithCards,
+                winCondition: 'last_to_have_cards_in_hand',
+                message: `Player is the last to have cards in hand!`
+            };
+        }
+        return null; // No winner yet
+    }
+
+    // TODO: Make sure to test this function
     checkCollectsSetOfCards(gameState: GameStatus) { // Player who collects a certain set of cards wins
         for (const player of gameState.getPlayers()) {
             const hand = player.getHand();
             if (hand !== undefined) {
                 var hasAllCards: boolean = true;
                 const counts = new Map<string, number>();
-                const main = gameState.collectsSetOfCards.set.map((card: { rank: string; suit: string; }) => `${card.rank}_${card.suit}`);
-                const sub = hand.map(card => `${card.getRank()}_${card.getSuit()}`);
+                const main = gameState.collectsSetOfCards.set.map((card: { rank: number; suit: string; }) => `${card.rank}_${card.suit}`);
+                const sub = hand.map((card: Card) => `${card.getRank()}_${card.getSuit()}`);
                 for (const item of main) {
                     counts.set(item, (counts.get(item) ?? 0) + 1);
                 }
 
                 for (const item of sub) {
                     const current = counts.get(item);
-                    if (!current) return false;
+                    if (!current) {
+                        hasAllCards = false;
+                        break;
+                    }
                     counts.set(item, current - 1);
                 }
 
-                return true;
                 if (hasAllCards) {
                     return {
                         winner: player.getID(),
