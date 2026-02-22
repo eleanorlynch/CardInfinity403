@@ -93,6 +93,10 @@
         }
     },
     "cardAbilities": {
+        "specialCards": {
+            "chosen": false,
+            "cards": [] 
+        },
         "skipNextPlayer": {
             "chosen": false,
             "activatesOn": "play",
