@@ -1,5 +1,6 @@
 import { GameStatus } from "./GameStatus";
 import { Card } from "./Card";
+import e from "express";
 
 // TODO: Once objects have been defined, replace the any datatypes with the object
 export class GameMove {
@@ -24,6 +25,40 @@ export class GameMove {
     // Get a game by ID
     getGame(gameId: number) {
         return this.activeGames.get(gameId);
+    }
+
+    // TODO: Implement usage of this function in the frontend
+    handleEndTurn(gameId: number, playerId: number) {
+        const game = this.activeGames.get(gameId);
+        if (!game) {
+            return { 
+                success: false, 
+                message: "Game not found" 
+            };
+        }
+        if (game.getPlaysThisTurn() < game.playRules.minCardsToPlay) {
+            return {
+                success: false,
+                message: `User must play at least ${game.playRules.minCardsToPlay} card(s) before ending their turn`
+            };
+        }
+        else if (game.getDrawsThisTurn() < game.drawRules.minCardsToDraw) {
+            return {
+                success: false,
+                message: `User must draw at least ${game.drawRules.minCardsToDraw} card(s) before ending their turn`
+            };
+        }
+        else if (game.getDiscardsThisTurn() < game.discardRules.minCardsToDiscard) {
+            return {
+                success: false,
+                message: `User must discard at least ${game.discardRules.minCardsToDiscard} card(s) before ending their turn`
+            };
+        }
+        game.nextTurn();
+        return { 
+            success: true, 
+            message: "Turn ended" 
+        };
     }
     
     // Handle drawing a card
@@ -94,6 +129,13 @@ export class GameMove {
             return { 
                 success: false, 
                 message: "Game not found" 
+            };
+        }
+
+        if (game.getCurrentTurn() !== playerId) {
+            return {
+                success: false,
+                message: "Not your turn"
             };
         }
         
@@ -208,11 +250,32 @@ export class GameMove {
                                     }
                                 }
                                 if (isSpecial) {
-                                    if (ability === "skipNextPlayer" || game.cardAbilities.skipNextPlayer.activatesOn === "play") {
-                                        game.cardAbilities.skipNextPlayer = true; // TODO: Add this global variable to GameStatus.ts
+                                    if (ability === "skipNextPlayer" && game.cardAbilities.skipNextPlayer.activatesOn === "play") {
+                                        game.cardAbilities.skipNextPlayer = true; // TODO: Add this global variable to GameStatus.ts and add behavior for it
                                     }
                                     else if (ability === "reverseTurnOrder") {
-                                        game.cardAbilities.skipTargetedPlayer = playerId; // TODO: Add this global variable to GameStatus.ts
+                                        game.reverseTurnOrder(); // TODO: Add this function to GameStatus.ts
+                                    }
+                                    else if (ability === "drawCardsForNextPlayer" && game.cardAbilities.drawCardsForNextPlayer.activatesOn === "play") {
+                                        for (let i = 0; i < game.cardAbilities.drawCardsForNextPlayer.numCards; i++) {
+                                            if (game.getPlayers() !== undefined && game.getPlayers()[(playerId + 1) % game.getPlayers().length] !== undefined
+                                                && game.getPlayers()[(playerId + 1) % game.getPlayers().length].getHand() !== undefined
+                                                && game.getPlayers()[(playerId + 1) % game.getPlayers().length].getHand().length < game.handRules.maxHandSize) {
+                                                game.drawCard((playerId + 1) % game.getPlayers().length);
+                                            }
+                                        }
+                                    }
+                                    else if (ability === "extraTurn") {
+                                        game.extraTurn = true; // TODO: Add this global variable to GameStatus.ts and add behavior for it
+                                    }
+                                    else if (ability === "extraDraw") {
+                                        game.drawsThisTurn = game.drawsThisTurn - 1;
+                                    }
+                                    else if (ability === "extraPlay") {
+                                        game.playsThisTurn = game.playsThisTurn - 1;
+                                    }
+                                    else if (ability === "extraDiscard") {
+                                        game.discardsThisTurn = game.discardsThisTurn - 1;
                                     }
                                 }
                                 return game.playCard(playerId, cardId);
@@ -254,40 +317,40 @@ export class GameMove {
             };
         }
 
-        if (game.whenToDiscard === "afterDraw" && game.getDrawsThisTurn() < game.minCardsToDraw) {
+        if (game.discardRules.whenToDiscard === "afterDraw" && game.getDrawsThisTurn() < game.drawRules.minCardsToDraw) {
             return {
                 success: false,
-                message: `User must draw at least ${game.minCardsToDraw} card(s) before discarding a card`
+                message: `User must draw at least ${game.drawRules.minCardsToDraw} card(s) before discarding a card`
             }
          }
-        else if (game.whenToDiscard === "startOfTurn" && (game.getDrawsThisTurn() > 0 || game.getPlaysThisTurn() > 0)) {
+        else if (game.discardRules.whenToDiscard === "startOfTurn" && (game.getDrawsThisTurn() > 0 || game.getPlaysThisTurn() > 0)) {
             return {
                 success: false,
                 message: "User can only discard a card at the start of their turn, before drawing or playing any cards"
             };
         }
-        else if (game.whenToDiscard === "afterPlay" && game.getPlaysThisTurn() < game.minCardsToPlay) {
+        else if (game.discardRules.whenToDiscard === "afterPlay" && game.getPlaysThisTurn() < game.playRules.minCardsToPlay) {
             return {
                 success: false,
-                message: `User must play at least ${game.minCardsToPlay} card(s) before discarding a card`
+                message: `User must play at least ${game.playRules.minCardsToPlay} card(s) before discarding a card`
             }
         }
-        else if (game.whenToDiscard === "endOfTurn" && (game.getPlaysThisTurn() < game.minCardsToPlay && game.getDrawsThisTurn() < game.minCardsToDraw)) {
+        else if (game.discardRules.whenToDiscard === "endOfTurn" && (game.getPlaysThisTurn() < game.playRules.minCardsToPlay && game.getDrawsThisTurn() < game.drawRules.minCardsToDraw)) {
             return {
                 success: false,
-                message: `User must play at least ${game.minCardsToPlay} card(s) and draw at least ${game.minCardsToDraw} card(s) before discarding a card`
+                message: `User must play at least ${game.playRules.minCardsToPlay} card(s) and draw at least ${game.drawRules.minCardsToDraw} card(s) before discarding a card`
             }
         }
-        else if (game.getDiscardsThisTurn() >= game.maxCardsToDiscard) {
+        else if (game.getDiscardsThisTurn() >= game.discardRules.maxCardsToDiscard) {
             return {
                 success: false,
-                message: `User cannot discard more than ${game.maxCardsToDiscard} card(s) this turn`
+                message: `User cannot discard more than ${game.discardRules.maxCardsToDiscard} card(s) this turn`
             }
         }
-        else if (game.getPlayerHand(playerId) !== undefined && game.getPlayerHand(playerId).length<= game.minHandSize) {
+        else if (game.getPlayerHand(playerId) !== undefined && game.getPlayerHand(playerId).length<= game.handRules.minHandSize) {
             return {
                 success: false,
-                message: `Minimum hand size is ${game.minHandSize}, user cannot discard any more cards`
+                message: `Minimum hand size is ${game.handRules.minHandSize}, user cannot discard any more cards`
             }
         }
         else {
@@ -295,63 +358,63 @@ export class GameMove {
             if (hand !== undefined) {
                 for (const card of hand) {
                     if (card.getId() === cardId) {
-                        if (game.cardMustMatch !== "none" || game.cardMustNotMatch !== "none") {
-                            if (game.cardMustMatch === "rank" && card.getRank() !== game.getTopDiscard().getRank()) {
+                        if (game.discardRules.cardMustMatch !== "none" || game.discardRules.cardMustNotMatch !== "none") {
+                            if (game.discardRules.cardMustMatch === "rank" && card.getRank() !== game.getTopDiscard().getRank()) {
                                 return { 
                                     success: false, 
                                     message: "Card does not match rank of top card" 
                                 };
                             }
-                            else if (game.cardMustMatch === "suit" && card.getSuit() !== game.getTopDiscard().getSuit()) {
+                            else if (game.discardRules.cardMustMatch === "suit" && card.getSuit() !== game.getTopDiscard().getSuit()) {
                                 return { 
                                     success: false,
                                     message: "Card does not match suit of top card"
                                 }
                             }
-                            else if (game.cardMustMatch == "rankUp" && card.getRank() !== game.getTopDiscard().getRank() + 1) {
+                            else if (game.discardRules.cardMustMatch === "rankUp" && card.getRank() !== game.getTopDiscard().getRank() + 1) {
                                 return { 
                                     success: false,
                                     message: "Card does not match rank of top card + 1"
                                 }
                             }
-                            else if (game.cardMustMatch == "rankDown" && card.getRank() !== game.getTopDiscard().getRank() - 1) {
+                            else if (game.discardRules.cardMustMatch === "rankDown" && card.getRank() !== game.getTopDiscard().getRank() - 1) {
                                 return { 
                                     success: false,
                                     message: "Card does not match rank of top card - 1"
                                 }
                             }
-                            else if (game.cardMustMatch === "color" && ((card.getSuit() === "hearts" || card.getSuit() === "diamonds") && (game.getTopDiscard().getSuit() === "clubs" || game.getTopDiscard().getSuit() === "spades")) ||
+                            else if (game.discardRules.cardMustMatch === "color" && ((card.getSuit() === "hearts" || card.getSuit() === "diamonds") && (game.getTopDiscard().getSuit() === "clubs" || game.getTopDiscard().getSuit() === "spades")) ||
                                     ((card.getSuit() === "clubs" || card.getSuit() === "spades") && (game.getTopDiscard().getSuit() === "hearts" || game.getTopDiscard().getSuit() === "diamonds"))) {
                                 return {
                                     success: false,
                                     message: "Card does not match color of top card"
                                 }
                             }
-                            if (game.cardMustNotMatch === "rank" && card.getRank() === game.getTopDiscard().getRank()) {
+                            if (game.discardRules.cardMustNotMatch === "rank" && card.getRank() === game.getTopDiscard().getRank()) {
                                 return { 
                                     success: false, 
                                     message: "Card cannot match rank of top card" 
                                 };
                             }
-                            else if (game.cardMustNotMatch === "suit" && card.getSuit() === game.getTopDiscard().getSuit()) {
+                            else if (game.discardRules.cardMustNotMatch === "suit" && card.getSuit() === game.getTopDiscard().getSuit()) {
                                 return { 
                                     success: false,
                                     message: "Card cannot match suit of top card"
                                 }
                             }
-                            else if (game.cardMustNotMatch === "rankUp" && card.getRank() === game.getTopDiscard().getRank() + 1) {
+                            else if (game.discardRules.cardMustNotMatch === "rankUp" && card.getRank() === game.getTopDiscard().getRank() + 1) {
                                 return { 
                                     success: false,
                                     message: "Card cannot match rank of top card + 1"
                                 }
                             }
-                            else if (game.cardMustNotMatch === "rankDown" && card.getRank() === game.getTopDiscard().getRank() - 1) {
+                            else if (game.discardRules.cardMustNotMatch === "rankDown" && card.getRank() === game.getTopDiscard().getRank() - 1) {
                                 return { 
                                     success: false,
                                     message: "Card cannot match rank of top card - 1"
                                 }
                             }
-                            else if (game.cardMustNotMatch === "color" && ((card.getSuit() === "hearts" || card.getSuit() === "diamonds") && (game.getTopDiscard().getSuit() === "hearts" || game.getTopDiscard().getSuit() === "diamonds")) ||
+                            else if (game.discardRules.cardMustNotMatch === "color" && ((card.getSuit() === "hearts" || card.getSuit() === "diamonds") && (game.getTopDiscard().getSuit() === "hearts" || game.getTopDiscard().getSuit() === "diamonds")) ||
                                     ((card.getSuit() === "clubs" || card.getSuit() === "spades") && (game.getTopDiscard().getSuit() === "clubs" || game.getTopDiscard().getSuit() === "spades"))) {
                                 return {
                                     success: false,

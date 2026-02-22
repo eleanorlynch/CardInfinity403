@@ -136,8 +136,7 @@
             "activatesOn": "play" || "draw",
             "card": [{"rank": -1 || 1 || 2 || 3 || 4 || 5 || 6 || 7 || 8 || 9 || 10 || 11 /* Jack */ || 12 /* Queen */ || 13 /* King */,
                         "suit": "hearts" || "diamonds" || "clubs" || "spades" || "any"}],
-            "numDraws": 2,
-            "player": 1
+            "numDraws": 2
         },
         "extraTurn": { // gives current player another turn immediately after this one
             "chosen": true,
@@ -166,7 +165,7 @@
                         "suit": "hearts" || "diamonds" || "clubs" || "spades" || "any"}],
             "numExtraPlays": 1
         },
-        "wildCard": {
+        "wildCard": { // add only if we have time, can choose suit and/or rank when played/drawn
             "chosen": true,
             "activatesOn": "play" || "draw",
             "card": [{"rank": -1 || 1 || 2 || 3 || 4 || 5 || 6 || 7 || 8 || 9 || 10 || 11 /* Jack */ || 12 /* Queen */ || 13 /* King */, 

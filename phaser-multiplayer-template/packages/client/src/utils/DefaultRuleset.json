@@ -123,8 +123,7 @@
             "chosen": false,
             "activatesOn": "play",
             "card": [],
-            "numDraws": 1,
-            "player": 1
+            "numDraws": 1
         },
         "extraTurn": {
             "chosen": false,

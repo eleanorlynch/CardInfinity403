@@ -120,14 +120,6 @@ export class GameStatus {
  
     //Player drawing a card from the deck 
     drawCard(playerId: number) {
-        // Check if player's turn
-        if (this.currentTurn !== playerId) {
-            return { 
-                success: false, 
-                message: "Not your turn" 
-            };
-        }
-        
         const player = this.players[playerId];
 
         // Check if game is over
@@ -395,17 +387,6 @@ export class GameStatus {
         const winnerInfo = Winner.checkWinner(this);
         if (winnerInfo !== null) {
             this.gameOver = true;
-           /* if (winnerInfo.tie === true) {
-                this.tied = true;
-                if (winnerInfo.winners !== undefined) {
-                    this.winners = winnerInfo.winners;
-                }
-            }
-            else {
-                if (winnerInfo.winner !== undefined) {
-                    this.winner = winnerInfo.winner;
-                }
-            } */
         }
     }
 
