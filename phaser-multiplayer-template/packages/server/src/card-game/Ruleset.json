@@ -103,7 +103,7 @@
             "chosen": false,
             "cards": [{"rank": 1 || 2 || 3 || 4 || 5 || 6 || 7 || 8 || 9 || 10 || 11 /* Jack */ || 12 /* Queen */ || 13 /* King */, // -1 means any rank
                         "suit": "hearts" || "diamonds" || "clubs" || "spades" || "any", "ability": "skipNextPlayer" || "skipTargetedPlayer" || "reverseTurnOrder" 
-                        || "drawCardsForNextPlayer" || "drawCardsForTargetedPlayer" || "extraTurn" || "extraDraw" || "extraDiscard" || "extraPlay" || "wildCard"}] // the card(s) that have special abilities when played, see below for possible abilities
+                        || "drawCardsForNextPlayer" || "drawCardsForTargetedPlayer" || "extraTurn" || "extraDraw" || "extraDiscard" || "extraPlay" || "wildCard", "activatesOn": "play" || "draw"}] // the card(s) that have special abilities when played, see below for possible abilities
         },
         "skipNextPlayer": {
             "chosen": true,

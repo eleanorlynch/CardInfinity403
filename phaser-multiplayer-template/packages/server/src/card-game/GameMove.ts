@@ -175,6 +175,18 @@ export class GameMove {
                 if (hand !== undefined) {
                     for (const card of hand) {
                         if (card.getId() === cardId) {
+                            var isSpecial = false;
+                            var ability = "";
+                            for (const specialCard of game.cardAbilities.specialCards.cards) {
+                                if (specialCard.rank === card.getRank() && specialCard.suit === card.getSuit() && specialCard.activatesOn === "play") {
+                                    isSpecial = true;
+                                    ability = specialCard.ability;
+                                    break;
+                                }
+                            }
+                            if (ability === "wildCard") {
+                                return game.playCard(playerId, cardId); // TODO: Add a parameter to playCard function in GameStatus.ts to indicate whether the player needs to choose the card's effect after playing it, and add behavior for it
+                            }
                             if (game.playRules.cardMustMatch !== "none" || game.playRules.cardMustNotMatch !== "none") {
                                 if (game.playRules.cardMustMatch === "rank" && card.getRank() !== game.getTopDiscard().getRank()) {
                                     return { 
@@ -240,15 +252,6 @@ export class GameMove {
                                 }
                             }
                             else { 
-                                var isSpecial = false;
-                                var ability = "";
-                                for (const specialCard in game.cardAbilities.specialCards) {
-                                    if (specialCard.rank === card.getRank() && specialCard.suit === card.getSuit()) {
-                                        isSpecial = true;
-                                        ability = specialCard.ability;
-                                        break;
-                                    }
-                                }
                                 if (isSpecial) {
                                     if (ability === "skipNextPlayer" && game.cardAbilities.skipNextPlayer.activatesOn === "play") {
                                         game.cardAbilities.skipNextPlayer = true; // TODO: Add this global variable to GameStatus.ts and add behavior for it
