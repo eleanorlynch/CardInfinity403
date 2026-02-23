@@ -185,7 +185,7 @@ export class GameMove {
                                 }
                             }
                             if (ability === "wildCard") {
-                                return game.playCard(playerId, cardId); // TODO: Add a parameter to playCard function in GameStatus.ts to indicate whether the player needs to choose the card's effect after playing it, and add behavior for it
+                                return game.playCard(playerId, cardId);
                             }
                             if (game.playRules.cardMustMatch !== "none" || game.playRules.cardMustNotMatch !== "none") {
                                 if (game.playRules.cardMustMatch === "rank" && card.getRank() !== game.getTopDiscard().getRank()) {
