@@ -36,7 +36,7 @@ export class Preloader extends Scene {
     );
 
     //  Use the 'progress' event emitted by the LoaderPlugin to update the loading bar
-    this.load.on("progress", (progress) => {
+    this.load.on("progress", (progress: number) => {
       //  Update the progress bar (our bar is 464px wide, so 100% = 464px)
       bar.width = 4 + 460 * progress;
     });
@@ -53,17 +53,7 @@ export class Preloader extends Scene {
       this.load.image(letter, `${letter}.png`);
     });
 
-    this.load.image("smile", "smile.png");
-    this.load.image("alien", "alien.png");
-    this.load.image("logo", "logo.png");
     this.load.image("infinity of spades", "infinity.png")
-    this.load.image("nought_1", "nought.png");
-    this.load.image("nought_2", "nought.png");
-    this.load.image("nought_3", "nought.png");
-    this.load.image("cross_1", "cross.png");
-    this.load.image("cross_2", "cross.png");
-    this.load.image("cross_3", "cross.png");
-    this.load.image("grid", "grid.png");
   }
 
   create() {
