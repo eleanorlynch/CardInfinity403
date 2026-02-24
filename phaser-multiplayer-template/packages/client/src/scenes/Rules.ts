@@ -128,6 +128,8 @@ export class Rules extends Scene {
       // TODO: disable buttons when upper/lower limit reached (# rules / 5 (int div) === 0 || pagenum === 0)
       // depends on if this is left or right
       page_number_indicator.setText('' + this.page_number);
+      this.handle_visibility();
+
     })
 
     const navigation_left_button = this.add.text(width * 0.41, height * 0.83, '<', {
@@ -155,6 +157,8 @@ export class Rules extends Scene {
       page_number_indicator.setText('' + this.page_number);
       // TODO: disable buttons when upper/lower limit reached (# rules / 5 (int div) === 0 || pagenum === 0)
       // depends on if this is left or right
+      this.handle_visibility();
+
     })
 
     const page_number_indicator = this.add.text(width * 0.48, height * 0.84, String(this.page_number), {
@@ -173,21 +177,23 @@ export class Rules extends Scene {
 
     //populate rules
 
-    this.rulesets_temp_delete_later.push(new Ruleset("hellooo"));
+    this.rulesets_temp_delete_later.push(new Ruleset("uno"));
     this.rulesets_temp_delete_later.push(new Ruleset("hiii"));
     this.rulesets_temp_delete_later.push(new Ruleset("the joke one"));
     this.rulesets_temp_delete_later.push(new Ruleset("e"));
     this.rulesets_temp_delete_later.push(new Ruleset("th is me"));
 
     this.populate_rulesets(width, height, container_width);
+    this.handle_visibility();
 
   }
 
   //Helper fns
   handle_navigation_click(increment: number) {
-    if (increment > 0 || this.page_number > 0){
-        this.page_number += increment;
+    if (increment > 0 || this.page_number > 0) {
+      this.page_number += increment;
     }
+
     // not really sure if this should be a function?
     // TODO: check style guide
   }
@@ -207,9 +213,30 @@ export class Rules extends Scene {
     })
   };
 
+  handle_visibility() {
+    let num_to_show: number;
+    if (this.rulesets.size >= this.page_number * 5) {
+      num_to_show = 5;
+    } else {
+      num_to_show = this.rulesets.size % 5;
+    }
+
+    this.rulesets_temp_delete_later.forEach((ruleset) => {
+      this.rulesets.get(ruleset.name)!.setVisible(false);
+    })
+
+    let index = this.page_number * 5;
+    while (index < (this.page_number) * 5 + num_to_show) {
+      console.log(index);
+      console.log(this.rulesets.get(this.rulesets_temp_delete_later.at(index)!.name));
+      this.rulesets.get(this.rulesets_temp_delete_later.at(index)!.name)!.setVisible(true);
+      index += 1;
+    }
+
+  }
+
   draw_ruleset_entry_cards() {
     //draws entry cards
-
   }
 
   add_ruleset_entry() {
@@ -259,7 +286,5 @@ export class Rules extends Scene {
 
 
     this.rulesets.set(ruleset.name, container);
-
   }
-
 }
