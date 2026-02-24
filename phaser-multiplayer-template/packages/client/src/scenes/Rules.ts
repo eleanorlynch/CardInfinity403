@@ -183,9 +183,7 @@ export class Rules extends Scene {
 
   }
 
-
   //Helper fns
-
   handle_navigation_click(increment: number) {
     if (increment > 0 || this.page_number > 0){
         this.page_number += increment;
@@ -246,7 +244,7 @@ export class Rules extends Scene {
     container.setInteractive({ usehandcursor: true });
 
     container.on("pointerover", () => {
-      ruleset_bg.fillStyle(0x000840);
+      ruleset_bg.fillStyle(0x8d8d8d);
       ruleset_bg.fillRoundedRect(x_pos * -0.125, y_pos * -0.05, container_width * 0.9, 55, 5);
       ruleset_bg.strokeRoundedRect(x_pos * -0.125, y_pos * -0.05, container_width * 0.9, 55, 5);
     });
@@ -256,6 +254,8 @@ export class Rules extends Scene {
       ruleset_bg.fillRoundedRect(x_pos * -0.125, y_pos * -0.05, container_width * 0.9, 55, 5);
       ruleset_bg.strokeRoundedRect(x_pos * -0.125, y_pos * -0.05, container_width * 0.9, 55, 5);
     });
+
+    container.setVisible(false);
 
 
     this.rulesets.set(ruleset.name, container);
