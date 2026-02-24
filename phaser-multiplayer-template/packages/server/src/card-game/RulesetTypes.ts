@@ -7,20 +7,96 @@ export interface Ruleset {
     minPlayers: number;
     AValue: 1 | 14;
     turnOrder: "clockwise" | "counterclockwise";
-    startRules: StartRules;
-    drawRules: DrawRules;
-    discardRules: DiscardRules;
-    playRules: PlayRules;
-    handRules: HandRules;
+   // startRules: StartRules;
+   // drawRules: DrawRules;
+   // discardRules: DiscardRules;
+   // playRules: PlayRules;
+   // handRules: HandRules;
     minNumRounds: number;
     hasMaxNumRounds: boolean;
     maxNumRounds: number;
-    winConditions: WinConditions;
-    cardAbilities: CardAbilities;
+   // winConditions: WinConditions;
+   // not including card abilities for now
+   // cardAbilities: CardAbilities;
     ranks: number[];
     suits: string[];
-    deckContents: DeckContents;
+   // deckContents: DeckContents;
+    startRules: {
+        host: { chosen: boolean };
+        highestCard: { chosen: boolean };
+        lowestCard: { chosen: boolean };
+        mostOfOneSuit: {
+            chosen: boolean;
+            suit: "hearts" | "diamonds" | "clubs" | "spades";
+        };
+        mostOfOneRank: {
+            chosen: boolean;
+            rank: number;
+        };
+    }
+    drawRules: {
+        whenToDraw: "startOfTurn" | "endOfTurn" | "afterPlay" | "afterDiscard" | "any";
+        minCardsToDraw: number;
+        maxCardsToDraw: number;
+        drawFrom: "deck" | "discardPile";
+    }
+    discardRules: {
+        whenToDiscard: "startOfTurn" | "endOfTurn" | "afterPlay" | "afterDraw" | "any";
+        minCardsToDiscard: number;
+        maxCardsToDiscard: number;
+        cardMustMatch: "suit" | "rank" | "rankUp" | "rankDown" | "color" | "none";
+        cardMustNotMatch: "suit" | "rank" | "color" | "none";
+    }
+    playRules: {
+        whenToPlay: "startOfTurn" | "endOfTurn" | "afterDraw" | "afterDiscard" | "any";
+        cardMustMatch: "suit" | "rank" | "rankUp" | "rankDown" | "color" | "none";
+        cardMustNotMatch: "suit" | "rank" | "color" | "none";
+        minCardsToPlay: number;
+        maxCardsToPlay: number;
+    }
+    handRules: {
+        startingHandSize: number;
+        maxHandSize: number;
+        minHandSize: number;
+    }
+    winConditions: {
+        firstToScore: {
+            chosen: boolean;
+            scoreTarget: number;
+        };
+        firstToHandSize: {
+            chosen: boolean;
+            handSizeTarget: number;
+        };
+        mostOfOneSuit: {
+            chosen: boolean;
+            suit: "hearts" | "diamonds" | "clubs" | "spades" | "any";
+        };
+        mostOfOneRank: {
+            chosen: boolean;
+            rank: number;
+        };
+        mostOfOneColor: {
+            chosen: boolean;
+            color: "red" | "black" | "any";
+        };
+        collectsSetOfCards: {
+            chosen: boolean;
+            set: Array<{rank: number, suit: string}>;
+        };
+        mostCardsInHand: { chosen: boolean };
+        leastCardsInHand: { chosen: boolean };
+        lastToHaveCardsInHand: { chosen: boolean };
+    }
+    deckContents: {
+        cards: Array<{
+            rank: number;
+            suit: string;
+        }>;
+    }
 }
+
+// IGNORE EVERYTHING BELOW THIS POINT FOR NOW
 
 export interface StartRules {
     host: { chosen: boolean };

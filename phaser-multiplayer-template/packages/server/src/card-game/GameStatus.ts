@@ -3,7 +3,7 @@ import { Player } from "./Player";
 import { GameWinner } from "./GameWinner";
 import { Ruleset } from "./RulesetTypes";
 
-export class GameStatus {
+export class GameStatus implements Ruleset {
     gameId: number;
     ruleset: string[];
     players: Player[];
@@ -21,6 +21,91 @@ export class GameStatus {
     extraTurn: boolean;
     skipNextPlayer: boolean;
     reverseTurnOrder: boolean;
+
+    name: string;
+    description: string;
+    maxPlayers: number;
+    minPlayers: number;
+    AValue: 1 | 14;
+    turnOrder: "clockwise" | "counterclockwise";
+    minNumRounds: number;
+    hasMaxNumRounds: boolean;
+    maxNumRounds: number;
+    ranks: number[];
+    suits: string[];
+    startRules: {
+        host: { chosen: boolean };
+        highestCard: { chosen: boolean };
+        lowestCard: { chosen: boolean };
+        mostOfOneSuit: {
+            chosen: boolean;
+            suit: "hearts" | "diamonds" | "clubs" | "spades";
+        };
+        mostOfOneRank: {
+            chosen: boolean;
+            rank: number;
+        };
+    }
+    drawRules: {
+        whenToDraw: "startOfTurn" | "endOfTurn" | "afterPlay" | "afterDiscard" | "any";
+        minCardsToDraw: number;
+        maxCardsToDraw: number;
+        drawFrom: "deck" | "discardPile";
+    }
+    discardRules: {
+        whenToDiscard: "startOfTurn" | "endOfTurn" | "afterPlay" | "afterDraw" | "any";
+        minCardsToDiscard: number;
+        maxCardsToDiscard: number;
+        cardMustMatch: "suit" | "rank" | "rankUp" | "rankDown" | "color" | "none";
+        cardMustNotMatch: "suit" | "rank" | "color" | "none";
+    }
+    playRules: {
+        whenToPlay: "startOfTurn" | "endOfTurn" | "afterDraw" | "afterDiscard" | "any";
+        cardMustMatch: "suit" | "rank" | "rankUp" | "rankDown" | "color" | "none";
+        cardMustNotMatch: "suit" | "rank" | "color" | "none";
+        minCardsToPlay: number;
+        maxCardsToPlay: number;
+    }
+    handRules: {
+        startingHandSize: number;
+        maxHandSize: number;
+        minHandSize: number;
+    }
+    winConditions: {
+        firstToScore: {
+            chosen: boolean;
+            scoreTarget: number;
+        };
+        firstToHandSize: {
+            chosen: boolean;
+            handSizeTarget: number;
+        };
+        mostOfOneSuit: {
+            chosen: boolean;
+            suit: "hearts" | "diamonds" | "clubs" | "spades" | "any";
+        };
+        mostOfOneRank: {
+            chosen: boolean;
+            rank: number;
+        };
+        mostOfOneColor: {
+            chosen: boolean;
+            color: "red" | "black" | "any";
+        };
+        collectsSetOfCards: {
+            chosen: boolean;
+            set: Array<{rank: number, suit: string}>;
+        };
+        mostCardsInHand: { chosen: boolean };
+        leastCardsInHand: { chosen: boolean };
+        lastToHaveCardsInHand: { chosen: boolean };
+    }
+    deckContents: {
+        cards: Array<{
+            rank: number;
+            suit: string;
+        }>;
+    }
 
     constructor(gameId: number, ruleset: string[], players: Player[]) {
         this.gameId = gameId;
@@ -40,6 +125,9 @@ export class GameStatus {
         this.extraTurn = false;
         this.skipNextPlayer = false;
         this.reverseTurnOrder = false;
+        // JERRY: PUT THE JSON READING THINGY HERE, IT NEEDS TO FILL THE INTERFACE REQUIRED VARIABLES,
+        // SEE RulesetTypes.ts FOR THEM, THEY ARE ALSO IN THE SECOND GROUPING OF GLOBAL VARIABLES ABOVE
+
     }
 
     getGameId() {
