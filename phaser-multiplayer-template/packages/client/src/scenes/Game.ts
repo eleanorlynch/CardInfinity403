@@ -1,7 +1,4 @@
 import { Scene } from "phaser";
-import { GameMove } from "../utils/server/GameMove.js";
-import { GameWinner } from "../utils/server/GameWinner.js";
-import { Player } from "../utils/server/Player.js";
 import {Client as ColyseusClient, Room} from "colyseus.js"
 
 interface Card {
@@ -12,17 +9,13 @@ interface Card {
 }
 
 export class Game extends Scene {
-  gameMove: GameMove | null = null;
-  //gameId: string = "single-player-game";
   gameId: number = 1;
-  //playerId: string = "player1";
   playerId: number = 0;
   cardSprites: Map<string, Phaser.GameObjects.Container> = new Map();
   discardPileSprite: Phaser.GameObjects.Container | null = null;
   deckSprite: Phaser.GameObjects.Container | null = null;
   statusText: Phaser.GameObjects.Text | null = null;
   drawButton: Phaser.GameObjects.Text | null = null;
-  // temp end-turn button since we dont have automated end turn based on a specific rule(s)
   endTurnButton: Phaser.GameObjects.Text | null = null;
   // Colyseus multiplayer:
   private netClient?: ColyseusClient;
@@ -180,7 +173,6 @@ export class Game extends Scene {
 
 
     // Initialize game
-    // this.initializeGame(); {replaced with below}
     this.connectToRoom().catch((err) => {
       console.error(err);
       if(this.statusText) this.statusText.setText("Failed to connect");
@@ -210,33 +202,36 @@ export class Game extends Scene {
     this.gameMove = null;
   }
 
-  initializeGame() {
-    // Create GameMove instance
-    this.gameMove = new GameMove();
-    
-    // Create a single-player game using GameMove
-    const players = [new Player(this.playerId, [])];
-    const ruleset = ["2"]; // Standard rule set
-    
-    // GameMove.createGame will handle deck creation, shuffling, and dealing
-    this.gameMove.createGame(1, ruleset, players);
-    
-    // Update game ID reference
-    this.gameId = 1;
-    
-    // Update display
-    this.updateDisplay();
-  }
-
   updateDisplay() {
-    if (!this.gameMove) return;
+    if (!this.room) {
+      console.warn("No room connection");
+      return;
+    }
 
+    if (this.netState?.gameOver) {
+      return;
+    }
+
+    console.log("Sending GET_GAME to server");
+    const gameId = this.gameId;
+    this.room.send("GET_GAME", { gameId });
+    var game = null;
+    this.room.onMessage("GAME", (state) => {
+      game = state;
+    })
+    
     // Get the actual game object for winner checking
-    const game = this.gameMove.getGame(this.gameId);
+   
     if (!game) return;
 
-    // Get game state through GameMove
-    const stateResult = this.gameMove.getGameState(this.gameId, this.playerId);
+    // Get game state
+   var stateResult: any = null;
+   console.log("Sending GET_GAME_STATE to server");
+   const playerId = this.playerId;
+   this.room.send("GET_GAME_STATE", { gameId, playerId });
+   this.room.onMessage("GAME_STATE", (state) => {
+    stateResult = state;
+   })
     
     if (!stateResult.success || !stateResult.gameState) {
       return;
@@ -246,10 +241,12 @@ export class Game extends Scene {
     const width = Number(this.game.config.width);
     const height = Number(this.game.config.height);
 
-    const Winner = new GameWinner();
-
-    // Check for winner using GameWinner (pass the actual GameStatus object, not the state result)
-    const winnerResult = Winner.checkWinner(game);
+    console.log("Sending CHECK_WINNER to server");
+    this.room.send("CHECK_WINNER");
+    var winnerResult: any = null;
+    this.room.onMessage("GAME_OVER", (winnerId) => {
+      winnerResult = winnerId;
+    })
 
     // Update status text
     if (this.statusText) {
@@ -434,6 +431,60 @@ export class Game extends Scene {
       this.room.send("WINNER_CHECK");
     }
 
+  }
+
+  private async connectToRoom() {
+    const channelId = "dev-channel-1";
+
+    // ===== LOCAL DEV (comment this out when using tunnel) =====
+    const wsEndpoint = "ws://localhost:3001";
+
+    // ===== TUNNEL / DISCORD (comment this out when using local) =====
+    // Browser Colyseus must use ws:// or wss:// (not http://)
+    // const wsEndpoint = window.location.origin.replace(/^http/, "ws");
+
+    this.netClient = new ColyseusClient(wsEndpoint);
+
+    this.room = await this.netClient.joinOrCreate("game", { channelId });
+
+    this.room.onMessage("PRIVATE_STATE", (state) => {
+      this.netState = state;
+      this.updateDisplayFromNet();
+    });
+
+    this.room.onMessage("ERROR", (msg: any) => {
+      if (this.statusText) this.statusText.setText(msg?.message ?? "Error");
+    });
+
+    if (this.statusText) this.statusText.setText("Connected...");
+  }
+
+    private updateDisplayFromNet() {
+    if (!this.netState) return;
+
+    const width = Number(this.game.config.width);
+    const height = Number(this.game.config.height);
+
+    // Clear existing card sprites
+    this.cardSprites.forEach(sprite => sprite.destroy());
+    this.cardSprites.clear();
+
+    const myHand: Card[] = this.netState.myHand ?? [];
+    const discardTop: Card | null = this.netState.discardTop ?? null;
+    const deckCount: number = this.netState.deckCount ?? 0;
+    const gameOver: boolean = this.netState.gameOver ?? false;
+
+    if (this.statusText) {
+      if (gameOver) {
+        this.statusText.setText("Game Over!");
+      } else {
+        this.statusText.setText(
+          this.netState.isMyTurn
+            ? `Your turn | Hand: ${myHand.length} | Deck: ${deckCount}`
+            : `Opponent turn | Hand: ${myHand.length} | Deck: ${deckCount}`
+        );
+      }
+    } */
   }
 
   private async connectToRoom() {

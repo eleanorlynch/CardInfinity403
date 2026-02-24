@@ -1,4 +1,5 @@
 import { GameStatus } from "./GameStatus";
+import { Card } from "./Card";
 
 export class GameMove {
     activeGames: Map<any, any>;
