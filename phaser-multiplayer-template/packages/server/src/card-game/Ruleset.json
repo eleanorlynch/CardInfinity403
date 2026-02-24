@@ -25,7 +25,7 @@
         }
     },
     "drawRules": {
-        "whenToDraw": "startOfTurn" || "endOfTurn" || "afterPlay" || "afterDiscard" || "any",
+        "whenToDraw": "startOfTurn" || "endOfTurn" || "afterPlay" || "afterDiscard" || "any", // Note that only one category can have startOfTurn/endOfTurn
         "minCardsToDraw": 1, // 0 if no min
         "maxCardsToDraw": 3, // size of deck + 1 if no max
         "drawFrom": "deck" || "discardPile" /* <- optional, add this if we have time */
@@ -165,9 +165,9 @@
                         "suit": "hearts" || "diamonds" || "clubs" || "spades" || "any"}],
             "numExtraPlays": 1
         },
-        "wildCard": { // add only if we have time, can choose suit and/or rank when played/drawn
+        "wildCard": {
             "chosen": true,
-            "activatesOn": "play" || "draw",
+            "activatesOn": "play",
             "card": [{"rank": -1 || 1 || 2 || 3 || 4 || 5 || 6 || 7 || 8 || 9 || 10 || 11 /* Jack */ || 12 /* Queen */ || 13 /* King */, 
                         "suit": "hearts" || "diamonds" || "clubs" || "spades" || "any"}],
             "canChooseSuit": true, // if true, player can choose suit when playing this card
