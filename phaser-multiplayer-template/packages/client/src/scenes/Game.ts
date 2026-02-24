@@ -1,7 +1,7 @@
 import { Scene } from "phaser";
-//import { GameMove } from "../utils/server/GameMove.js";
-//import { GameWinner } from "../utils/server/GameWinner.js";
-//import { Player } from "../utils/server/Player.js";
+import { GameMove } from "../utils/server/GameMove.js";
+import { GameWinner } from "../utils/server/GameWinner.js";
+import { Player } from "../utils/server/Player.js";
 import {Client as ColyseusClient, Room} from "colyseus.js"
 
 interface Card {
@@ -12,7 +12,7 @@ interface Card {
 }
 
 export class Game extends Scene {
- // gameMove: GameMove | null = null;
+  gameMove: GameMove | null = null;
   //gameId: string = "single-player-game";
   gameId: number = 1;
   //playerId: string = "player1";
@@ -207,79 +207,38 @@ export class Game extends Scene {
     this.drawButton = null;
     
     // Reset game move manager
-    // this.gameMove = null;
-    // TODO: Make sure this replacement works
-    if (!this.room) {
-      console.warn("No room connection");
-      return;
-    }
-
-    if (this.netState?.gameOver) {
-      return;
-    }
-
-    console.log("Sending END_GAME to server");
-    const gameId = this.gameId;
-    this.room.send("END_GAME", { gameId });
+    this.gameMove = null;
   }
 
-  // Based on GameRoom.ts I believe this is unnecessary
- /* initializeGame() {
-    if (!this.room) {
-      console.warn("No room connection");
-      return;
-    }
-
-    if (this.netState?.gameOver) {
-      return;
-    }
-
-    console.log("Sending CREATE_GAME to server");
-    const playerId = this.playerId;
-    this.room.send("CREATE_GAME", { playerId });
+  initializeGame() {
+    // Create GameMove instance
+    this.gameMove = new GameMove();
+    
+    // Create a single-player game using GameMove
+    const players = [new Player(this.playerId, [])];
+    const ruleset = ["2"]; // Standard rule set
+    
+    // GameMove.createGame will handle deck creation, shuffling, and dealing
+    this.gameMove.createGame(1, ruleset, players);
     
     // Update game ID reference
     this.gameId = 1;
     
     // Update display
     this.updateDisplay();
-  } */
+  }
 
   updateDisplay() {
-    if (!this.room) {
-      console.warn("No room connection");
-      return;
-    }
-
-    if (this.netState?.gameOver) {
-      return;
-    }
-
-    console.log("Sending GET_GAME to server");
-    const gameId = this.gameId;
-    this.room.send("GET_GAME", { gameId });
-    var game = null;
-    this.room.onMessage("GAME", (state) => {
-      game = state;
-    })
-    //if (!this.gameMove) return;
+    if (!this.gameMove) return;
 
     // Get the actual game object for winner checking
-    //const game = this.gameMove.getGame(this.gameId);
-    //const game = this.room.send("GET_GAME_STATE")
+    const game = this.gameMove.getGame(this.gameId);
     if (!game) return;
 
     // Get game state through GameMove
-   // const stateResult = this.gameMove.getGameState(this.gameId, this.playerId);
-   var stateResult: any = null;
-   console.log("Sending GET_GAME_STATE to server");
-   const playerId = this.playerId;
-   this.room.send("GET_GAME_STATE", { gameId, playerId });
-   this.room.onMessage("GAME_STATE", (state) => {
-    stateResult = state;
-   })
+    const stateResult = this.gameMove.getGameState(this.gameId, this.playerId);
     
-    if (stateResult === null || !stateResult.success || !stateResult.gameState) {
+    if (!stateResult.success || !stateResult.gameState) {
       return;
     }
 
@@ -287,16 +246,10 @@ export class Game extends Scene {
     const width = Number(this.game.config.width);
     const height = Number(this.game.config.height);
 
-    //const Winner = new GameWinner();
+    const Winner = new GameWinner();
 
     // Check for winner using GameWinner (pass the actual GameStatus object, not the state result)
-    console.log("Sending CHECK_WINNER to server");
-    this.room.send("CHECK_WINNER");
-    var winnerResult: any = null;
-    this.room.onMessage("GAME_OVER", (winnerId) => {
-      winnerResult = winnerId;
-    })
-    //const winnerResult = Winner.checkWinner(game);
+    const winnerResult = Winner.checkWinner(game);
 
     // Update status text
     if (this.statusText) {
@@ -480,6 +433,30 @@ export class Game extends Scene {
     if (this.isGameOver()) {
       this.room.send("WINNER_CHECK");
     }
+    // Use GameMove to handle playing a card
+  /*  const result = this.gameMove.handlePlayCard(this.gameId, this.playerId, cardId);
+    
+    if (result.success) {
+      this.updateDisplay();
+      
+      // Check for winner after playing card
+      const stateResult = this.gameMove.getGameState(this.gameId, this.playerId);
+      if (stateResult.success && stateResult.gameState) {
+        const Winner = new GameWinner;
+        const winnerResult = Winner.checkWinner(stateResult.gameState);
+        if (winnerResult) {
+          // Winner detected
+          if (this.statusText) {
+            this.statusText.setText(`You Win！${winnerResult.message}`);
+          }
+        }
+      }
+    } else {
+      // Handle error message
+      if (this.statusText) {
+        this.statusText.setText(result.message || "Cannot play card");
+      }
+    } */
   }
 
   private async connectToRoom() {
