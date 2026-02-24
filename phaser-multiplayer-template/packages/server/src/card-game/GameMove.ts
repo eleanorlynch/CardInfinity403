@@ -76,6 +76,7 @@ export class GameMove {
                 message: "Not your turn"
             };
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
         }
         
@@ -98,6 +99,8 @@ export class GameMove {
                 };
             } */
 >>>>>>> main
+=======
+>>>>>>> 84c7ab7a3ce026e075ac23976e065037b275c1bd
         }
 
         if (game.drawRules.whenToDraw === "startOfTurn" && (game.getPlaysThisTurn() > 0 || game.getDiscardsThisTurn() > 0)) { // player can only draw card(s) at the start of their turn before playing or discarding any cards if this rule is in effect
@@ -153,6 +156,7 @@ export class GameMove {
             };
         }
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
         
         if (game.getPlaysThisTurn() < 1) { // current beta rules allow for either playing or drawing once per turn
@@ -188,6 +192,8 @@ export class GameMove {
             }
         }
 >>>>>>> main
+=======
+>>>>>>> 84c7ab7a3ce026e075ac23976e065037b275c1bd
 
         if (game.getCurrentTurn() !== playerId) {
             return {
