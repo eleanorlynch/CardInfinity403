@@ -433,30 +433,7 @@ export class Game extends Scene {
     if (this.isGameOver()) {
       this.room.send("WINNER_CHECK");
     }
-    // Use GameMove to handle playing a card
-  /*  const result = this.gameMove.handlePlayCard(this.gameId, this.playerId, cardId);
-    
-    if (result.success) {
-      this.updateDisplay();
-      
-      // Check for winner after playing card
-      const stateResult = this.gameMove.getGameState(this.gameId, this.playerId);
-      if (stateResult.success && stateResult.gameState) {
-        const Winner = new GameWinner;
-        const winnerResult = Winner.checkWinner(stateResult.gameState);
-        if (winnerResult) {
-          // Winner detected
-          if (this.statusText) {
-            this.statusText.setText(`You Win！${winnerResult.message}`);
-          }
-        }
-      }
-    } else {
-      // Handle error message
-      if (this.statusText) {
-        this.statusText.setText(result.message || "Cannot play card");
-      }
-    } */
+
   }
 
   private async connectToRoom() {

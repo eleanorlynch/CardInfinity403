@@ -7,7 +7,6 @@ export class GameStatus {
     ruleset: string[];
     players: Player[];
     deck: Card[];
-    //playerHands: any[][];
     gameOver: boolean;
     winner: number;
     winners: number[]; // this is a list ofplayer ids (use if tie)
@@ -18,6 +17,10 @@ export class GameStatus {
     drawsThisTurn: number;
     playsThisTurn: number;
     discardsThisTurn: number;
+    extraTurn: boolean;
+    skipNextPlayer: boolean;
+    reverseTurnOrder: boolean;
+
     constructor(gameId: number, ruleset: string[], players: Player[]) {
         this.gameId = gameId;
         this.ruleset = ruleset;
@@ -34,7 +37,10 @@ export class GameStatus {
         this.playsThisTurn = 0;
         this.discardsThisTurn = 0;
         this.tied = false;
-}
+        this.extraTurn = false;
+        this.skipNextPlayer = false;
+        this.reverseTurnOrder = false;
+    }
 
     getGameId() {
         return this.gameId;
@@ -150,28 +156,70 @@ export class GameStatus {
         // Draw the top card from deck
         const drawnCard = this.deck.pop();
         if (drawnCard !== undefined) {
-            if (/*this.playerHands[playerId]*/player !== undefined && player.getHand() !== undefined) {
-                //this.playerHands[playerId].push(drawnCard);
+            if (player !== undefined && player.getHand() !== undefined) {
                 const hand = player.getHand();
                 hand.push(drawnCard);
                 player.setHand(hand);
                 
                 this.drawsThisTurn++;
 
+                var isSpecial: boolean = false;
+                var ability: string = "";
+                for (const specialCard of this.cardAbilities.specialCards.cards) { // checks if the card has a special ability when played
+                    if (specialCard.rank === drawnCard.getRank() && specialCard.suit === drawnCard.getSuit() && specialCard.activatesOn === "draw") {
+                        isSpecial = true;
+                        ability = specialCard.ability;
+                        break;
+                    }
+                }
+
+                if (isSpecial) { // card has a special ability that activates when played
+                    if (ability === "skipNextPlayer") {
+                        this.skipNextPlayer = true;
+                    }
+                    else if (ability === "reverseTurnOrder") {
+                        if (this.reverseTurnOrder === true) {
+                            this.reverseTurnOrder = false;
+                        }
+                        else {
+                            this.reverseTurnOrder = true;
+                        }
+                    }
+                    else if (ability === "drawCardsForNextPlayer") { // next player in the turn order draws some specified number of cards
+                        for (let i = 0; i < this.cardAbilities.drawCardsForNextPlayer.numCards; i++) {
+                            if (this.getPlayers() !== undefined && this.getPlayers()[(playerId + 1) % this.getPlayers().length] !== undefined
+                                && this.getPlayers()[(playerId + 1) % this.getPlayers().length].getHand() !== undefined
+                                && this.getPlayers()[(playerId + 1) % this.getPlayers().length].getHand().length < this.handRules.maxHandSize) {
+                                this.drawCard((playerId + 1) % this.getPlayers().length);
+                            }
+                        }
+                    }
+                    else if (ability === "extraTurn") { // players takes an extra turn immediately after this one
+                        this.extraTurn = true;
+                    }
+                    else if (ability === "extraDraw") { // player can draw an extra card this turn
+                        this.drawsThisTurn = this.drawsThisTurn - 1;
+                    }
+                    else if (ability === "extraPlay") { // player can play an extra card this turn
+                        this.playsThisTurn = this.playsThisTurn - 1;
+                    }
+                    else if (ability === "extraDiscard") { // player can discard an extra card this turn
+                        this.discardsThisTurn = this.discardsThisTurn - 1;
+                    }
+                }
+
                 return { 
                     success: true, 
                     card: drawnCard,
-                   // playerHand: this.playerHands[playerId],
                     playerHand: player.getHand(),
                     deckRemaining: this.deck.length
                 };
             }
         }
-        if (/*this.playerHands[playerId]*/player !== undefined && player.getHand() !== undefined) {
+        if (player !== undefined && player.getHand() !== undefined) {
             return {
                 success: false,
                 card: undefined,
-                //playerHand: this.playerHands[playerId],
                 playerHand: player.getHand(),
                 deckRemaining: this.deck.length
             }
@@ -208,8 +256,7 @@ export class GameStatus {
         }
         
         // Find the card in player's hand
-        if (/*this.playerHands[playerId]*/player !== undefined && player.getHand() !== undefined) {
-            //const playerHand = this.playerHands[playerId];
+        if (player !== undefined && player.getHand() !== undefined) {
             const playerHand = player.getHand();
             if (playerHand !== undefined) { // TODO: add error message for if false
                 const cardIndex = playerHand.findIndex(card => card.id === cardId);
@@ -228,23 +275,6 @@ export class GameStatus {
                 if (playedCard !== undefined) {
                     this.discardPile.push(playedCard);
                 }
-                
-                // Check if player has no cards left (win condition)
-               /* if (playerHand.length === 0) {
-                    this.gameOver = true;
-                    this.winner = playerId;
-                    
-                    return { 
-                        success: true, 
-                        message: "Card played - You win!",
-                        gameOver: true,
-                        winner: playerId,
-                        discardTop: playedCard
-                    };
-                } */
-                
-                // Move to next player's turn
-               // this.nextTurn();
                 
                this.playsThisTurn++;
                 return { 
@@ -293,8 +323,7 @@ export class GameStatus {
         const player = this.players[playerId];
 
         // Find the card in player's hand
-        if (/*this.playerHands[playerId]*/player !== undefined && player.getHand() !== undefined) {
-            //const playerHand = this.playerHands[playerId];
+        if (player !== undefined && player.getHand() !== undefined) {
             const playerHand = player.getHand();
             if (playerHand !== undefined) {
                 const cardIndex = playerHand.findIndex(card => card.id === cardId);
@@ -313,10 +342,7 @@ export class GameStatus {
                 if (discardedCard !== undefined) {
                     this.discardPile.push(discardedCard);
                 }
-                
-                // Move to next player's turn
-               //this.nextTurn();
-                
+
                this.discardsThisTurn++;
 
                if (this.discardsThisTurn > 0) { // use for when discard ends your turn
@@ -376,10 +402,6 @@ export class GameStatus {
     }
 
     nextTurn() {
-        this.currentTurn = (this.currentTurn + 1) % this.players.length;
-        if (this.currentTurn === 0) {
-            this.totalRounds++;
-        }
         this.drawsThisTurn = 0;
         this.playsThisTurn = 0;
         this.discardsThisTurn = 0;
@@ -388,6 +410,38 @@ export class GameStatus {
         if (winnerInfo !== null) {
             this.gameOver = true;
         }
+        if (!this.extraTurn) {
+            if (this.skipNextPlayer) {
+                if (!this.reverseTurnOrder) {
+                    this.currentTurn = (this.currentTurn + 2) % this.players.length;
+                    this.skipNextPlayer = false;
+                }
+                else { // if turn order is reversed, 
+                    this.currentTurn = this.currentTurn - 2;
+                    if (this.currentTurn === -1) {
+                        this.currentTurn = this.players.length - 1;
+                    }
+                    else if (this.currentTurn === -2) {
+                        this.currentTurn = this.players.length - 2;
+                    }
+                }
+            }
+            else {
+                if (!this.reverseTurnOrder) {
+                    this.currentTurn = (this.currentTurn + 1) % this.players.length;
+                }
+                else {
+                    this.currentTurn = this.currentTurn - 1;
+                    if (this.currentTurn < 0) {
+                        this.currentTurn = this.players.length - 1;
+                    }
+                }
+            }
+            if (this.currentTurn === 0) {
+                this.totalRounds++;
+            }
+        }
+        this.extraTurn = false;
     }
 
     // FOR TESTING PURPOSES

@@ -1,5 +1,4 @@
 import { GameStatus } from "./GameStatus";
-import { Card } from "./Card";
 
 export class GameMove {
     activeGames: Map<any, any>;
@@ -25,7 +24,7 @@ export class GameMove {
         return this.activeGames.get(gameId);
     }
 
-    // TODO: Implement usage of this function in the frontend
+    // TODO: Make sure to test this function especially
     handleEndTurn(gameId: number, playerId: number) {
         const game = this.activeGames.get(gameId);
         if (!game) {
@@ -116,7 +115,6 @@ export class GameMove {
         }
         var isSpecial = false;
         var ability = "";
-        // TODO: Add functionality for special abilities that activate when drawn in GameStatus.ts, similar to the checks for special abilities that activate when played in handlePlayCard
         return game.drawCard(playerId); // all rules have been satisfied, draw the card
     }
     
@@ -253,10 +251,15 @@ export class GameMove {
                             else { 
                                 if (isSpecial) { // card has a special ability that activates when played
                                     if (ability === "skipNextPlayer") {
-                                        game.cardAbilities.skipNextPlayer = true; // TODO: Add this global variable to GameStatus.ts and add behavior for it
+                                        game.skipNextPlayer = true;
                                     }
                                     else if (ability === "reverseTurnOrder") {
-                                        game.reverseTurnOrder(); // TODO: Add this function to GameStatus.ts
+                                        if (game.reverseTurnOrder === true) {
+                                            game.reverseTurnOrder = false;
+                                        }
+                                        else {
+                                            game.reverseTurnOrder = true;
+                                        }
                                     }
                                     else if (ability === "drawCardsForNextPlayer") { // next player in the turn order draws some specified number of cards
                                         for (let i = 0; i < game.cardAbilities.drawCardsForNextPlayer.numCards; i++) {
@@ -268,7 +271,7 @@ export class GameMove {
                                         }
                                     }
                                     else if (ability === "extraTurn") { // players takes an extra turn immediately after this one
-                                        game.extraTurn = true; // TODO: Add this global variable to GameStatus.ts and add behavior for it
+                                        game.extraTurn = true;
                                     }
                                     else if (ability === "extraDraw") { // player can draw an extra card this turn
                                         game.drawsThisTurn = game.drawsThisTurn - 1;

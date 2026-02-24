@@ -3,7 +3,7 @@ import { Card } from "./Card";
 
 export class GameWinner {
     // Check if any player has won
-    checkWinner(gameState: GameStatus) { // TODO: Make which method it calls variable based on chosen rules
+    checkWinner(gameState: GameStatus) {
         if (gameState.totalRounds < gameState.minNumRounds) {
             return null; // No winner yet
         }
