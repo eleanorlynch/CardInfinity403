@@ -20,6 +20,9 @@ export class GameRoom extends Room {
     );
     this.onMessage("END_TURN", (client) => this.handleEndTurn(client));
     this.onMessage("CHECK_WINNER", (client) => this.handleCheckWinner(client));
+    this.onMessage("END_GAME", (client, msg: { gameId: number }) => this.handleEndGame(client, msg.gameId));
+    this.onMessage("GET_GAME", (client, msg: { gameId: number }) => this.handleGetGame(client, msg.gameId));
+    this.onMessage("GET_GAME_STATE", (client, msg: { gameId: number, playerId: number }) => this.handleGetGameState(client, msg.gameId, msg.playerId));
   }
 
   onJoin(client: Client) {
@@ -122,8 +125,67 @@ export class GameRoom extends Room {
 
     const winnerId = game.checkWinner();
     if (winnerId !== null) {
-      this.broadcast("GAME_OVER", { winnerId });
+      //this.broadcast("GAME_OVER", { winnerId });
+      client.send("GAME_OVER", { winnerId });
     }
+
+    this.broadcastPrivateStates();
+  }
+
+  // This may be unnecessary, testing required
+  private handleCreateGame(client: Client, playerId: number) {
+    const seat = this.seatBySessionId.get(client.sessionId);
+    if (seat === undefined) return;
+
+    const game = this.gameMove.getGame(this.gameId);
+    if (!game) return;  
+
+    // Create a single-player game using GameMove
+    const players = [new Player(playerId, [])];
+    const ruleset = ["2"]; // Standard rule set
+    
+    // GameMove.createGame will handle deck creation, shuffling, and dealing
+    this.gameMove.createGame(1, ruleset, players);
+
+    this.broadcastPrivateStates();
+  }
+
+  private handleEndGame(client: Client, gameId: number) {
+    const seat = this.seatBySessionId.get(client.sessionId);
+    if (seat === undefined) return;
+
+    const game = this.gameMove.getGame(this.gameId);
+    if (!game) return;
+
+    this.gameMove.endGame(gameId);
+
+    this.broadcastPrivateStates();
+  }
+
+  private handleGetGame(client: Client, gameId: number) {
+    const seat = this.seatBySessionId.get(client.sessionId);
+    if (seat === undefined) return;
+
+    const game = this.gameMove.getGame(this.gameId);
+    if (!game) return;
+
+    const state = this.gameMove.getGame(gameId);
+
+    client.send("GAME", { state });
+
+    this.broadcastPrivateStates();
+  }
+
+  private handleGetGameState(client: Client, gameId: number, playerId: number) {
+    const seat = this.seatBySessionId.get(client.sessionId);
+    if (seat === undefined) return;
+
+    const game = this.gameMove.getGame(this.gameId);
+    if (!game) return;
+
+    const state = this.gameMove.getGameState(gameId, playerId);
+
+    client.send("GAME_STATE", { state });
 
     this.broadcastPrivateStates();
   }
