@@ -27,11 +27,10 @@ export class GameStatus {
         this.ruleset = ruleset;
         this.players = players;
         this.deck = [];
-       // this.playerHands = [];
         this.gameOver = false;
         this.winner = -1; 
         this.winners = [];
-        this.currentTurn = players[0]!.getID() /*|| null*/; // previously ! was a ?
+        this.currentTurn = players[0]!.getID();
         this.discardPile = [];
         this.totalRounds = 0;
         this.drawsThisTurn = 0;
@@ -79,9 +78,6 @@ export class GameStatus {
                 this.deck.push(new Card(suit, rank));
         }
     }
-    //for joker? 
-       //if(this.rulset.jokers && this.ruleset.jokerCount > 0){
-   // }
 }
 
     //shuffles the deck before game starts
@@ -100,18 +96,16 @@ export class GameStatus {
     dealCards() {
         // Initialize empty hand for each player
         this.players.forEach(player => {
-           // this.playerHands[player.id] = [];
            player.setHand([]);
         });
         
         // Deal cards (default 7 cards per player)
-        const cardsPerPlayer = /*this.ruleset.cardsPerPlayer || */3;
+        const cardsPerPlayer = 3;
         
         for (let i = 0; i < cardsPerPlayer; i++) {
             this.players.forEach(player => {
                 if (this.deck.length > 0) {
                     const card = this.deck.pop();
-                    //const hand = this.playerHands[player.id];
                     const hand = player.getHand();
                     if (hand !== undefined && card !== undefined) { // add error message for else
                         hand.push(card);
@@ -121,7 +115,6 @@ export class GameStatus {
             });
         }
 
-        // uno needs a card in the discard pile to start
         this.discardPile.push(this.deck.pop()!); // TODO: add error message for if undefined
     }
  
@@ -166,13 +159,14 @@ export class GameStatus {
 
                 var isSpecial: boolean = false;
                 var ability: string = "";
-                for (const specialCard of this.cardAbilities.specialCards.cards) { // checks if the card has a special ability when played
+                // For use later, currently special cards are not implemented
+               /* for (const specialCard of this.cardAbilities.specialCards.cards) { // checks if the card has a special ability when played
                     if (specialCard.rank === drawnCard.getRank() && specialCard.suit === drawnCard.getSuit() && specialCard.activatesOn === "draw") {
                         isSpecial = true;
                         ability = specialCard.ability;
                         break;
                     }
-                }
+                } 
 
                 if (isSpecial) { // card has a special ability that activates when played
                     if (ability === "skipNextPlayer") {
@@ -207,7 +201,7 @@ export class GameStatus {
                     else if (ability === "extraDiscard") { // player can discard an extra card this turn
                         this.discardsThisTurn = this.discardsThisTurn - 1;
                     }
-                }
+                } */
 
                 return { 
                     success: true, 
@@ -346,9 +340,6 @@ export class GameStatus {
 
                this.discardsThisTurn++;
 
-               if (this.discardsThisTurn > 0) { // use for when discard ends your turn
-                    this.nextTurn();
-               }
                 return { 
                     success: true, 
                     message: "Card discarded",
@@ -380,7 +371,7 @@ export class GameStatus {
     getPlayerHand(playerId: number) {
         if (this.players[playerId] !== undefined) {
             if ((this.players[playerId].getHand() !== undefined)) {
-                return /*this.playerHands[playerId] || []*/this.players[playerId].getHand();
+                return this.players[playerId].getHand();
             }
         }
     }
@@ -456,7 +447,6 @@ export class GameStatus {
 
     // FOR TESTING PURPOSES
     setPlayerHand(hand: Card[], player: number) {
-        //this.playerHands[player] = hand;
         if (this.players[player] !== undefined) {
             this.players[player].setHand(hand);
         }

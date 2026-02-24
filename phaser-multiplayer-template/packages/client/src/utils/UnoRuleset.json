@@ -1,6 +1,6 @@
 {
-    "name": "Card Game",
-    "description": "A simple card game ruleset.",
+    "name": "Uno 2",
+    "description": "It's Uno, but faster. You only need to match the suit, no ranks involved.",
     "maxPlayers": 10,
     "minPlayers": 1,
     "AValue": 1,
@@ -39,7 +39,7 @@
     },
     "playRules": {
         "whenToPlay": "any",
-        "cardMustMatch": ["suit", "rank"],
+        "cardMustMatch": "suit",
         "cardMustNotMatch": "none",
         "minCardsToPlay": 0,
         "maxCardsToPlay": 1
