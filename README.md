@@ -54,11 +54,12 @@ See step 7 of How to Add a New Test to the Codebase.
 
 ## Fresh Setup/Installation
 
-**DISCLAIMER**
+### DISCLAIMER
+
 This is for setting up a personal instance of the application. If you want to use ours, use this installation link: https://discord.com/oauth2/authorize?client_id=1471216962213511294
 Please be aware that our current hosting service is EXTREMELY temporary and that this link will not be working most of the time for now. If you want to run the app on your own time, we'd recommend setting up a personal instance. 
 
-**PREREQUISITES**
+### PREREQUISITES
 A current version of npm and pnpm must be installed, 
 Instructions for setting up npm can be found here: https://www.ramotion.com/blog/how-to-install-npm/
 Instructions for setting up pnpm: https://pnpm.io/cli/setup 
@@ -68,12 +69,13 @@ Instructions for setting up pnpm: https://pnpm.io/cli/setup
 3) Run npm install  
 4) Run npm run dev  
 
-**IF RUNNING THROUGH LOCALHOST** (easier, but with limited capabilities. Recommended for testing)
+### IF RUNNING THROUGH LOCALHOST 
+***(easier, but with limited capabilities. Recommended for testing)***  
 a) Go to http://localhost:3000/, you can access a singleplayer game through here.
    * Note that this can currently only handle singleplayer connections
    ** This is the only step. lol.  
 
-**IF RUNNING AS A DISCORD ACTIVITY**
+### IF RUNNING AS A DISCORD ACTIVITY
 You will need to set up an activity through the Discord developer portal.
 You can create a new application here: https://discord.com/developers/applications/ 
 To access this page, you will need to have a Discord account with 2FA enabled. 
@@ -94,7 +96,7 @@ Instructions for setting up 2FA in Discord can be found here: https://support.di
 
 ## How to Generate a Coverage Report
 
-This is automatically done by running the workflow Node.js CI (see step 7 of How to Add a New Test to the Codebase for steps on how to do this). After navigating to the results page for the workflow run and viewing its different parts, click on "Check test code coverage (goal 80%). Scroll down until you see a table. Look for the files you want to check the coverage of in the left-most Files column, and the rest of the columns tell you about their coverage.
+This is automatically done by running the workflow Node.js CI (see step 7 of "How to Add a New Test to the Codebase" for steps on how to do this). After navigating to the results page for the workflow run and viewing its different parts, click on "Check test code coverage (goal 80%). Scroll down until you see a table. Look for the files you want to check the coverage of in the left-most Files column, and the rest of the columns tell you about their coverage.
 If you would like to see the color-coded version, you can manually run "npm run coverage" in your terminal while in the CardInfinity403 directory. Scroll down past the test results to see the coverage report. Red means a file is barely or not at all covered, yellow means it is partially covered, and green means it is sufficiently covered (the current target for green is 80% coverage).
 o change what command is executed for "npm run coverage", go to CardInfinity403/package.json, then modify "coverage" under "scripts".
 
@@ -102,7 +104,7 @@ Note that code coverage is currently incomplete due to some features being impos
 
 ## How to Build a Release 
 
-1) Ensure all tests are passing (See step 7 of How to Add a New Test to the Codebase).  
+1) Ensure all tests are passing (See step 7 of "How to Add a New Test to the Codebase").  
 2) Tag the commit you wish to release. Instructions for tagging may be found here: https://git-scm.com/book/en/v2/Git-Basics-Tagging
 * This project uses lightweight tags and follows the format "x.y.z-a" where x is the major version, y is the minor version, z is the patch version, and a is the specific category under which it is released (ex: b, g, f for beta, gamma, full)  
 3) Push the commit and tag to the remote repository
