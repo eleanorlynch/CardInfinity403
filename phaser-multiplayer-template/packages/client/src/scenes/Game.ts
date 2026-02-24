@@ -1,7 +1,4 @@
 import { Scene } from "phaser";
-//import { GameMove } from "../utils/server/GameMove.js";
-//import { GameWinner } from "../utils/server/GameWinner.js";
-//import { Player } from "../utils/server/Player.js";
 import {Client as ColyseusClient, Room} from "colyseus.js"
 
 interface Card {
@@ -12,17 +9,13 @@ interface Card {
 }
 
 export class Game extends Scene {
- // gameMove: GameMove | null = null;
-  //gameId: string = "single-player-game";
   gameId: number = 1;
-  //playerId: string = "player1";
   playerId: number = 0;
   cardSprites: Map<string, Phaser.GameObjects.Container> = new Map();
   discardPileSprite: Phaser.GameObjects.Container | null = null;
   deckSprite: Phaser.GameObjects.Container | null = null;
   statusText: Phaser.GameObjects.Text | null = null;
   drawButton: Phaser.GameObjects.Text | null = null;
-  // temp end-turn button since we dont have automated end turn based on a specific rule(s)
   endTurnButton: Phaser.GameObjects.Text | null = null;
   // Colyseus multiplayer:
   private netClient?: ColyseusClient;
@@ -180,7 +173,6 @@ export class Game extends Scene {
 
 
     // Initialize game
-    // this.initializeGame(); {replaced with below}
     this.connectToRoom().catch((err) => {
       console.error(err);
       if(this.statusText) this.statusText.setText("Failed to connect");
@@ -223,28 +215,6 @@ export class Game extends Scene {
     this.room.send("END_GAME", { gameId });
   }
 
-  // Based on GameRoom.ts I believe this is unnecessary
- /* initializeGame() {
-    if (!this.room) {
-      console.warn("No room connection");
-      return;
-    }
-
-    if (this.netState?.gameOver) {
-      return;
-    }
-
-    console.log("Sending CREATE_GAME to server");
-    const playerId = this.playerId;
-    this.room.send("CREATE_GAME", { playerId });
-    
-    // Update game ID reference
-    this.gameId = 1;
-    
-    // Update display
-    this.updateDisplay();
-  } */
-
   updateDisplay() {
     if (!this.room) {
       console.warn("No room connection");
@@ -262,15 +232,12 @@ export class Game extends Scene {
     this.room.onMessage("GAME", (state) => {
       game = state;
     })
-    //if (!this.gameMove) return;
-
+    
     // Get the actual game object for winner checking
-    //const game = this.gameMove.getGame(this.gameId);
-    //const game = this.room.send("GET_GAME_STATE")
+   
     if (!game) return;
 
-    // Get game state through GameMove
-   // const stateResult = this.gameMove.getGameState(this.gameId, this.playerId);
+    // Get game state
    var stateResult: any = null;
    console.log("Sending GET_GAME_STATE to server");
    const playerId = this.playerId;
@@ -287,16 +254,12 @@ export class Game extends Scene {
     const width = Number(this.game.config.width);
     const height = Number(this.game.config.height);
 
-    //const Winner = new GameWinner();
-
-    // Check for winner using GameWinner (pass the actual GameStatus object, not the state result)
     console.log("Sending CHECK_WINNER to server");
     this.room.send("CHECK_WINNER");
     var winnerResult: any = null;
     this.room.onMessage("GAME_OVER", (winnerId) => {
       winnerResult = winnerId;
     })
-    //const winnerResult = Winner.checkWinner(game);
 
     // Update status text
     if (this.statusText) {
