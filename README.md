@@ -19,11 +19,19 @@ We are currently combining the usage of "Start Game" and "Join Game" for the sak
 
 All source code for this project can be found in this repository. Dependencies are listed in package.json. Dependencies can be installed by running `npm i` in the root directory.
 
-## Repo Layout (Still Under Construction)
+## Repo Layout
 
-### Status Reports
+### ./StatusReports
 
 Holds the status report for each week.
+
+### ./coverage
+
+Holds the c8-generated coverage reports. Run ./coverage/index.html for a human-readable report.
+
+### ./node-modules
+
+Contains third-party packages necessary for c8 to run through Github. Notably does not contain all necessary packages for the project as a whole, these can be retrieved through `npm i` in the root directory
 
 ### phaser-multiplayer-template/packages/client
 
@@ -33,10 +41,14 @@ Holds code pertaining to the clientside interface
 
 Holds code pertaining to the serverside interface
 
+### ./test
+
+Contains project tests. See "How to Add a New Test to the Codebase" for more information.
+
 ## How to Add a New Test to the Codebase
 
 1. Ensure that you have the keyword “export” in front of any class declarations in a file you intend to test.
-2. Go to the folder “test”, then search for a file named *FileName*Tests.spec.ts, where *FileName* is the name of the file you want to write a test for. If you do not find one, create one in this folder.
+2. Go to the ./test directory, then search for a file named *FileName*Tests.spec.ts, where *FileName* is the name of the file you want to write a test for. If you do not find one, create one in this folder.
 3. In *FileName*Tests.spec.ts, if this file is completely new: 
 * Add “import assert from "node:assert";” and “import { *ClassName* } from "../*path/to/directory*/*FileName*.ts";”, where *ClassName* is the name of the class exported in the file that you wish to test and *path/to/directory* is the path to the directory which *FileName*.ts is in. Add the latter line again for any other classes which you expect to need to use for testing purposes in this file.
 * Then, add a “describe("*ClassName*", function () { … });”, which will wrap the entirety of your tests for that class. This causes the tests to output *ClassName* to indicate which class is being tested.
@@ -71,7 +83,7 @@ Instructions for setting up pnpm: https://pnpm.io/cli/setup
 
 ### IF RUNNING THROUGH LOCALHOST 
 ***(easier, but with limited capabilities. Recommended for testing)***  
-a) Go to http://localhost:3000/, you can access a singleplayer game through here.
+1) Go to http://localhost:3000/, you can access a singleplayer game through here.
    * Note that this can currently only handle singleplayer connections
    ** This is the only step. lol.  
 
