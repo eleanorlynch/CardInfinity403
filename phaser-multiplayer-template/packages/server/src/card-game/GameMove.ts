@@ -75,32 +75,6 @@ export class GameMove {
                 success: false,
                 message: "Not your turn"
             };
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
-        }
-        
-        if (game.getDrawsThisTurn() < 1) { // uno lets you either draw or play once per turn
-           // if (game.getPlayers()[playerId].getHand().length < 4) { // current beta ruleset has no hand size limit
-           if (game.getPlaysThisTurn() < 1) {
-                return game.drawCard(playerId);
-            }  
-           else {
-                return { 
-                    success: false, 
-                    message: "User cannot both play and draw a card in the same turn" 
-                };
-            }
-           // }
-           /* else {
-                return { 
-                    success: false, 
-                    message: "User cannot draw more cards, hand size limit reached" 
-                };
-            } */
->>>>>>> main
-=======
->>>>>>> 84c7ab7a3ce026e075ac23976e065037b275c1bd
         }
 
         if (game.drawRules.whenToDraw === "startOfTurn" && (game.getPlaysThisTurn() > 0 || game.getDiscardsThisTurn() > 0)) { // player can only draw card(s) at the start of their turn before playing or discarding any cards if this rule is in effect
@@ -155,45 +129,6 @@ export class GameMove {
                 message: "Game not found" 
             };
         }
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
-        
-        if (game.getPlaysThisTurn() < 1) { // current beta rules allow for either playing or drawing once per turn
-            if (game.getDrawsThisTurn() < 1) {
-                const hand = game.getPlayers()[playerId].getHand();
-                if (hand !== undefined) {
-                    for (const card of hand) {
-                        if (card.getId() === cardId) {
-                            if (card.getRank() === game.getTopDiscard().getRank() || card.getSuit() === game.getTopDiscard().getSuit()) {
-                                return game.playCard(playerId, cardId);
-                            }
-                            else {
-                                return { 
-                                    success: false, 
-                                    message: "Card does not match rank or suit of top card" 
-                                };
-                            }
-                        }
-                    }
-                    return {
-                        success: false,
-                        message: "Card not found in player's hand"
-                    };
-                }
-                return {
-                    success: false,
-                    message: "Player hand not found"
-                };
-            }
-            return {
-                success: false,
-                message: "User cannot both play and draw a card in the same turn"
-            }
-        }
->>>>>>> main
-=======
->>>>>>> 84c7ab7a3ce026e075ac23976e065037b275c1bd
 
         if (game.getCurrentTurn() !== playerId) {
             return {

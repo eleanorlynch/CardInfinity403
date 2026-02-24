@@ -199,7 +199,19 @@ export class Game extends Scene {
     this.drawButton = null;
     
     // Reset game move manager
-    this.gameMove = null;
+    // TODO: Make sure this replacement works
+    if (!this.room) {
+      console.warn("No room connection");
+      return;
+    }
+
+    if (this.netState?.gameOver) {
+      return;
+    }
+
+    console.log("Sending END_GAME to server");
+    const gameId = this.gameId;
+    this.room.send("END_GAME", { gameId });
   }
 
   updateDisplay() {
@@ -430,112 +442,6 @@ export class Game extends Scene {
     if (this.isGameOver()) {
       this.room.send("WINNER_CHECK");
     }
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
->>>>>>> 84c7ab7a3ce026e075ac23976e065037b275c1bd
-
-  }
-
-  private async connectToRoom() {
-    const channelId = "dev-channel-1";
-
-    // ===== LOCAL DEV (comment this out when using tunnel) =====
-    const wsEndpoint = "ws://localhost:3001";
-
-    // ===== TUNNEL / DISCORD (comment this out when using local) =====
-    // Browser Colyseus must use ws:// or wss:// (not http://)
-    // const wsEndpoint = window.location.origin.replace(/^http/, "ws");
-
-    this.netClient = new ColyseusClient(wsEndpoint);
-
-    this.room = await this.netClient.joinOrCreate("game", { channelId });
-
-    this.room.onMessage("PRIVATE_STATE", (state) => {
-      this.netState = state;
-      this.updateDisplayFromNet();
-    });
-
-    this.room.onMessage("ERROR", (msg: any) => {
-      if (this.statusText) this.statusText.setText(msg?.message ?? "Error");
-    });
-
-    if (this.statusText) this.statusText.setText("Connected...");
-  }
-
-    private updateDisplayFromNet() {
-    if (!this.netState) return;
-
-    const width = Number(this.game.config.width);
-    const height = Number(this.game.config.height);
-
-    // Clear existing card sprites
-    this.cardSprites.forEach(sprite => sprite.destroy());
-    this.cardSprites.clear();
-
-    const myHand: Card[] = this.netState.myHand ?? [];
-    const discardTop: Card | null = this.netState.discardTop ?? null;
-    const deckCount: number = this.netState.deckCount ?? 0;
-    const gameOver: boolean = this.netState.gameOver ?? false;
-
-    if (this.statusText) {
-      if (gameOver) {
-        this.statusText.setText("Game Over!");
-      } else {
-        this.statusText.setText(
-          this.netState.isMyTurn
-            ? `Your turn | Hand: ${myHand.length} | Deck: ${deckCount}`
-            : `Opponent turn | Hand: ${myHand.length} | Deck: ${deckCount}`
-        );
-<<<<<<< HEAD
-      }
-    }
-
-    if (this.drawButton) {
-      this.drawButton.setVisible(!gameOver && !!this.netState?.isMyTurn);
-    }
-
-    if (this.endTurnButton) {
-      this.endTurnButton.setVisible(!gameOver && !!this.netState?.isMyTurn);
-    }
-
-    // Render from server state
-    this.displayHand(myHand, width * 0.5, height * 0.82);
-
-    if (discardTop) {
-      this.displayDiscardPile(discardTop, width * 0.5, height * 0.45);
-    }
-
-    this.displayDeckCount(deckCount, width * 0.3, height * 0.45);
-  }
-
-=======
-    // Use GameMove to handle playing a card
-  /*  const result = this.gameMove.handlePlayCard(this.gameId, this.playerId, cardId);
-    
-    if (result.success) {
-      this.updateDisplay();
-      
-      // Check for winner after playing card
-      const stateResult = this.gameMove.getGameState(this.gameId, this.playerId);
-      if (stateResult.success && stateResult.gameState) {
-        const Winner = new GameWinner;
-        const winnerResult = Winner.checkWinner(stateResult.gameState);
-        if (winnerResult) {
-          // Winner detected
-          if (this.statusText) {
-            this.statusText.setText(`You Win！${winnerResult.message}`);
-          }
-        }
-      }
-    } else {
-      // Handle error message
-      if (this.statusText) {
-        this.statusText.setText(result.message || "Cannot play card");
-=======
->>>>>>> 84c7ab7a3ce026e075ac23976e065037b275c1bd
-      }
-    } */
   }
 
   private async connectToRoom() {
@@ -608,9 +514,4 @@ export class Game extends Scene {
 
     this.displayDeckCount(deckCount, width * 0.3, height * 0.45);
   }
-
-<<<<<<< HEAD
->>>>>>> main
-=======
->>>>>>> 84c7ab7a3ce026e075ac23976e065037b275c1bd
 }

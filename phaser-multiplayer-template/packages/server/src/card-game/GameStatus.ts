@@ -1,6 +1,7 @@
 import { Card } from "./Card";
 import { Player } from "./Player";
 import { GameWinner } from "./GameWinner";
+import { Ruleset } from "./RulesetTypes";
 
 export class GameStatus {
     gameId: number;
