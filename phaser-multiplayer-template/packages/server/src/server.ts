@@ -7,6 +7,13 @@ import { WebSocketTransport } from "@colyseus/ws-transport";
 import path from "path";
 
 import { GameRoom } from "./rooms/GameRoom";
+import { initRulesetTable } from "./database";
+import {
+  saveRuleset,
+  updateRuleset,
+  getRulesetById,
+  listRulesets,
+} from "./rulesetDb";
 
 dotenv.config({ path: "../../.env" });
 
@@ -29,6 +36,81 @@ server
 
 app.use(express.json());
 app.use(router);
+
+// Ensure ruleset table exists (non-blocking)
+initRulesetTable().catch((err) =>
+  console.warn("Ruleset table init failed:", err)
+);
+
+// ----- Ruleset API (PostgreSQL) -----
+router.post("/api/rulesets", async (req: Request, res: Response) => {
+  try {
+    const ruleset = req.body as Record<string, unknown>;
+    if (!ruleset || typeof ruleset !== "object") {
+      res.status(400).json({ error: "Request body must be a ruleset object" });
+      return;
+    }
+    const row = await saveRuleset(ruleset);
+    res.status(201).json(row);
+  } catch (err) {
+    console.error("POST /api/rulesets", err);
+    res.status(500).json({ error: "Failed to save ruleset" });
+  }
+});
+
+router.put("/api/rulesets/:id", async (req: Request, res: Response) => {
+  try {
+    const id = parseInt(req.params.id, 10);
+    if (Number.isNaN(id)) {
+      res.status(400).json({ error: "Invalid ruleset id" });
+      return;
+    }
+    const ruleset = req.body as Record<string, unknown>;
+    if (!ruleset || typeof ruleset !== "object") {
+      res.status(400).json({ error: "Request body must be a ruleset object" });
+      return;
+    }
+    const row = await updateRuleset(id, ruleset);
+    if (!row) {
+      res.status(404).json({ error: "Ruleset not found" });
+      return;
+    }
+    res.json(row);
+  } catch (err) {
+    console.error("PUT /api/rulesets/:id", err);
+    res.status(500).json({ error: "Failed to update ruleset" });
+  }
+});
+
+router.get("/api/rulesets", async (req: Request, res: Response) => {
+  try {
+    const name = req.query.name as string | undefined;
+    const rows = await listRulesets(name);
+    res.json(rows);
+  } catch (err) {
+    console.error("GET /api/rulesets", err);
+    res.status(500).json({ error: "Failed to list rulesets" });
+  }
+});
+
+router.get("/api/rulesets/:id", async (req: Request, res: Response) => {
+  try {
+    const id = parseInt(req.params.id, 10);
+    if (Number.isNaN(id)) {
+      res.status(400).json({ error: "Invalid ruleset id" });
+      return;
+    }
+    const row = await getRulesetById(id);
+    if (!row) {
+      res.status(404).json({ error: "Ruleset not found" });
+      return;
+    }
+    res.json(row);
+  } catch (err) {
+    console.error("GET /api/rulesets/:id", err);
+    res.status(500).json({ error: "Failed to get ruleset" });
+  }
+});
 
 if (process.env.NODE_ENV === "production") {
   const clientBuildPath = path.join(__dirname, "../../client/dist");
