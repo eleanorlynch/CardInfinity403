@@ -2,13 +2,16 @@ import fs from "fs";
 import path from "path";
 import type { Ruleset } from "./RulesetTypes";
 
-const RULESET_JSON_PATH = path.join(__dirname, "Ruleset.json");
+const RULESET_JSON_PATH = path.resolve("./phaser-multiplayer-template/..", "Ruleset.json");
+
 
 /**
  * Load the default ruleset from the template Ruleset.json file.
  * Used when creating a game without a specific saved ruleset id.
  */
 export function loadDefaultRuleset(): Ruleset {
+  console.log(RULESET_JSON_PATH);
+  console.log(__dirname);
   const raw = fs.readFileSync(RULESET_JSON_PATH, "utf-8");
   const data = JSON.parse(raw) as unknown;
   return parseRuleset(data);
