@@ -1,8 +1,12 @@
-import assert from "node:assert";
-import { GameStatus } from "../phaser-multiplayer-template/packages/client/src/utils/server/GameStatus.ts";
-import { GameWinner } from "../phaser-multiplayer-template/packages/client/src/utils/server/GameWinner.ts";
-import { Card } from "../phaser-multiplayer-template/packages/client/src/utils/server/Card.ts";
-import { Player } from "../phaser-multiplayer-template/packages/client/src/utils/server/Player.ts";
+const assert = require("node:assert");
+const GameStatusModule = require("../phaser-multiplayer-template/packages/client/src/utils/server/GameStatus.ts");
+const { GameStatus } = GameStatusModule;
+const GameWinnerModule = require("../phaser-multiplayer-template/packages/client/src/utils/server/GameWinner.ts");
+const { GameWinner } = GameWinnerModule;
+const CardModule = require("../phaser-multiplayer-template/packages/client/src/utils/server/Card.ts");
+const { Card } = CardModule;
+const PlayerModule = require("../phaser-multiplayer-template/packages/client/src/utils/server/Player.ts");
+const { Player } = PlayerModule;
 
 describe("GameWinner", function () {
     describe("#checkMostSuit()", function () {

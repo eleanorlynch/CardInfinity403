@@ -46,7 +46,7 @@
     },
     "handRules": {
         "startingHandSize": 7,
-        "maxHandSize": 10,
+        "maxHandSize": 53,
         "minHandSize": 1
     },
     "minNumRounds": 0,

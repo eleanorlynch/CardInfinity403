@@ -251,7 +251,7 @@ export class GameStatus implements Ruleset {
     
     //creates a 52 card deck 
     createDeck(){
-        const suits = ['clubs','spades','hearts','diamonds'];
+       /* const suits = ['clubs','spades','hearts','diamonds'];
         const ranks = [2,3,4,5,6,7,8,9,10,11,12,13,14];
 
         this.deck = [];
@@ -260,7 +260,10 @@ export class GameStatus implements Ruleset {
             for(const rank of ranks){
                 this.deck.push(new Card(suit, rank));
         }
-    }
+    } */
+   for (const card of this.deckContents.cards) {
+        this.deck.push(new Card(card.suit, card.rank));
+   }
 }
 
     //shuffles the deck before game starts
@@ -283,9 +286,9 @@ export class GameStatus implements Ruleset {
         });
         
         // Deal cards (default 7 cards per player)
-        const cardsPerPlayer = 3;
+        //const cardsPerPlayer = 3;
         
-        for (let i = 0; i < cardsPerPlayer; i++) {
+        for (let i = 0; i < this.handRules.startingHandSize; i++) {
             this.players.forEach(player => {
                 if (this.deck.length > 0) {
                     const card = this.deck.pop();

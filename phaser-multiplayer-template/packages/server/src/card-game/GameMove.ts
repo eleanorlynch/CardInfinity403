@@ -122,7 +122,7 @@ export class GameMove {
             && game.getPlayers()[playerId].getHand().length >= game.handRules.maxHandSize) { // player already has the maximum number of cards allowed in their hand, so they can't draw any more cards
             return { 
                 success: false, 
-                message: "User cannot draw any more cards this turn" 
+                message: "User cannot draw more cards, hand size limit reached" 
             };
         }
         var isSpecial = false;
@@ -148,7 +148,7 @@ export class GameMove {
             };
         }
         
-        if (game.getPlaysThisTurn() < game.maxCardsToPlay) { // player can only play card(s) if they haven't already played the maximum number of cards allowed this turn
+        if (game.getPlaysThisTurn() < game.playRules.maxCardsToPlay) { // player can only play card(s) if they haven't already played the maximum number of cards allowed this turn
             if (game.playRules.whenToPlay === "afterDraw" && game.getDrawsThisTurn() < game.drawRules.minCardsToDraw) {
                 return {
                     success: false,

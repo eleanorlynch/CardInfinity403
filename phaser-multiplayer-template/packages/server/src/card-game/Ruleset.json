@@ -13,20 +13,20 @@
         "mostOfOneRank": { "chosen": false, "rank": 1 }
     },
     "drawRules": {
-        "whenToDraw": "startOfTurn",
+        "whenToDraw": "any",
         "minCardsToDraw": 1,
         "maxCardsToDraw": 3,
         "drawFrom": "deck"
     },
     "discardRules": {
-        "whenToDiscard": "endOfTurn",
+        "whenToDiscard": "any",
         "minCardsToDiscard": 1,
         "maxCardsToDiscard": 3,
         "cardMustMatch": "none",
         "cardMustNotMatch": "none"
     },
     "playRules": {
-        "whenToPlay": "startOfTurn",
+        "whenToPlay": "any",
         "cardMustMatch": "none",
         "cardMustNotMatch": "none",
         "minCardsToPlay": 1,
