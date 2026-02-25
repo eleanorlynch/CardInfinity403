@@ -1,7 +1,10 @@
-import assert from "node:assert";
-import { GameStatus } from "../phaser-multiplayer-template/packages/client/src/utils/server/GameStatus.ts";
-import { Player } from "../phaser-multiplayer-template/packages/client/src/utils/server/Player.ts";
-import { Card } from "../phaser-multiplayer-template/packages/client/src/utils/server/Card.ts";
+const assert = require("node:assert");
+const GameStatusModule = require("../phaser-multiplayer-template/packages/client/src/utils/server/GameStatus.ts");
+const { GameStatus } = GameStatusModule;
+const PlayerModule = require("../phaser-multiplayer-template/packages/client/src/utils/server/Player.ts");
+const { Player } = PlayerModule;
+const CardModule = require("../phaser-multiplayer-template/packages/client/src/utils/server/Card.ts");
+const { Card } = CardModule;
 
 describe("GameStatus", function () {
   describe("#getGameId()", function () {
