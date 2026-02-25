@@ -19,7 +19,56 @@ We are currently combining the usage of "Start Game" and "Join Game" for the sak
 
 All source code for this project can be found in this repository. Dependencies are listed in package.json. Dependencies can be installed by running `npm i` in the root directory.
 
-## Repo Layout
+## Repo Layout (Relevant)
+
+```
+CardInfinity403
+│   README.md (you are here)
+│
+└───StatusReports
+│
+└───coverage
+│   │   index.html
+│
+└───node_modules
+│
+└───phaser-multiplayer-template
+│   │   file011.txt
+│   │   file012.txt
+│   │
+│   └───packages
+│       │
+│       └───client
+│       │   │   wsPatch.ts
+│       │   │
+│       │   └───public
+│       │   │   │
+│       │   │   └───assets
+│       │   │   
+│       │   └───src
+│       │       │   main.ts
+│       │       │   wsPatch.ts
+│       │       │
+│       │       └───scenes
+│       │       │
+│       │       └───utils
+│       │
+│       └───server
+│           │   environment.d.ts 
+│           │      
+│           └───src
+│               │   database.ts
+│               │   rulesetDb.ts
+│               │   server.ts
+│               │
+│               └───card-game
+│               │
+│               └───rooms
+│               │
+│               └───schemas
+│
+└───test
+```
 
 ### ./StatusReports
 
@@ -34,12 +83,14 @@ Holds the c8-generated coverage reports. Run ./coverage/index.html for a human-r
 Contains third-party packages necessary for c8 to run through Github. Notably does not contain all necessary packages for the project as a whole, these can be retrieved through `npm i` in the root directory
 
 ### phaser-multiplayer-template/packages/client
+Contains data pertaining to the client
 
-Holds code pertaining to the clientside interface
+### phaser-multiplayer-template/packages/client/src/scenes
+Scenes from the client's POV. When adding a scene, make sure to also include it in the config settings in ../main.ts or else it will be unusable.
+
 
 ### phaser-multiplayer-template/packages/server
-
-Holds code pertaining to the serverside interface
+Contains data pertaining to the server
 
 ### ./test
 
