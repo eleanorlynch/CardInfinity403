@@ -13,6 +13,9 @@ The beta release (tag 1.0.0-b) allows up to two users to play a very simple game
 
 We are currently combining the usage of "Start Game" and "Join Game" for the sake of time, though in the full release this will not be how joining a lobby works. Similarly, while rules are currently implemented, the ability to create and manage them are not; the only ruleset right now is hardcoded to be our simplified version of Uno.
 
+# User Manual
+Check out USER_MANUAL.md for more specific user information than this README provides: https://github.com/eleanorlynch/CardInfinity403/blob/main/USER_MANUAL.md 
+
 # Developer Guidelines
 
 ## Source Code
@@ -206,4 +209,5 @@ Note that code coverage is currently incomplete due to some features being impos
 2) Tag the commit you wish to release. Instructions for tagging may be found here: https://git-scm.com/book/en/v2/Git-Basics-Tagging
 * This project uses lightweight tags and follows the format "x.y.z-a" where x is the major version, y is the minor version, z is the patch version, and a is the specific category under which it is released (ex: b, g, f for beta, gamma, full)  
 3) Push the commit and tag to the remote repository
+4) As a general sanity check, try to launch and/or join a game. 
 
