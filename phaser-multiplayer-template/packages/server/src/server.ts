@@ -16,11 +16,9 @@ const app: Application = express();
 const router = express.Router();
 const port: number = Number(process.env.PORT) || 3001;
 
-const httpServer = createServer(app);
-
 const server = new Server({
   transport: new WebSocketTransport({
-    server: httpServer,
+    server: createServer(app),
   }),
 });
 
@@ -140,10 +138,8 @@ router.post("/api/token", async (req: Request, res: Response) => {
 // Using a flat route in dev to match the vite server proxy config
 app.use(process.env.NODE_ENV === "production" ? "/.proxy/api" : "/", router);
 
-// Start HTTP server
-httpServer.listen(port, () => {
-  console.log(`Server is listening on port ${port}`);
-  console.log(`WebSocket endpoint: ws://localhost:${port}`);
+server.listen(port).then(() => {
+  console.log(`App is listening on port ${port} !`);
 });
 
 process.on("SIGINT", () => {

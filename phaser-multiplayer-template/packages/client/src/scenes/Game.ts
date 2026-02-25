@@ -468,14 +468,9 @@ export class Game extends Scene {
         if (this.statusText) this.statusText.setText(msg?.message ?? "Error");
       });
 
-      this.room.onClose(() => {
+      this.room.onLeave(() => {
         console.warn("Room connection closed");
         if (this.statusText) this.statusText.setText("Disconnected. Refresh to reconnect.");
-      });
-
-      this.room.onError((err) => {
-        console.error("Room error:", err);
-        if (this.statusText) this.statusText.setText(`Room error: ${err}`);
       });
 
       if (this.statusText) this.statusText.setText("Connected...");
