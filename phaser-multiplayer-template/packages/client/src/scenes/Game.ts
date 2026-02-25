@@ -199,7 +199,19 @@ export class Game extends Scene {
     this.drawButton = null;
     
     // Reset game move manager
-    this.gameMove = null;
+    // TODO: Make sure this replacement works
+    if (!this.room) {
+      console.warn("No room connection");
+      return;
+    }
+
+    if (this.netState?.gameOver) {
+      return;
+    }
+
+    console.log("Sending END_GAME to server");
+    const gameId = this.gameId;
+    this.room.send("END_GAME", { gameId });
   }
 
   updateDisplay() {
@@ -430,30 +442,6 @@ export class Game extends Scene {
     if (this.isGameOver()) {
       this.room.send("WINNER_CHECK");
     }
-    // Use GameMove to handle playing a card
-  /*  const result = this.gameMove.handlePlayCard(this.gameId, this.playerId, cardId);
-    
-    if (result.success) {
-      this.updateDisplay();
-      
-      // Check for winner after playing card
-      const stateResult = this.gameMove.getGameState(this.gameId, this.playerId);
-      if (stateResult.success && stateResult.gameState) {
-        const Winner = new GameWinner;
-        const winnerResult = Winner.checkWinner(stateResult.gameState);
-        if (winnerResult) {
-          // Winner detected
-          if (this.statusText) {
-            this.statusText.setText(`You Win！${winnerResult.message}`);
-          }
-        }
-      }
-    } else {
-      // Handle error message
-      if (this.statusText) {
-        this.statusText.setText(result.message || "Cannot play card");
-      }
-    } */
   }
 
   private async connectToRoom() {
@@ -526,5 +514,4 @@ export class Game extends Scene {
 
     this.displayDeckCount(deckCount, width * 0.3, height * 0.45);
   }
-
 }
