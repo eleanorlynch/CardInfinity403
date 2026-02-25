@@ -140,14 +140,10 @@ router.post("/api/token", async (req: Request, res: Response) => {
 // Using a flat route in dev to match the vite server proxy config
 app.use(process.env.NODE_ENV === "production" ? "/.proxy/api" : "/", router);
 
-// Start both HTTP and WebSocket servers
+// Start HTTP server
 httpServer.listen(port, () => {
   console.log(`Server is listening on port ${port}`);
   console.log(`WebSocket endpoint: ws://localhost:${port}`);
-});
-
-server.onError((error) => {
-  console.error("Colyseus server error:", error);
 });
 
 process.on("SIGINT", () => {

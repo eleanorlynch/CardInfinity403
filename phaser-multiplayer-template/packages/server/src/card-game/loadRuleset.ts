@@ -2,10 +2,6 @@ import fs from "fs";
 import path from "path";
 import type { Ruleset } from "./RulesetTypes";
 
-import fs from "fs";
-import path from "path";
-import type { Ruleset } from "./RulesetTypes";
-
 /**
  * Load the default ruleset from the template Ruleset.json file.
  * Used when creating a game without a specific saved ruleset id.
