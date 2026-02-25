@@ -452,20 +452,39 @@ export class Game extends Scene {
     const wsEndpoint = import.meta.env.VITE_COLYSEUS_ENDPOINT || "ws://localhost:3001";
     console.log("Connecting to WebSocket endpoint:", wsEndpoint);
 
-    this.netClient = new ColyseusClient(wsEndpoint);
+    try {
+      this.netClient = new ColyseusClient(wsEndpoint);
 
-    this.room = await this.netClient.joinOrCreate("game", { channelId });
+      if (this.statusText) this.statusText.setText("Connecting...");
 
-    this.room.onMessage("PRIVATE_STATE", (state) => {
-      this.netState = state;
-      this.updateDisplayFromNet();
-    });
+      this.room = await this.netClient.joinOrCreate("game", { channelId });
 
-    this.room.onMessage("ERROR", (msg: any) => {
-      if (this.statusText) this.statusText.setText(msg?.message ?? "Error");
-    });
+      this.room.onMessage("PRIVATE_STATE", (state) => {
+        this.netState = state;
+        this.updateDisplayFromNet();
+      });
 
-    if (this.statusText) this.statusText.setText("Connected...");
+      this.room.onMessage("ERROR", (msg: any) => {
+        if (this.statusText) this.statusText.setText(msg?.message ?? "Error");
+      });
+
+      this.room.onClose(() => {
+        console.warn("Room connection closed");
+        if (this.statusText) this.statusText.setText("Disconnected. Refresh to reconnect.");
+      });
+
+      this.room.onError((err) => {
+        console.error("Room error:", err);
+        if (this.statusText) this.statusText.setText(`Room error: ${err}`);
+      });
+
+      if (this.statusText) this.statusText.setText("Connected...");
+    } catch (error) {
+      console.error("Failed to connect to room:", error);
+      const errorMsg = error instanceof Error ? error.message : String(error);
+      if (this.statusText) this.statusText.setText(`Connection failed: ${errorMsg}`);
+      throw error;
+    }
   }
 
     private updateDisplayFromNet() {

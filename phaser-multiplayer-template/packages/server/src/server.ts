@@ -16,10 +16,24 @@ const app: Application = express();
 const router = express.Router();
 const port: number = Number(process.env.PORT) || 3001;
 
+const httpServer = createServer(app);
+
 const server = new Server({
   transport: new WebSocketTransport({
-    server: createServer(app),
+    server: httpServer,
   }),
+});
+
+// Middleware for CORS and WebSocket headers
+app.use((req, res, next) => {
+  res.header("Access-Control-Allow-Origin", "*");
+  res.header("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS");
+  res.header("Access-Control-Allow-Headers", "Content-Type, Authorization");
+  if (req.method === "OPTIONS") {
+    res.sendStatus(200);
+  } else {
+    next();
+  }
 });
 
 // Game Rooms
@@ -126,6 +140,19 @@ router.post("/api/token", async (req: Request, res: Response) => {
 // Using a flat route in dev to match the vite server proxy config
 app.use(process.env.NODE_ENV === "production" ? "/.proxy/api" : "/", router);
 
-server.listen(port).then(() => {
-  console.log(`App is listening on port ${port} !`);
+// Start both HTTP and WebSocket servers
+httpServer.listen(port, () => {
+  console.log(`Server is listening on port ${port}`);
+  console.log(`WebSocket endpoint: ws://localhost:${port}`);
+});
+
+server.onError((error) => {
+  console.error("Colyseus server error:", error);
+});
+
+process.on("SIGINT", () => {
+  console.log("Shutting down...");
+  server.gracefullyShutdown(true).then(() => {
+    process.exit(0);
+  });
 });
