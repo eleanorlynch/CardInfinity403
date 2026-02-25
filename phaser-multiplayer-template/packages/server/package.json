@@ -11,7 +11,7 @@
     "build": "npm-run-all build:clean build:tsc build:copy",
     "build:clean": "rimraf dist/*",
     "build:tsc": "tsc",
-    "build:copy": "copyfiles -u 2 'src/**/*.json' dist/",
+    "build:copy": "copyfiles -u 1 src/card-game/Ruleset.json dist/",
     "debug:start": "npm-run-all build debug:start:prod",
     "debug:start:prod": "node --nolazy --inspect-brk=9229 ./dist/server.js"
   },
