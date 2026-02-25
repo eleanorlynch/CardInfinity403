@@ -7,13 +7,14 @@ import type { Ruleset } from "./RulesetTypes";
  * Used when creating a game without a specific saved ruleset id.
  */
 export function loadDefaultRuleset(): Ruleset {
-  // Compute path at runtime to handle different deployment environments
-  const RULESET_JSON_PATH = path.join(__dirname, "Ruleset.json");
+  // Use path.resolve() to get absolute path to Ruleset.json in the current directory
+  // At runtime, __dirname = dist/card-game, so this resolves to: dist/card-game/Ruleset.json
+  const RULESET_JSON_PATH = path.resolve(__dirname, "Ruleset.json");
   
   if (!fs.existsSync(RULESET_JSON_PATH)) {
     throw new Error(
       `Ruleset.json not found at ${RULESET_JSON_PATH}. ` +
-      `Make sure the file is copied to the dist directory during build. ` +
+      `Expected to be in the same directory as loadRuleset.js. ` +
       `Current __dirname: ${__dirname}`
     );
   }
