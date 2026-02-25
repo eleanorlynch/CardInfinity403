@@ -1,4 +1,5 @@
 import type { Ruleset } from "./RulesetTypes";
+import { parseRulesetData } from "./saveRuleset";
 
 const RULESETS_BASE = "/.proxy/api/rulesets";
 
@@ -13,6 +14,7 @@ export interface LoadedRuleset {
 
 /**
  * Load a single ruleset by id. Throws if not found or request fails.
+ * Parses response so `data` fits RulesetTypes and can be used in GameStatus/game config.
  */
 export async function loadRuleset(id: number): Promise<LoadedRuleset> {
   const res = await fetch(`${RULESETS_BASE}/${id}`);
@@ -20,11 +22,14 @@ export async function loadRuleset(id: number): Promise<LoadedRuleset> {
     const err = (await res.json().catch(() => ({}))) as { error?: string };
     throw new Error(err.error ?? `Failed to load ruleset: ${res.status}`);
   }
-  return res.json() as Promise<LoadedRuleset>;
+  const json = (await res.json()) as unknown;
+  const obj = json && typeof json === "object" ? (json as Record<string, unknown>) : {};
+  return { ...obj, data: parseRulesetData(json) } as LoadedRuleset;
 }
 
 /**
  * Load the ruleset payload only (for use in game/config). Returns null if not found.
+ * Result fits RulesetTypes so it can be loaded in GameStatus.
  */
 export async function loadRulesetData(id: number): Promise<Ruleset | null> {
   try {
@@ -37,6 +42,7 @@ export async function loadRulesetData(id: number): Promise<Ruleset | null> {
 
 /**
  * List all rulesets, optionally filtered by name (partial match).
+ * Each item's data is parsed to fit RulesetTypes.
  */
 export async function listRulesets(
   nameFilter?: string
@@ -49,5 +55,9 @@ export async function listRulesets(
     const err = (await res.json().catch(() => ({}))) as { error?: string };
     throw new Error(err.error ?? `Failed to list rulesets: ${res.status}`);
   }
-  return res.json() as Promise<LoadedRuleset[]>;
+  const list = (await res.json()) as unknown[];
+  return (list || []).map((json) => {
+    const obj = json && typeof json === "object" ? (json as Record<string, unknown>) : {};
+    return { ...obj, data: parseRulesetData(json) } as LoadedRuleset;
+  });
 }
