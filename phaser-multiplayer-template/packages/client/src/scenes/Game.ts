@@ -447,12 +447,10 @@ export class Game extends Scene {
   private async connectToRoom() {
     const channelId = "dev-channel-1";
 
-    // ===== LOCAL DEV (comment this out when using tunnel) =====
-    const wsEndpoint = "ws://localhost:3001";
-
-    // ===== TUNNEL / DISCORD (comment this out when using local) =====
+    // Use environment variable for Cloudflare/production, fallback to localhost for dev
     // Browser Colyseus must use ws:// or wss:// (not http://)
-    // const wsEndpoint = window.location.origin.replace(/^http/, "ws");
+    const wsEndpoint = import.meta.env.VITE_COLYSEUS_ENDPOINT || "ws://localhost:3001";
+    console.log("Connecting to WebSocket endpoint:", wsEndpoint);
 
     this.netClient = new ColyseusClient(wsEndpoint);
 
