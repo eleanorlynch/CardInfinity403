@@ -80,6 +80,16 @@ export class MainMenu extends Scene {
         backgroundColor: '#EBC9B3'
       }).setPadding(32).setOrigin(0.5).setMask(mask_button_manage_rules);
 
+    // Auth/debug feedback for Discord start failures.
+    const authErrorText = this.add
+      .text(Number(this.game.config.width) * 0.5, Number(this.game.config.height) * 0.93, "", {
+        fontFamily: "Arial",
+        fontSize: "18px",
+        color: "#ffb3b3",
+        align: "center",
+      })
+      .setOrigin(0.5);
+
     button_start_game.setInteractive({ useHandCursor: true });
 
     button_start_game.on('pointerover', () => {
@@ -92,8 +102,22 @@ export class MainMenu extends Scene {
 
     button_start_game.on('pointerdown', async () => {
       console.log("Start game clicked");
-      await authorizeDiscordUser();
-      this.scene.start("Game");
+      // Show immediate feedback so Discord auth does not look frozen.
+      authErrorText.setText("Authorizing with Discord...");
+      try {
+        // Guard against hanging auth calls in embedded mode.
+        await Promise.race([
+          authorizeDiscordUser(),
+          new Promise((_resolve, reject) =>
+            setTimeout(() => reject(new Error("Discord authorize timed out")), 10000)
+          ),
+        ]);
+        this.scene.start("Game");
+      } catch (error) {
+        console.error("Discord authorization failed:", error);
+        const message = error instanceof Error ? error.message : "Unknown auth error";
+        authErrorText.setText(`Discord auth failed: ${message}`);
+      }
     });
 
     // for testing in discord without authorized user
@@ -102,12 +126,6 @@ export class MainMenu extends Scene {
       // await authorizeDiscordUser();
       // console.log("Discord authorized");
       // this.scene.start("Game");
-    // });
-
-
-    // this.input.once("pointerdown", async () => {
-    //   await authorizeDiscordUser();
-    //   this.scene.start("Game");
     // });
   }
 }

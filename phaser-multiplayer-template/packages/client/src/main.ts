@@ -9,7 +9,17 @@ import { Preloader } from "./scenes/Preloader";
 import { Background } from "./scenes/Background";
 
 (async () => {
-  initiateDiscordSDK();
+  // Don't block app startup forever if Discord SDK readiness hangs in embed context.
+  try {
+    await Promise.race([
+      initiateDiscordSDK(),
+      new Promise((_, reject) =>
+        setTimeout(() => reject(new Error("Discord SDK init timed out")), 8000)
+      ),
+    ]);
+  } catch (error) {
+    console.error("Discord SDK init failed/timed out:", error);
+  }
 
   new ScaleFlow({
     type: Phaser.AUTO,

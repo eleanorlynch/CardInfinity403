@@ -8,8 +8,13 @@ const isEmbedded = queryParams.get("frame_id") != null;
 let discordSdk: DiscordSDK | DiscordSDKMock;
 
 const initiateDiscordSDK = async () => {
+  const clientId = import.meta.env.VITE_CLIENT_ID;
+  if (!clientId) {
+    throw new Error("Missing VITE_CLIENT_ID. Add it to phaser-multiplayer-template/.env");
+  }
+
   if (isEmbedded) {
-    discordSdk = new DiscordSDK(import.meta.env.VITE_CLIENT_ID);
+    discordSdk = new DiscordSDK(clientId);
     await discordSdk.ready();
   } else {
     // We're using session storage for user_id, guild_id, and channel_id
@@ -21,8 +26,9 @@ const initiateDiscordSDK = async () => {
     const mockUserId = getOverrideOrRandomSessionValue("user_id");
     const mockGuildId = getOverrideOrRandomSessionValue("guild_id");
     const mockChannelId = getOverrideOrRandomSessionValue("channel_id");
+    const mockLocationId = getOverrideOrRandomSessionValue("location_id");
 
-    discordSdk = new DiscordSDKMock(import.meta.env.VITE_CLIENT_ID, mockGuildId, mockChannelId);
+    discordSdk = new DiscordSDKMock(clientId, mockGuildId, mockChannelId, mockLocationId);
     const discriminator = String(mockUserId.charCodeAt(0) % 5);
 
     discordSdk._updateCommandMocks({
@@ -54,6 +60,9 @@ const initiateDiscordSDK = async () => {
 const authorizeDiscordUser = async () => {
   if (!isEmbedded) {
     return;
+  }
+  if (!discordSdk) {
+    throw new Error("Discord SDK is not initialized.");
   }
 
   const { code } = await discordSdk.commands.authorize({
@@ -94,6 +103,7 @@ enum SessionStorageQueryParam {
   user_id = "user_id",
   guild_id = "guild_id",
   channel_id = "channel_id",
+  location_id = "location_id",
 }
 
 function getOverrideOrRandomSessionValue(queryParam: `${SessionStorageQueryParam}`) {

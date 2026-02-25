@@ -399,7 +399,7 @@ export class Game extends Scene {
   }
 
   isGameOver(): boolean {
-    return !!this.netState?.gameOver;
+    return !!this.netState?.gameOver; // !! ensures that if netState is undefined or null, then it returns false (essentially same as a Boolean cast)
   }
 
   // multiplayer handle draw using room
@@ -433,45 +433,29 @@ export class Game extends Scene {
     if (this.isGameOver()) {
       this.room.send("WINNER_CHECK");
     }
-    // Use GameMove to handle playing a card
-  /*  const result = this.gameMove.handlePlayCard(this.gameId, this.playerId, cardId);
-    
-    if (result.success) {
-      this.updateDisplay();
-      
-      // Check for winner after playing card
-      const stateResult = this.gameMove.getGameState(this.gameId, this.playerId);
-      if (stateResult.success && stateResult.gameState) {
-        const Winner = new GameWinner;
-        const winnerResult = Winner.checkWinner(stateResult.gameState);
-        if (winnerResult) {
-          // Winner detected
-          if (this.statusText) {
-            this.statusText.setText(`You Win！${winnerResult.message}`);
-          }
-        }
-      }
-    } else {
-      // Handle error message
-      if (this.statusText) {
-        this.statusText.setText(result.message || "Cannot play card");
-      }
-    } */
   }
 
   private async connectToRoom() {
     const channelId = "dev-channel-1";
 
-    // ===== LOCAL DEV (comment this out when using tunnel) =====
-    const wsEndpoint = "ws://localhost:3001";
-
-    // ===== TUNNEL / DISCORD (comment this out when using local) =====
     // Browser Colyseus must use ws:// or wss:// (not http://)
-    // const wsEndpoint = window.location.origin.replace(/^http/, "ws");
+    const wsOrigin = window.location.origin.replace(/^http/, "ws");
+    const endpoints = [wsOrigin, `${wsOrigin}/.proxy/api`];
+    let lastError: unknown = null;
 
-    this.netClient = new ColyseusClient(wsEndpoint);
+    for (const endpoint of endpoints) {
+      try {
+        this.netClient = new ColyseusClient(endpoint);
+        this.room = await this.netClient.joinOrCreate("game", { channelId });
+        break;
+      } catch (err) {
+        lastError = err;
+      }
+    }
 
-    this.room = await this.netClient.joinOrCreate("game", { channelId });
+    if (!this.room) {
+      throw lastError ?? new Error("Failed to connect to room");
+    }
 
     this.room.onMessage("PRIVATE_STATE", (state) => {
       this.netState = state;
