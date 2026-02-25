@@ -33,13 +33,12 @@ CardInfinity403
 └───node_modules
 │
 └───phaser-multiplayer-template
-│   │   file011.txt
-│   │   file012.txt
 │   │
 │   └───packages
 │       │
 │       └───client
-│       │   │   wsPatch.ts
+│       │   │   d.ts
+│       │   │   vite.config.ts
 │       │   │
 │       │   └───public
 │       │   │   │
@@ -70,30 +69,66 @@ CardInfinity403
 └───test
 ```
 
-### ./StatusReports
+### ./StatusReports/
 
 Holds the status report for each week.
 
-### ./coverage
+### ./coverage/
 
 Holds the c8-generated coverage reports. Run ./coverage/index.html for a human-readable report.
 
-### ./node-modules
-
+### ./node-modules/
 Contains third-party packages necessary for c8 to run through Github. Notably does not contain all necessary packages for the project as a whole, these can be retrieved through `npm i` in the root directory
 
-### phaser-multiplayer-template/packages/client
-Contains data pertaining to the client
+### phaser-multiplayer-template/packages/client/
+Contains most/all data pertaining to the client
 
-### phaser-multiplayer-template/packages/client/src/scenes
-Scenes from the client's POV. When adding a scene, make sure to also include it in the config settings in ../main.ts or else it will be unusable.
+### phaser-multiplayer-template/packages/client/d.ts
+Extra type declarations for custom typechecking. See https://www.typescriptlang.org/docs/handbook/2/type-declarations.html 
 
+### phaser-multiplayer-template/packages/client/vite.config.ts
+Vite config file. See https://vite.dev/config/ 
 
-### phaser-multiplayer-template/packages/server
+### phaser-multiplayer-template/packages/client/public/assets/
+Contains necessary clientside assets. Generally for media such as visual/audio files.
+
+### phaser-multiplayer-template/packages/client/src/wsPatch.ts
+Temporary patch to allow the application to run through Safari.
+
+### phaser-multiplayer-template/packages/client/main.ts
+The entry point for the clientside interface. The main Phaser game config is declared here. 
+
+### phaser-multiplayer-template/packages/client/src/scenes/
+Contains clientside scenes. When adding a scene, make sure to also include it in the config settings in ../main.ts or else it will be unusable.
+
+### phaser-multiplayer-template/packages/client/src/utils/
+Contains clientside helper classes/functions.
+
+### phaser-multiplayer-template/packages/server/
 Contains data pertaining to the server
 
-### ./test
+### phaser-multiplayer-template/packages/server/environment.d.ts
+Contains necessary serverside environmental variables. 
 
+### phaser-multiplayer-template/packages/server/src/database.ts
+Handles overhead for user/ruleset databases.
+
+### phaser-multiplayer-template/packages/server/src/rulesetDb.ts
+Specifically defines/handles the structure/data of the ruleset database.
+
+### phaser-multiplayer-template/packages/server/src/server.ts
+Handles server api requests
+
+### phaser-multiplayer-template/packages/server/src/card-game/
+Contains serverside helper classes/functions.
+
+### phaser-multiplayer-template/packages/server/src/rooms/
+Contains public game room data. 
+
+### phaser-multiplayer-template/packages/server/src/schemas/
+Contains schema encodings for serverside data. For structures that need to be more strictly defined than an interface would allow.
+
+### ./test
 Contains project tests. See "How to Add a New Test to the Codebase" for more information.
 
 ## How to Add a New Test to the Codebase
