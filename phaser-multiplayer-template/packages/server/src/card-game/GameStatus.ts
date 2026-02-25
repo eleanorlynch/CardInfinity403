@@ -106,14 +106,20 @@ export class GameStatus implements Ruleset {
             suit: string;
         }>;
     }
+    cardAbilities: Ruleset["cardAbilities"];
 
-    constructor(gameId: number, ruleset: string[], players: Player[]) {
+    constructor(
+        gameId: number,
+        rulesetMeta: string[] | Ruleset,
+        players: Player[],
+        rulesetData?: Ruleset
+    ) {
         this.gameId = gameId;
-        this.ruleset = ruleset;
+        this.ruleset = Array.isArray(rulesetMeta) ? rulesetMeta : [rulesetMeta.name];
         this.players = players;
         this.deck = [];
         this.gameOver = false;
-        this.winner = -1; 
+        this.winner = -1;
         this.winners = [];
         this.currentTurn = players[0]!.getID();
         this.discardPile = [];
@@ -125,9 +131,98 @@ export class GameStatus implements Ruleset {
         this.extraTurn = false;
         this.skipNextPlayer = false;
         this.reverseTurnOrder = false;
-        // JERRY: PUT THE JSON READING THINGY HERE, IT NEEDS TO FILL THE INTERFACE REQUIRED VARIABLES,
-        // SEE RulesetTypes.ts FOR THEM, THEY ARE ALSO IN THE SECOND GROUPING OF GLOBAL VARIABLES ABOVE
 
+        const ruleset = rulesetData ?? (typeof rulesetMeta === "object" && !Array.isArray(rulesetMeta) ? rulesetMeta : null);
+        if (ruleset) {
+            this.name = ruleset.name;
+            this.description = ruleset.description;
+            this.maxPlayers = ruleset.maxPlayers;
+            this.minPlayers = ruleset.minPlayers;
+            this.AValue = ruleset.AValue;
+            this.turnOrder = ruleset.turnOrder;
+            this.minNumRounds = ruleset.minNumRounds;
+            this.hasMaxNumRounds = ruleset.hasMaxNumRounds;
+            this.maxNumRounds = ruleset.maxNumRounds;
+            this.ranks = [...(ruleset.ranks ?? [])];
+            this.suits = [...(ruleset.suits ?? [])];
+            this.startRules = { ...ruleset.startRules };
+            this.drawRules = { ...ruleset.drawRules };
+            this.discardRules = { ...ruleset.discardRules };
+            this.playRules = { ...ruleset.playRules };
+            this.handRules = { ...ruleset.handRules };
+            this.winConditions = { ...ruleset.winConditions };
+            this.deckContents = { cards: ruleset.deckContents?.cards ? [...ruleset.deckContents.cards] : [] };
+            this.cardAbilities = ruleset.cardAbilities ? { ...ruleset.cardAbilities } : ({} as Ruleset["cardAbilities"]);
+        } else {
+            this.name = "";
+            this.description = "";
+            this.maxPlayers = 10;
+            this.minPlayers = 1;
+            this.AValue = 1;
+            this.turnOrder = "clockwise";
+            this.minNumRounds = 1;
+            this.hasMaxNumRounds = true;
+            this.maxNumRounds = 5;
+            this.ranks = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13];
+            this.suits = ["hearts", "diamonds", "clubs", "spades"];
+            this.startRules = {
+                host: { chosen: true },
+                highestCard: { chosen: false },
+                lowestCard: { chosen: false },
+                mostOfOneSuit: { chosen: false, suit: "hearts" },
+                mostOfOneRank: { chosen: false, rank: 1 },
+            };
+            this.drawRules = {
+                whenToDraw: "startOfTurn",
+                minCardsToDraw: 1,
+                maxCardsToDraw: 3,
+                drawFrom: "deck",
+            };
+            this.discardRules = {
+                whenToDiscard: "endOfTurn",
+                minCardsToDiscard: 1,
+                maxCardsToDiscard: 3,
+                cardMustMatch: "none",
+                cardMustNotMatch: "none",
+            };
+            this.playRules = {
+                whenToPlay: "startOfTurn",
+                cardMustMatch: "none",
+                cardMustNotMatch: "none",
+                minCardsToPlay: 1,
+                maxCardsToPlay: 3,
+            };
+            this.handRules = {
+                startingHandSize: 5,
+                maxHandSize: 10,
+                minHandSize: 1,
+            };
+            this.winConditions = {
+                firstToScore: { chosen: false, scoreTarget: 0 },
+                firstToHandSize: { chosen: false, handSizeTarget: 0 },
+                mostOfOneSuit: { chosen: false, suit: "any" },
+                mostOfOneRank: { chosen: false, rank: 1 },
+                mostOfOneColor: { chosen: false, color: "any" },
+                collectsSetOfCards: { chosen: false, set: [] },
+                mostCardsInHand: { chosen: false },
+                leastCardsInHand: { chosen: false },
+                lastToHaveCardsInHand: { chosen: false },
+            };
+            this.deckContents = { cards: [] };
+            this.cardAbilities = {
+                specialCards: { chosen: false, cards: [] },
+                skipNextPlayer: { chosen: false, activatesOn: "play", card: [] },
+                skipTargetedPlayer: { chosen: false, activatesOn: "play", card: [] },
+                reverseTurnOrder: { chosen: false, activatesOn: "play", card: [] },
+                drawCardsForNextPlayer: { chosen: false, activatesOn: "play", card: [], numDraws: 2 },
+                drawCardsForTargetedPlayer: { chosen: false, activatesOn: "play", card: [], numDraws: 2 },
+                extraTurn: { chosen: false, activatesOn: "play", card: [] },
+                extraDraw: { chosen: false, activatesOn: "play", card: [], numExtraDraws: 1 },
+                extraDiscard: { chosen: false, activatesOn: "play", card: [], numExtraDiscards: 1 },
+                extraPlay: { chosen: false, activatesOn: "play", card: [], numExtraPlays: 1 },
+                wildCard: { chosen: false, activatesOn: "play", card: [], canChooseSuit: true, canChooseRank: true },
+            };
+        }
     }
 
     getGameId() {
@@ -269,7 +364,7 @@ export class GameStatus implements Ruleset {
                         }
                     }
                     else if (ability === "drawCardsForNextPlayer") { // next player in the turn order draws some specified number of cards
-                        for (let i = 0; i < this.cardAbilities.drawCardsForNextPlayer.numCards; i++) {
+                        for (let i = 0; i < this.cardAbilities.drawCardsForNextPlayer.numDraws; i++) {
                             if (this.getPlayers() !== undefined && this.getPlayers()[(playerId + 1) % this.getPlayers().length] !== undefined
                                 && this.getPlayers()[(playerId + 1) % this.getPlayers().length].getHand() !== undefined
                                 && this.getPlayers()[(playerId + 1) % this.getPlayers().length].getHand().length < this.handRules.maxHandSize) {

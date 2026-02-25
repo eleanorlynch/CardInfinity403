@@ -8,32 +8,32 @@ export class GameWinner {
             return null; // No winner yet
         }
         if (gameState.hasMaxNumRounds === true && gameState.totalRounds >= gameState.maxNumRounds) {
-            if (gameState.mostOfOneSuit.chosen === true) {  
+            if (gameState.winConditions.mostOfOneSuit.chosen === true) {  
                 return this.checkMostOfOneSuit(gameState);
             }
-            else if (gameState.mostOfOneRank.chosen === true) {
+            else if (gameState.winConditions.mostOfOneRank.chosen === true) {
                 return this.checkMostOfOneRank(gameState);
             }
-            else if (gameState.mostOfOneColor.chosen === true) {
+            else if (gameState.winConditions.mostOfOneColor.chosen === true) {
                 return this.checkMostOfOneColor(gameState);
             }
-            else if (gameState.leastCardsInHand.chosen === true) {
+            else if (gameState.winConditions.leastCardsInHand.chosen === true) {
                 return this.checkLeastCardsInHand(gameState);
             }
-            else if (gameState.mostCardsInHand.chosen === true) {   
+            else if (gameState.winConditions.mostCardsInHand.chosen === true) {   
                 return this.checkMostCardsInHand(gameState);
             }
         }
-        else if (gameState.firstToScore.chosen === true) {
+        else if (gameState.winConditions.firstToScore.chosen === true) {
             return this.checkFirstToScore(gameState);
         }
-        else if (gameState.firstToHandSize.chosen === true) {
+        else if (gameState.winConditions.firstToHandSize.chosen === true) {
             return this.checkFirstToHandSize(gameState);
         }
-        else if (gameState.collectsSetOfCards.chosen === true) {
+        else if (gameState.winConditions.collectsSetOfCards.chosen === true) {
             return this.checkCollectsSetOfCards(gameState);
         }
-        else if (gameState.lastToHaveCardsInHand.chosen === true) {
+        else if (gameState.winConditions.lastToHaveCardsInHand.chosen === true) {
             return this.checkLastToHaveCardsInHand(gameState);
         }
     }
@@ -67,7 +67,7 @@ export class GameWinner {
             if (hand !== undefined) {
                 var hasAllCards: boolean = true;
                 const counts = new Map<string, number>();
-                const main = gameState.collectsSetOfCards.set.map((card: { rank: number; suit: string; }) => `${card.rank}_${card.suit}`);
+                const main = gameState.winConditions.collectsSetOfCards.set.map((card: { rank: number; suit: string; }) => `${card.rank}_${card.suit}`);
                 const sub = hand.map((card: Card) => `${card.getRank()}_${card.getSuit()}`);
                 for (const item of main) {
                     counts.set(item, (counts.get(item) ?? 0) + 1);
@@ -103,11 +103,11 @@ export class GameWinner {
                     score += card.getRank();
                 }
             }
-            if (score >= gameState.firstToScore.scoreTarget) {
+            if (score >= gameState.winConditions.firstToScore.scoreTarget) {
                 return {
                     winner: player.getID(),
                     winCondition: 'score',
-                    message: `Player has reached ${gameState.firstToScore.scoreTarget} points!`
+                    message: `Player has reached ${gameState.winConditions.firstToScore.scoreTarget} points!`
                 };
             }
         }
@@ -192,11 +192,11 @@ export class GameWinner {
 
     checkFirstToHandSize(gameState: GameStatus) { // Player with empty hand wins
         for (const player of gameState.getPlayers()) {
-            if (player.getHand() !== undefined && player.getHand().length === gameState.firstToHandSize.handSizeTarget) {
+            if (player.getHand() !== undefined && player.getHand().length === gameState.winConditions.firstToHandSize.handSizeTarget) {
                 return {
                     winner: player.getID(),
                     winCondition: 'hand_size',
-                    message: `Player has reached ${gameState.firstToHandSize.handSizeTarget} cards!`
+                    message: `Player has reached ${gameState.winConditions.firstToHandSize.handSizeTarget} cards!`
                 };
             }
         }
@@ -230,7 +230,7 @@ export class GameWinner {
 
             for (const card of hand) {
                 var playerMaxesIndex: number = 0;
-                if (gameState.mostOfOneSuit.suit === "any") {
+                if (gameState.winConditions.mostOfOneSuit.suit === "any") {
                     for (const suit of suits) {
                         if (card.getSuit() === suit) {
                             const max = playerMaxes[playerMaxesIndex];
@@ -243,7 +243,7 @@ export class GameWinner {
                     }
                 }
                 else {
-                    if (card.getSuit() === gameState.mostOfOneSuit.suit) {
+                    if (card.getSuit() === gameState.winConditions.mostOfOneSuit.suit) {
                         const max = playerMaxes[playerMaxesIndex];
 
                         if (max !== undefined) {
@@ -329,7 +329,7 @@ export class GameWinner {
 
             for (const card of hand) {
                 var playerMaxesIndex: number = 0;
-                if (gameState.mostOfOneRank.rank === "any") {
+                if ((gameState.winConditions.mostOfOneRank.rank as number) === -1) {
                     for (const rank of ranks) {
                         if (card.getRank() === rank) {
                             const max = playerMaxes[playerMaxesIndex];
@@ -342,7 +342,7 @@ export class GameWinner {
                     }
                 }
                 else {
-                    if (card.getRank() === gameState.mostOfOneRank.rank) {
+                    if (card.getRank() === gameState.winConditions.mostOfOneRank.rank) {
                         const max = playerMaxes[playerMaxesIndex];
 
                         if (max !== undefined) {
@@ -428,7 +428,7 @@ export class GameWinner {
 
             for (const card of hand) {
                 var playerMaxesIndex: number = 0;
-                if (gameState.mostOfOneColor.color === "any") {
+                if (gameState.winConditions.mostOfOneColor.color === "any") {
                     for (const color of colors) {
                         if ((color === "red" && (card.getSuit() === "hearts" || card.getSuit() === "diamonds")) ||
                            (color === "black" && (card.getSuit() === "clubs" || card.getSuit() === "spades"))) {
@@ -442,8 +442,8 @@ export class GameWinner {
                     }
                 }
                 else {
-                    if ((gameState.mostOfOneColor.color === "red" && (card.getSuit() === "hearts" || card.getSuit() === "diamonds")) ||
-                           (gameState.mostOfOneColor.color === "black" && (card.getSuit() === "clubs" || card.getSuit() === "spades"))) {
+                    if ((gameState.winConditions.mostOfOneColor.color === "red" && (card.getSuit() === "hearts" || card.getSuit() === "diamonds")) ||
+                           (gameState.winConditions.mostOfOneColor.color === "black" && (card.getSuit() === "clubs" || card.getSuit() === "spades"))) {
                         const max = playerMaxes[playerMaxesIndex];
 
                         if (max !== undefined) {

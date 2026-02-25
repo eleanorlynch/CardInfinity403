@@ -1,5 +1,8 @@
 import { GameStatus } from "./GameStatus";
 import { Card } from "./Card";
+import { loadDefaultRuleset } from "./loadRuleset";
+import * as rulesetDb from "../rulesetDb";
+import type { Ruleset } from "./RulesetTypes";
 
 export class GameMove {
     activeGames: Map<any, any>;
@@ -7,8 +10,16 @@ export class GameMove {
         this.activeGames = new Map(); // Stores all ongoing games
     }
     
-    // Create a new game
-    createGame(gameId: number, ruleset: string[], players: any[]) {
+    // Create a new game. rulesetId: optional saved ruleset id; if omitted, uses default Ruleset.json template.
+    createGame(gameId: number, players: any[], rulesetId?: number) {
+        let ruleset: Ruleset;
+        if (rulesetId != null) {
+            const row = rulesetDb.getRulesetById(rulesetId);
+            if (!row) throw new Error(`Ruleset ${rulesetId} not found`);
+            ruleset = row.data;
+        } else {
+            ruleset = loadDefaultRuleset();
+        }
         const game = new GameStatus(gameId, ruleset, players);
 
         //initialize deck + shuffle + initial deal
@@ -150,7 +161,7 @@ export class GameMove {
                     message: "User cannot play a card after drawing a card this turn"
                 }
              }
-             else if (game.playRules.whenToPlay === "startOfTurn" && (game.getDrawsThisTurn() > 0 || game.getDiscardThisTurn() > 0)) { // player can only play card(s) at the start of their turn before drawing or discarding any cards if this rule is in effect
+             else if (game.playRules.whenToPlay === "startOfTurn" && (game.getDrawsThisTurn() > 0 || game.getDiscardsThisTurn() > 0)) { // player can only play card(s) at the start of their turn before drawing or discarding any cards if this rule is in effect
                 return {
                     success: false,
                     message: "User can only play a card at the start of their turn, before drawing or discarding any cards"
@@ -263,7 +274,7 @@ export class GameMove {
                                         }
                                     }
                                     else if (ability === "drawCardsForNextPlayer") { // next player in the turn order draws some specified number of cards
-                                        for (let i = 0; i < game.cardAbilities.drawCardsForNextPlayer.numCards; i++) {
+                                        for (let i = 0; i < game.cardAbilities.drawCardsForNextPlayer.numDraws; i++) {
                                             if (game.getPlayers() !== undefined && game.getPlayers()[(playerId + 1) % game.getPlayers().length] !== undefined
                                                 && game.getPlayers()[(playerId + 1) % game.getPlayers().length].getHand() !== undefined
                                                 && game.getPlayers()[(playerId + 1) % game.getPlayers().length].getHand().length < game.handRules.maxHandSize) {

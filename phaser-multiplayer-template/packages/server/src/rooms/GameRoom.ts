@@ -27,11 +27,10 @@ export class GameRoom extends Room {
 
     const seat = this.assignSeat(client.sessionId);
 
-    // create game when first player joins
+    // create game when first player joins (uses default Ruleset.json template)
     if (!this.gameMove.getGame(this.gameId)) {
-      const ruleset = ["2"];
       const players = [new Player(0, [])];
-      this.gameMove.createGame(this.gameId, ruleset, players);
+      this.gameMove.createGame(this.gameId, players);
     }
 
     const game = this.gameMove.getGame(this.gameId);
