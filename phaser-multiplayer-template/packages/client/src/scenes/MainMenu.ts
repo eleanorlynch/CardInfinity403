@@ -120,12 +120,27 @@ export class MainMenu extends Scene {
       }
     });
 
+    button_manage_rules.setInteractive({ useHandCursor: true });
+
+    button_manage_rules.on('pointerover', () => {
+      button_manage_rules.setBackgroundColor('#8d8d8d');
+    });
+
+    button_manage_rules.on('pointerout', () => {
+      button_manage_rules.setBackgroundColor('#EBC9B3');
+    });
+
+    button_manage_rules.on('pointerdown', async () => {
+      await authorizeDiscordUser();
+      this.scene.start("Rules");
+    });
+
     // for testing in discord without authorized user
     // button_start_game.on('pointerdown', /*async*/ () => {
-      // console.log("Start game clicked");
-      // await authorizeDiscordUser();
-      // console.log("Discord authorized");
-      // this.scene.start("Game");
+    // console.log("Start game clicked");
+    // await authorizeDiscordUser();
+    // console.log("Discord authorized");
+    // this.scene.start("Game");
     // });
   }
 }

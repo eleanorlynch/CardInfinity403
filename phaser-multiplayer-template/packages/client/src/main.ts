@@ -7,6 +7,7 @@ import { Game } from "./scenes/Game";
 import { MainMenu } from "./scenes/MainMenu";
 import { Preloader } from "./scenes/Preloader";
 import { Background } from "./scenes/Background";
+import { Rules } from "./scenes/Rules";
 
 (async () => {
   // Match the template startup behavior so scene boot is not delayed by SDK readiness.
@@ -20,6 +21,6 @@ import { Background } from "./scenes/Background";
     backgroundColor: "#000000",
     roundPixels: false,
     pixelArt: false,
-    scene: [Boot, Preloader, MainMenu, Game, Background],
+    scene: [Boot, Preloader, MainMenu, Game, Background, Rules],
   });
 })();
