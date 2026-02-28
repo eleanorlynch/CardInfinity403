@@ -73,8 +73,11 @@ const authorizeDiscordUser = async () => {
     scope: ["identify", "applications.commands"],
   });
 
-  // Retrieve an access_token from your application's server
-  const response = await fetch("/.proxy/api/token", {
+  // Match the original template path and log it so we can confirm the live bundle in Discord.
+  const tokenPath = "/.proxy/api/token";
+  console.log("Discord auth requesting token from:", tokenPath);
+
+  const response = await fetch(tokenPath, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
@@ -83,7 +86,12 @@ const authorizeDiscordUser = async () => {
       code,
     }),
   });
-  const { access_token } = await response.json();
+
+  if (!response.ok) {
+    throw new Error(`Token endpoint ${tokenPath} returned ${response.status}`);
+  }
+
+  const { access_token } = (await response.json()) as { access_token: string };
 
   // Authenticate with Discord client (using the access_token)
   auth = await discordSdk.commands.authenticate({

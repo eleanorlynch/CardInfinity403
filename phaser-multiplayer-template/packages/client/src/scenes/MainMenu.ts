@@ -7,6 +7,7 @@ export class MainMenu extends Scene {
   }
 
   create() {
+    let authInProgress = false;
     const bg = this.add.image(this.cameras.main.width / 2, this.cameras.main.height / 2, "background");
     let scaleX = this.cameras.main.width / bg.width + 0.2;
     let scaleY = this.cameras.main.height / bg.height + 0.2;
@@ -101,22 +102,21 @@ export class MainMenu extends Scene {
     });
 
     button_start_game.on('pointerdown', async () => {
+      if (authInProgress) {
+        return;
+      }
+      authInProgress = true;
       console.log("Start game clicked");
       // Show immediate feedback so Discord auth does not look frozen.
       authErrorText.setText("Authorizing with Discord...");
       try {
-        // Guard against hanging auth calls in embedded mode.
-        await Promise.race([
-          authorizeDiscordUser(),
-          new Promise((_resolve, reject) =>
-            setTimeout(() => reject(new Error("Discord authorize timed out")), 10000)
-          ),
-        ]);
+        await authorizeDiscordUser();
         this.scene.start("Game");
       } catch (error) {
         console.error("Discord authorization failed:", error);
         const message = error instanceof Error ? error.message : "Unknown auth error";
         authErrorText.setText(`Discord auth failed: ${message}`);
+        authInProgress = false;
       }
     });
 

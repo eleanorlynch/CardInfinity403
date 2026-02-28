@@ -44,7 +44,10 @@ export class Preloader extends Scene {
 
   preload() {
     //  Load the assets for the game - Replace with your own assets
-    this.load.setPath("/.proxy/assets");
+    // Vite dev serves assets through /.proxy/assets, while the production server serves /assets directly.
+    const assetPath =
+      location.host === "localhost:3000" ? "/.proxy/assets" : "/assets";
+    this.load.setPath(assetPath);
 
     // Load the alphabet images
     const alphabetArray = "abcd".split(""); // efghijklmnopqrstuvwxyz

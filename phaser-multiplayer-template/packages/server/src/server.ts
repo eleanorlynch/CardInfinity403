@@ -38,8 +38,10 @@ if (process.env.NODE_ENV === "production") {
 // If you don't want people accessing your server stats, comment this line.
 router.use("/colyseus", monitor(server as Partial<MonitorOptions>));
 
-// Fetch token from developer portal and return to the embedded app
-router.post("/api/token", async (req: Request, res: Response) => {
+// Fetch token from developer portal and return to the embedded app.
+// Keep both routes so the client works with the template proxy path (/.proxy/api/token)
+// and with any older direct /api/token callers.
+const tokenHandler = async (req: Request, res: Response) => {
   let b = new URLSearchParams({
     client_id: process.env.VITE_CLIENT_ID,
     client_secret: process.env.CLIENT_SECRET,
@@ -65,7 +67,10 @@ router.post("/api/token", async (req: Request, res: Response) => {
   };
 
   res.send({ access_token });
-});
+};
+
+router.post("/token", tokenHandler);
+router.post("/api/token", tokenHandler);
 
 // Using a flat route in dev to match the vite server proxy config
 app.use(process.env.NODE_ENV === "production" ? "/.proxy/api" : "/", router);

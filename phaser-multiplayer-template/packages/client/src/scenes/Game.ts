@@ -437,25 +437,16 @@ export class Game extends Scene {
 
   private async connectToRoom() {
     const channelId = "dev-channel-1";
+    // Match the template endpoint strategy:
+    // - local browser connects directly to the Colyseus server on :3001
+    // - Discord/tunnel connects through the proxied /colyseus path
+    const url =
+      location.host === "localhost:3000"
+        ? "ws://localhost:3001"
+        : `wss://${location.host}/.proxy/api/colyseus`;
 
-    // Browser Colyseus must use ws:// or wss:// (not http://)
-    const wsOrigin = window.location.origin.replace(/^http/, "ws");
-    const endpoints = [wsOrigin, `${wsOrigin}/.proxy/api`];
-    let lastError: unknown = null;
-
-    for (const endpoint of endpoints) {
-      try {
-        this.netClient = new ColyseusClient(endpoint);
-        this.room = await this.netClient.joinOrCreate("game", { channelId });
-        break;
-      } catch (err) {
-        lastError = err;
-      }
-    }
-
-    if (!this.room) {
-      throw lastError ?? new Error("Failed to connect to room");
-    }
+    this.netClient = new ColyseusClient(url);
+    this.room = await this.netClient.joinOrCreate("game", { channelId });
 
     this.room.onMessage("PRIVATE_STATE", (state) => {
       this.netState = state;
