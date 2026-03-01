@@ -9,7 +9,10 @@ export class Boot extends Scene {
     //  The Boot Scene is typically used to load in any assets you require for your Preloader, such as a game logo or background.
     //  The smaller the file size of the assets, the better, as the Boot Scene itself has no preloader.
 
-    this.load.setPath("/.proxy/assets");
+    // Vite dev serves assets through /.proxy/assets, while the production server serves /assets directly.
+    const assetPath =
+      location.host === "localhost:3000" ? "/.proxy/assets" : "/assets";
+    this.load.setPath(assetPath);
     this.load.image("background", "bg_alt_1.png");
     this.load.image("fridge_bg", "fridge_bg.png");
   }

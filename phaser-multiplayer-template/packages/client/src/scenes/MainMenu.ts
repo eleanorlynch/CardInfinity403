@@ -7,6 +7,7 @@ export class MainMenu extends Scene {
   }
 
   create() {
+    let authInProgress = false;
     const bg = this.add.image(this.cameras.main.width / 2, this.cameras.main.height / 2, "background");
     let scaleX = this.cameras.main.width / bg.width + 0.2;
     let scaleY = this.cameras.main.height / bg.height + 0.2;
@@ -80,6 +81,16 @@ export class MainMenu extends Scene {
         backgroundColor: '#EBC9B3'
       }).setPadding(32).setOrigin(0.5).setMask(mask_button_manage_rules);
 
+    // Auth/debug feedback for Discord start failures.
+    const authErrorText = this.add
+      .text(Number(this.game.config.width) * 0.5, Number(this.game.config.height) * 0.93, "", {
+        fontFamily: "Arial",
+        fontSize: "18px",
+        color: "#ffb3b3",
+        align: "center",
+      })
+      .setOrigin(0.5);
+
     button_start_game.setInteractive({ useHandCursor: true });
 
     button_start_game.on('pointerover', () => {
@@ -91,9 +102,22 @@ export class MainMenu extends Scene {
     });
 
     button_start_game.on('pointerdown', async () => {
+      if (authInProgress) {
+        return;
+      }
+      authInProgress = true;
       console.log("Start game clicked");
-      await authorizeDiscordUser();
-      this.scene.start("Game");
+      // Show immediate feedback so Discord auth does not look frozen.
+      authErrorText.setText("Authorizing with Discord...");
+      try {
+        await authorizeDiscordUser();
+        this.scene.start("Game");
+      } catch (error) {
+        console.error("Discord authorization failed:", error);
+        const message = error instanceof Error ? error.message : "Unknown auth error";
+        authErrorText.setText(`Discord auth failed: ${message}`);
+        authInProgress = false;
+      }
     });
 
     button_manage_rules.setInteractive({ useHandCursor: true });
@@ -117,12 +141,6 @@ export class MainMenu extends Scene {
     // await authorizeDiscordUser();
     // console.log("Discord authorized");
     // this.scene.start("Game");
-    // });
-
-
-    // this.input.once("pointerdown", async () => {
-    //   await authorizeDiscordUser();
-    //   this.scene.start("Game");
     // });
   }
 }

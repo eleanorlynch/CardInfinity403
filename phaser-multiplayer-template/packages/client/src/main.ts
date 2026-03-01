@@ -10,6 +10,7 @@ import { Background } from "./scenes/Background";
 import { Rules } from "./scenes/Rules";
 
 (async () => {
+  // Match the template startup behavior so scene boot is not delayed by SDK readiness.
   initiateDiscordSDK();
 
   new ScaleFlow({

@@ -408,7 +408,7 @@ export class Game extends Scene {
   }
 
   isGameOver(): boolean {
-    return !!this.netState?.gameOver;
+    return !!this.netState?.gameOver; // !! ensures that if netState is undefined or null, then it returns false (essentially same as a Boolean cast)
   }
 
   // multiplayer handle draw using room
@@ -446,16 +446,16 @@ export class Game extends Scene {
 
   private async connectToRoom() {
     const channelId = "dev-channel-1";
+    // Match the template endpoint strategy:
+    // - local browser connects directly to the Colyseus server on :3001
+    // - Discord/tunnel connects through the proxied /colyseus path
+    const url =
+      location.host === "localhost:3000"
+        ? "ws://localhost:3001"
+        : `wss://${location.host}/.proxy/api/colyseus`;
 
-    // Use environment variable for Cloudflare/production, fallback to localhost for dev
-    // Browser Colyseus must use ws:// or wss:// (not http://)
-    const wsEndpoint = import.meta.env.VITE_COLYSEUS_ENDPOINT || "ws://localhost:3001";
-    console.log("Connecting to WebSocket endpoint:", wsEndpoint);
-
-    try {
-      this.netClient = new ColyseusClient(wsEndpoint);
-
-      if (this.statusText) this.statusText.setText("Connecting...");
+    this.netClient = new ColyseusClient(url);
+    this.room = await this.netClient.joinOrCreate("game", { channelId });
 
       this.room = await this.netClient.joinOrCreate("game", { channelId });
 
@@ -526,4 +526,5 @@ export class Game extends Scene {
 
     this.displayDeckCount(deckCount, width * 0.3, height * 0.45);
   }
+
 }
