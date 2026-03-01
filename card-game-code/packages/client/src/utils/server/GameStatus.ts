@@ -1,6 +1,6 @@
 import { Card } from "./Card.ts";
 import { Player } from "./Player.ts";
-import { GameWinner } from "./GameWinner";
+import { GameWinner } from "./GameWinner.ts";
 
 export class GameStatus {
     gameId: number;
