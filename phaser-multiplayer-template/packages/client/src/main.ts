@@ -1,6 +1,7 @@
 import { ScaleFlow } from "./utils/ScaleFlow";
 import { initiateDiscordSDK } from "./utils/discordSDK";
 import "./wsPatch" // to fix how colyseus' transport code is evaluated
+import RexUIPlugin from "phaser3-rex-plugins/templates/ui/ui-plugin.js";
 
 import { Boot } from "./scenes/Boot";
 import { Game } from "./scenes/Game";
@@ -8,6 +9,7 @@ import { MainMenu } from "./scenes/MainMenu";
 import { Preloader } from "./scenes/Preloader";
 import { Background } from "./scenes/Background";
 import { Rules } from "./scenes/Rules";
+import { RulesetEditor } from "./scenes/RulesetEditor";
 
 (async () => {
   // Match the template startup behavior so scene boot is not delayed by SDK readiness.
@@ -21,6 +23,14 @@ import { Rules } from "./scenes/Rules";
     backgroundColor: "#000000",
     roundPixels: false,
     pixelArt: false,
-    scene: [Boot, Preloader, MainMenu, Game, Background, Rules],
+    plugins: {
+      scene: [{
+        key: 'rexUI',
+        plugin: RexUIPlugin,
+        mapping: 'rexUI'
+      },
+      ]
+    },
+    scene: [Boot, Preloader, MainMenu, Game, Background, Rules, RulesetEditor],
   });
 })();
