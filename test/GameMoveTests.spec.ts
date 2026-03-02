@@ -1,8 +1,6 @@
 const assert = require("node:assert");
 const GameMoveModule = require("../phaser-multiplayer-template/packages/server/src/card-game/GameMove.ts");
 const { GameMove } = GameMoveModule;
-const GameStatusModule = require("../phaser-multiplayer-template/packages/server/src/card-game/GameStatus.ts");
-const { GameStatus } = GameStatusModule;
 const PlayerModule = require("../phaser-multiplayer-template/packages/server/src/card-game/Player.ts");
 const { Player } = PlayerModule;
 const CardModule = require("../phaser-multiplayer-template/packages/server/src/card-game/Card.ts");
@@ -131,7 +129,7 @@ describe ("GameMove", function () {
         }
       }
     }); 
-    // Cannot be tested in the current implementation
+    // TODO: Uncomment/finish this test once custom rulesets are fully implemented
    /* it ("shouldn't allow the user to discard a card when they haven't yet drawn to start their turn", function() {
       const Move = new GameMove();
       const players = [new Player(0, []), new Player(1, [])];
@@ -171,6 +169,7 @@ describe ("GameMove", function () {
       }
     });
 
+    // TODO: Uncomment/finish this test once custom rulesets are fully implemented
    /* it ("should allow the user to play a card when they have not yet reached the play limit, have not drawn a card this turn,"
       + " and the card matches the suit of the top discard", function() {
       const Move = new GameMove();
@@ -185,7 +184,7 @@ describe ("GameMove", function () {
 
         if (hand !== undefined && hand[0] !== undefined) {
           const cardToPlay = hand[0];
-          
+
           assert.deepStrictEqual(Move.handlePlayCard(123, 0, cardToPlay.getId()), {success: true, message: "Card played successfully",
             playerHand: [], discardTop: cardToPlay, nextPlayer: 0 });
         }

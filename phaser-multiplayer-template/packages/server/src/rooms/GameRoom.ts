@@ -9,7 +9,7 @@ export class GameRoom extends Room {
   // sessionId -> seat (0,1,...,n)
   private seatBySessionId = new Map<string, number>();
 
-  // just doing 2 players for now, will update later based on what we want
+  // TODO: just doing 2 players for now, will update later based on what we want
   maxClients = 2;
 
   onCreate(options: any) {

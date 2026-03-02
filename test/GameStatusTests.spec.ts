@@ -63,7 +63,7 @@ describe ("GameStatus", function () {
       assert.strictEqual(game.gameOver, false);
     });
 
-    // Will add this test once custom rulesets are fully added
+    // TODO: Uncomment/finish this test once custom rulesets are fully implemented
   /*  it ("should set gameOver to true if there is a winner at the end of a turn and set tied to true is there is a tie", function() {
       const players = [new Player(0, []), new Player(1, [])];
       const ruleset = ["2"];
@@ -126,7 +126,7 @@ describe ("GameStatus", function () {
       }
     }); 
   });
-  // Add test once rule selection is implemented, currently cannot test this
+  // TODO: Uncomment/finish this test once custom rulesets are fully implemented
  /* describe ("#getDiscardsThisTurn()", function () {
 
     it ("should return the number of discards that have been made this turn", function() {
@@ -384,7 +384,7 @@ describe ("GameStatus", function () {
       const newHand = [new Card("diamonds", 2), new Card("hearts", 2)];
 
       game.setPlayerHand(newHand, 0);
-      
+
       if (players[0] !== undefined) {
         assert.strictEqual(players[0].getHand(), newHand);
       }

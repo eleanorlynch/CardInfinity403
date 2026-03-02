@@ -63,7 +63,7 @@ router.get("/rulesets/:id", (req: Request, res: Response) => {
 
   const row = rulesetDb.getRulesetById(id);
 
-  if (!row) {
+  if (row === undefined) {
     res.status(404).json({ error: "Ruleset not found" });
     return;
   }
@@ -74,7 +74,7 @@ router.get("/rulesets/:id", (req: Request, res: Response) => {
 router.post("/rulesets", (req: Request, res: Response) => {
   const data = req.body;
 
-  if (!data || typeof data !== "object") {
+  if (data === undefined || data === null || typeof data !== "object") {
     res.status(400).json({ error: "Invalid ruleset body" });
     return;
   }
@@ -98,14 +98,14 @@ router.put("/rulesets/:id", (req: Request, res: Response) => {
 
   const data = req.body;
 
-  if (!data || typeof data !== "object") {
+  if (data === undefined || data === null || typeof data !== "object") {
     res.status(400).json({ error: "Invalid ruleset body" });
     return;
   }
 
   const row = rulesetDb.updateRuleset(id, data as Ruleset);
 
-  if (!row) {
+  if (row === undefined) {
     res.status(404).json({ error: "Ruleset not found" });
     return;
   }
@@ -115,7 +115,7 @@ router.put("/rulesets/:id", (req: Request, res: Response) => {
 
 if (process.env.NODE_ENV === "production") {
   const clientBuildPath = path.join(__dirname, "../../client/dist");
-  
+
   app.use(express.static(clientBuildPath));
 }
 
