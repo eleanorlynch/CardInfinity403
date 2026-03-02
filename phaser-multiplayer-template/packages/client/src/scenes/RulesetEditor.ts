@@ -1,12 +1,30 @@
 import { Ruleset } from "../rules/Ruleset"
 
-import { Scene } from "phaser";
-import { authorizeDiscordUser } from "../utils/discordSDK";
+import { GameObjects, Scene } from "phaser";
+import { Arc } from "phaser3-rex-plugins/plugins/gameobjects/shape/shapes/geoms";
+import { Label } from 'phaser3-rex-plugins/templates/ui/ui-components.js';
 
 
-export class Rules extends Scene {
+
+export class RulesetEditor extends Scene {
+
   constructor() {
-    super("Rules");
+    super("RulesetEditor");
+    this.name = "";
+  }
+
+  name: string;
+
+  init(args) {
+    this.name = args.name;
+  }
+
+  preload() {
+    this.load.scenePlugin({
+      key: 'rexuiplugin',
+      url: 'https://raw.githubusercontent.com/rexrainbow/phaser3-rex-notes/master/dist/rexuiplugin.min.js',
+      sceneKey: 'rexUI'
+    });
   }
 
   rulesets_temp_delete_later: Ruleset[] = [];
@@ -20,15 +38,13 @@ export class Rules extends Scene {
     const height = Number(this.game.config.height);
     const container_width = width * 0.75;
     const bg = this.add.image(this.cameras.main.width / 2, this.cameras.main.height / 2, "background");
-
     let scaleX = this.cameras.main.width / bg.width + 0.2;
     let scaleY = this.cameras.main.height / bg.height + 0.2;
     let scale = Math.max(scaleX, scaleY);
-
     bg.setScale(scale).setScrollFactor(0);
 
     const title_text = this.add
-      .text(Number(this.game.config.width) * 0.5, Number(this.game.config.height) * 0.15, "Rulesets", {
+      .text(Number(this.game.config.width) * 0.5, Number(this.game.config.height) * 0.15, this.name, {
         fontFamily: "Arial Black",
         fontSize: "4.5rem",
         color: "#E9DFD9",
@@ -36,7 +52,21 @@ export class Rules extends Scene {
         strokeThickness: 10,
         align: "center",
       })
-      .setOrigin(0.5);
+      .setOrigin(0.5)
+      .setInteractive({ useHandCursor: true });
+
+    title_text.on('pointerdown', () => {
+      this.rexUI.edit(title_text)
+    })
+
+    // const title_input = this.rexUI.add.inputText({
+    //   type: "text",
+    //   // text: this.name,
+    //   x: Number(this.game.config.width) * 0.5,
+    //   y: Number(this.game.config.height) * 0.15,
+    //   width: 100,
+    //   height: 100
+    // })
 
     const backButton = this.add
       .text(width * 0.05, height * 0.1, "← Back", {
@@ -59,36 +89,13 @@ export class Rules extends Scene {
 
     backButton.on("pointerdown", () => {
       this.rulesets_temp_delete_later = [];
-      this.scene.start("MainMenu");
+      this.scene.start("Rules");
     });
 
-    const addButton = this.add
-      .text(width * 0.85, height * 0.1, "+ Add Ruleset", {
-        fontFamily: "Arial",
-        fontSize: "20px",
-        color: "#E9DFD9",
-        backgroundColor: "#101814",
-        padding: { x: 12, y: 6 }
-      })
-      .setOrigin(0, 0.5)
-      .setInteractive({ useHandCursor: true });
-
-    addButton.on("pointerover", () => {
-      addButton.setStyle({ backgroundColor: "#891900" });
-    });
-
-    addButton.on("pointerout", () => {
-      addButton.setStyle({ backgroundColor: "#101814" });
-    });
-
-    addButton.on("pointerdown", () => {
-      this.add_ruleset_entry();
-    });
-
-    const rules_container = this.add.container();
+    const options_container = this.add.container();
     const navigation_container = this.add.container();
 
-    const rules_container_bg = this.add
+    const options_container_bg = this.add
       .graphics({
         fillStyle: { color: 0xE9DFD9 },
         lineStyle: { width: 3, color: 0x101814 }
@@ -145,7 +152,6 @@ export class Rules extends Scene {
 
     navigation_left_button.setInteractive({ useHandCursor: true });
 
-
     navigation_left_button.on('pointerover', () => {
       navigation_left_button.setBackgroundColor('#EBC9B3');
     });
@@ -161,6 +167,8 @@ export class Rules extends Scene {
       // depends on if this is left or right
       this.handle_visibility();
 
+
+
     })
 
     const page_number_indicator = this.add.text(width * 0.48, height * 0.84, String(this.page_number), {
@@ -171,53 +179,100 @@ export class Rules extends Scene {
       fixedWidth: 50,
     })
 
-    rules_container.add(rules_container_bg).add(navigation_container);
+    options_container.add(options_container_bg).add(navigation_container);
     navigation_container.add(navigation_container_bg)
       .add(navigation_left_button)
       .add(navigation_right_button);
 
 
-    //populate rules
-
-    this.rulesets_temp_delete_later.push(new Ruleset("uno"));
-    this.rulesets_temp_delete_later.push(new Ruleset("hiii"));
-    this.rulesets_temp_delete_later.push(new Ruleset("the joke one"));
-    this.rulesets_temp_delete_later.push(new Ruleset("e"));
-    this.rulesets_temp_delete_later.push(new Ruleset("th is me"));
-
-    this.populate_rulesets(width, height, container_width);
-    this.handle_visibility();
+    // --------------------------
+    var buttons = this.create_buttons_container("testing", true, ["hi", "hello", "howdy"])
 
   }
 
   //Helper fns
+
+  // Handles page navigation. Visibility change should happen here if possible.
   handle_navigation_click(increment: number) {
     if (increment > 0 || this.page_number > 0) {
       this.page_number += increment;
     }
-
-    // not really sure if this should be a function?
-    // TODO: check style guide
   }
 
-  populate_rulesets(width: number, height: number, container_width: number) {
+  // Creates a row w/ buttons
+  create_buttons_container(title: string, radio: boolean, options: string[]) {
+
+    // making a row that has buttons in it
+    // should probably have wrapping 
+
+    var buttons_children: Label[] = [];
+
+    // TODO: set up a callback variable?
+    // like the callback changes depending on what kind of thing you have
+
+    if (radio) {
+      options.forEach((option) => {
+        buttons_children.push(this.create_radio_button(option, option));
+      })
+    } else {
+      // options.forEach((option) => {
+      //   buttons_children.push(this.create_checkbox_button(option, option));
+      // })
+    }
+
+    var buttons = this.rexUI.add.buttons({
+      x: 100, y: 100,
+      orientation: 'x',
+      buttons: buttons_children,
+      type: ((radio) ? 'radio' : 'checkboxes'),
+      setValueCallback: function (button, value) {
+        ((button as Label).getElement("icon") as GameObjects.Arc)!.setFillStyle((value) ? 0xffffff : undefined);
+      }
+    })
+      .layout();
+
+    return buttons;
+  }
+
+  // Creates a singular checkbox button
+  create_checkbox_button(text: string, name: string) {
+
+  }
+
+  // Creates a single radio button 
+  create_radio_button(text: string, name: string) {
+    if (name === undefined) {
+      name = text;
+    }
+    var button = this.rexUI.add.label({
+      width: 100,
+      height: 40,
+      text: this.add.text(200, 200, text, {
+        fontSize: 18
+      }),
+      icon: this.add.circle(200, 200, 10).setStrokeStyle(1, 0x000000),
+      space: {
+        left: 10,
+        right: 10,
+        icon: 10
+      },
+      name: name
+    });
+    return button;
+  }
+
+
+  // Populates the list of categories
+  populate_options(width: number, height: number, container_width: number) {
     const startY = height * 0.27;
     const spacing = height * 0.125;
-    //consists of loading from DB
-    //TODO: jerry 
 
-    //this will hold a list of Ruleset objs loaded from DB
-    const rulesets: Ruleset[] = this.rulesets_temp_delete_later;
-
-    //and drawing each elem
-    rulesets.forEach((ruleset, index) => {
-      this.make_ruleset_entry_card(ruleset, width * 0.185, startY + (index % 5) * spacing, container_width);
-    })
+    // TODO: this should handle making each option
   };
 
+  // Hides and shows options while navigating
   handle_visibility() {
     let num_to_show: number;
-
     if (this.rulesets.size >= this.page_number * 5) {
       num_to_show = 5;
     } else {
@@ -229,73 +284,11 @@ export class Rules extends Scene {
     })
 
     let index = this.page_number * 5;
-
     while (index < (this.page_number) * 5 + num_to_show) {
       console.log(index);
       console.log(this.rulesets.get(this.rulesets_temp_delete_later.at(index)!.name));
       this.rulesets.get(this.rulesets_temp_delete_later.at(index)!.name)!.setVisible(true);
       index += 1;
     }
-
-  }
-
-  draw_ruleset_entry_cards() {
-    //draws entry cards
-  }
-
-  add_ruleset_entry() {
-    //adds to DB and map
-    //triggers redraw
-    // this.make_ruleset_entry_card(new Ruleset("test"), 100, 100);
-  }
-
-  make_ruleset_entry_card(ruleset: Ruleset, x_pos: number, y_pos: number, container_width: number) {
-    //called by above two fns
-    //actually handles making the card and adding
-    const container = this.add.container(x_pos, y_pos);
-
-    // Card background
-    const ruleset_bg = this.add.graphics();
-
-    ruleset_bg.fillStyle(0xffffff);
-    ruleset_bg.lineStyle(2, 0x000000);
-    ruleset_bg.fillRoundedRect(x_pos * -0.125, y_pos * -0.05, container_width * 0.9, 55, 5);
-    ruleset_bg.strokeRoundedRect(x_pos * -0.125, y_pos * -0.05, container_width * 0.9, 55, 5);
-    // ruleset_bg.setInteractive({useHandCursor: true})
-
-    container.add(ruleset_bg);
-
-    const ruleset_text = this.add.text(0, y_pos * -0.05 + 10, ruleset.name, {
-      fontFamily: "Arial",
-      fontSize: "20px",
-      fontStyle: "bold",
-      color: "#101814"
-    });
-
-    container.add(ruleset_text);
-
-    container.setInteractive(new Phaser.Geom.Rectangle(-x_pos * 0.125, y_pos * -0.05, container_width * 0.9, 55), Phaser.Geom.Rectangle.Contains);
-    container.setInteractive({ usehandcursor: true });
-
-    container.on("pointerover", () => {
-      ruleset_bg.fillStyle(0x8d8d8d);
-      ruleset_bg.fillRoundedRect(x_pos * -0.125, y_pos * -0.05, container_width * 0.9, 55, 5);
-      ruleset_bg.strokeRoundedRect(x_pos * -0.125, y_pos * -0.05, container_width * 0.9, 55, 5);
-    });
-
-    container.on("pointerout", () => {
-      ruleset_bg.fillStyle(0xffffff);
-      ruleset_bg.fillRoundedRect(x_pos * -0.125, y_pos * -0.05, container_width * 0.9, 55, 5);
-      ruleset_bg.strokeRoundedRect(x_pos * -0.125, y_pos * -0.05, container_width * 0.9, 55, 5);
-    });
-
-
-    container.on("pointerdown", () => {
-      this.rulesets_temp_delete_later = [];
-      this.scene.start("RulesetEditor", {name: ruleset.name});
-    });
-    container.setVisible(false);
-
-    this.rulesets.set(ruleset.name, container);
   }
 }

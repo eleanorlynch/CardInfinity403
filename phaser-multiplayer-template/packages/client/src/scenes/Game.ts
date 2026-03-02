@@ -1,5 +1,5 @@
 import { Scene } from "phaser";
-import {Client as ColyseusClient, Room} from "colyseus.js"
+import { Client as ColyseusClient, Room } from "colyseus.js"
 
 interface Card {
   suit: string;
@@ -165,7 +165,7 @@ export class Game extends Scene {
         this.endTurnButton.setStyle({ backgroundColor: "#EBC9B3" });
       }
     });
-    
+
     this.endTurnButton.on("pointerdown", () => {
       if (!this.room) return;
       if (this.netState?.gameOver) return;
@@ -176,7 +176,7 @@ export class Game extends Scene {
     // Initialize game
     this.connectToRoom().catch((err) => {
       console.error(err);
-      if(this.statusText) this.statusText.setText("Failed to connect");
+      if (this.statusText) this.statusText.setText("Failed to connect");
     });
   }
 
@@ -196,11 +196,11 @@ export class Game extends Scene {
       this.deckSprite.destroy();
       this.deckSprite = null;
     }
-    
+
     // Reset text references (they will be recreated in create())
     this.statusText = null;
     this.drawButton = null;
-    
+
     // Reset game move manager
     // TODO: Make sure this replacement works
     if (this.room === undefined) {
@@ -238,9 +238,8 @@ export class Game extends Scene {
     this.room.onMessage("GAME", (state) => {
       game = state;
     })
-    
-    // Get the actual game object for winner checking
-   
+
+    // Get the actual game object for winner checking   
     if (game === null) {
       return;
     }
@@ -326,7 +325,7 @@ export class Game extends Scene {
     }
 
     const container = this.add.container(x, y);
-    
+
     // Draw card back
     const cardBack = this.add.graphics();
 
@@ -403,7 +402,7 @@ export class Game extends Scene {
 
     if (interactive && !this.isGameOver()) {
       container.setInteractive(new Phaser.Geom.Rectangle(-30, -45, 60, 90), Phaser.Geom.Rectangle.Contains);
-      
+
       container.on("pointerover", () => {
         container.setY(y - 10);
         container.setScale(scale * 1.1);
@@ -475,21 +474,21 @@ export class Game extends Scene {
       // TODO: Why is this line here twice? Is that because the default room has 2 players?
       this.room = await this.netClient.joinOrCreate("game", { channelId });
 
-      this.room = await this.netClient.joinOrCreate("game", { channelId });
+    this.room = await this.netClient.joinOrCreate("game", { channelId });
 
-      this.room.onMessage("PRIVATE_STATE", (state) => {
-        this.netState = state;
-        this.updateDisplayFromNet();
-      });
+    this.room.onMessage("PRIVATE_STATE", (state) => {
+      this.netState = state;
+      this.updateDisplayFromNet();
+    });
 
-      this.room.onMessage("ERROR", (msg: any) => {
-        if (this.statusText) this.statusText.setText(msg?.message ?? "Error");
-      });
+    this.room.onMessage("ERROR", (msg: any) => {
+      if (this.statusText) this.statusText.setText(msg?.message ?? "Error");
+    });
 
-      this.room.onLeave(() => {
-        console.warn("Room connection closed");
-        if (this.statusText) this.statusText.setText("Disconnected. Refresh to reconnect.");
-      });
+    this.room.onLeave(() => {
+      console.warn("Room connection closed");
+      if (this.statusText) this.statusText.setText("Disconnected. Refresh to reconnect.");
+    });
 
       if (this.statusText !== null) {
         this.statusText.setText("Connected...");
