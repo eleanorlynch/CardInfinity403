@@ -11,9 +11,11 @@ export class Preloader extends Scene {
       this.cameras.main.height / 2,
       "background"
     );
+
     let scaleX = this.cameras.main.width / bg.width + 0.2;
     let scaleY = this.cameras.main.height / bg.height + 0.2;
     let scale = Math.max(scaleX, scaleY);
+
     bg.setScale(scale).setScrollFactor(0);
 
     //  A simple progress bar. This is the outline of the bar.
@@ -47,6 +49,7 @@ export class Preloader extends Scene {
     // Vite dev serves assets through /.proxy/assets, while the production server serves /assets directly.
     const assetPath =
       location.host === "localhost:3000" ? "/.proxy/assets" : "/assets";
+      
     this.load.setPath(assetPath);
 
     // Load the alphabet images
