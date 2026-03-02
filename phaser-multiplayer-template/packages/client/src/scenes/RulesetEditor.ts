@@ -1,7 +1,9 @@
 import { Ruleset } from "../rules/Ruleset"
 
-import { Scene } from "phaser";
-import { authorizeDiscordUser } from "../utils/discordSDK";
+import { GameObjects, Scene } from "phaser";
+import { Arc } from "phaser3-rex-plugins/plugins/gameobjects/shape/shapes/geoms";
+import { Label } from 'phaser3-rex-plugins/templates/ui/ui-components.js';
+
 
 
 export class RulesetEditor extends Scene {
@@ -15,6 +17,14 @@ export class RulesetEditor extends Scene {
 
   init(args) {
     this.name = args.name;
+  }
+
+  preload() {
+    this.load.scenePlugin({
+      key: 'rexuiplugin',
+      url: 'https://raw.githubusercontent.com/rexrainbow/phaser3-rex-notes/master/dist/rexuiplugin.min.js',
+      sceneKey: 'rexUI'
+    });
   }
 
   rulesets_temp_delete_later: Ruleset[] = [];
@@ -42,7 +52,21 @@ export class RulesetEditor extends Scene {
         strokeThickness: 10,
         align: "center",
       })
-      .setOrigin(0.5);
+      .setOrigin(0.5)
+      .setInteractive({ useHandCursor: true });
+
+    title_text.on('pointerdown', () => {
+      this.rexUI.edit(title_text)
+    })
+
+    // const title_input = this.rexUI.add.inputText({
+    //   type: "text",
+    //   // text: this.name,
+    //   x: Number(this.game.config.width) * 0.5,
+    //   y: Number(this.game.config.height) * 0.15,
+    //   width: 100,
+    //   height: 100
+    // })
 
     const backButton = this.add
       .text(width * 0.05, height * 0.1, "← Back", {
@@ -143,6 +167,8 @@ export class RulesetEditor extends Scene {
       // depends on if this is left or right
       this.handle_visibility();
 
+
+
     })
 
     const page_number_indicator = this.add.text(width * 0.48, height * 0.84, String(this.page_number), {
@@ -159,25 +185,92 @@ export class RulesetEditor extends Scene {
       .add(navigation_right_button);
 
 
-    //populate options
-    //TODO: make options list
+    // --------------------------
+    var buttons = this.create_buttons_container("testing", true, ["hi", "hello", "howdy"])
 
-    this.populate_options(width, height, container_width);
-    this.handle_visibility();
   }
 
   //Helper fns
+
+  // Handles page navigation. Visibility change should happen here if possible.
   handle_navigation_click(increment: number) {
     if (increment > 0 || this.page_number > 0) {
       this.page_number += increment;
     }
   }
 
+  // Creates a row w/ buttons
+  create_buttons_container(title: string, radio: boolean, options: string[]) {
+
+    // making a row that has buttons in it
+    // should probably have wrapping 
+
+    var buttons_children: Label[] = [];
+
+    // TODO: set up a callback variable?
+    // like the callback changes depending on what kind of thing you have
+
+    if (radio) {
+      options.forEach((option) => {
+        buttons_children.push(this.create_radio_button(option, option));
+      })
+    } else {
+      // options.forEach((option) => {
+      //   buttons_children.push(this.create_checkbox_button(option, option));
+      // })
+    }
+
+    var buttons = this.rexUI.add.buttons({
+      x: 100, y: 100,
+      orientation: 'x',
+      buttons: buttons_children,
+      type: ((radio) ? 'radio' : 'checkboxes'),
+      setValueCallback: function (button, value) {
+        ((button as Label).getElement("icon") as GameObjects.Arc)!.setFillStyle((value) ? 0xffffff : undefined);
+      }
+    })
+      .layout();
+
+    return buttons;
+  }
+
+  // Creates a singular checkbox button
+  create_checkbox_button(text: string, name: string) {
+
+  }
+
+  // Creates a single radio button 
+  create_radio_button(text: string, name: string) {
+    if (name === undefined) {
+      name = text;
+    }
+    var button = this.rexUI.add.label({
+      width: 100,
+      height: 40,
+      text: this.add.text(200, 200, text, {
+        fontSize: 18
+      }),
+      icon: this.add.circle(200, 200, 10).setStrokeStyle(1, 0x000000),
+      space: {
+        left: 10,
+        right: 10,
+        icon: 10
+      },
+      name: name
+    });
+    return button;
+  }
+
+
+  // Populates the list of categories
   populate_options(width: number, height: number, container_width: number) {
     const startY = height * 0.27;
     const spacing = height * 0.125;
+
+    // TODO: this should handle making each option
   };
 
+  // Hides and shows options while navigating
   handle_visibility() {
     let num_to_show: number;
     if (this.rulesets.size >= this.page_number * 5) {

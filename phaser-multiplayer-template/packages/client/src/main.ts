@@ -1,6 +1,7 @@
 import { ScaleFlow } from "./utils/ScaleFlow";
 import { initiateDiscordSDK } from "./utils/discordSDK";
 import "./wsPatch" // to fix how colyseus' transport code is evaluated
+import RexUIPlugin from "phaser3-rex-plugins/templates/ui/ui-plugin.js";
 
 import { Boot } from "./scenes/Boot";
 import { Game } from "./scenes/Game";
@@ -22,6 +23,14 @@ import { RulesetEditor } from "./scenes/RulesetEditor";
     backgroundColor: "#000000",
     roundPixels: false,
     pixelArt: false,
+    plugins: {
+      scene: [{
+        key: 'rexUI',
+        plugin: RexUIPlugin,
+        mapping: 'rexUI'
+      },
+      ]
+    },
     scene: [Boot, Preloader, MainMenu, Game, Background, Rules, RulesetEditor],
   });
 })();
