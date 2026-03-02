@@ -18,7 +18,7 @@ describe ("GameWinner", function () {
             const ruleset = ["1"];
             const game = new GameStatus(1, ruleset, players);
             const winner = new GameWinner;
-            
+
             game.setRound(3);
 
             assert.deepStrictEqual(winner.checkMostSuit(game), {tie: false, winner: 0});
@@ -59,7 +59,6 @@ describe ("GameWinner", function () {
 
             assert.deepStrictEqual(winner.checkMostSuit(game), {tie: true, winners: winnersList, message: "All players have no cards left!"});
         });
-
     });
 
     describe ("#checkWinner()", function() {
@@ -73,7 +72,6 @@ describe ("GameWinner", function () {
 
             assert.deepStrictEqual(winner.checkWinner(game), { message: 'Player has no cards left!', winCondition: 'empty_hand', winner: 1 });
         });
-
     });
 
     describe ("#emptyHand()", function() {
@@ -86,7 +84,5 @@ describe ("GameWinner", function () {
 
             assert.deepStrictEqual(winner.emptyHand(game), {winner: 0, winCondition: 'empty_hand', message: "Player has no cards left!"});
         });
-
     });
-
 });
