@@ -25,13 +25,16 @@ function ensureDataDir() {
 
 function loadFromFile(): void {
   ensureDataDir();
+
   if (!fs.existsSync(RULESETS_FILE)) {
     rows = [];
     return;
   }
+
   try {
     const raw = fs.readFileSync(RULESETS_FILE, "utf-8");
     const parsed = JSON.parse(raw) as SavedRulesetRow[];
+
     rows = Array.isArray(parsed) ? parsed : [];
     nextId = rows.length > 0 ? Math.max(...rows.map((r) => r.id)) + 1 : 1;
   } catch {
@@ -47,8 +50,12 @@ function saveToFile(): void {
 loadFromFile();
 
 export function listRulesets(nameFilter?: string): SavedRulesetRow[] {
-  if (!nameFilter?.trim()) return [...rows];
+  if (!nameFilter?.trim()) {
+    return [...rows];
+  }
+
   const q = nameFilter.trim().toLowerCase();
+
   return rows.filter(
     (r) =>
       r.name.toLowerCase().includes(q) ||
@@ -70,8 +77,10 @@ export function insertRuleset(data: Ruleset): SavedRulesetRow {
     updated_at: now,
     data: { ...data },
   };
+
   rows.push(row);
   saveToFile();
+
   return row;
 }
 
@@ -80,7 +89,10 @@ export function updateRuleset(
   data: Ruleset
 ): SavedRulesetRow | undefined {
   const idx = rows.findIndex((r) => r.id === id);
-  if (idx === -1) return undefined;
+  if (idx === -1) {
+    return undefined;
+  }
+
   const now = new Date().toISOString();
   const row: SavedRulesetRow = {
     ...rows[idx]!,
@@ -89,7 +101,9 @@ export function updateRuleset(
     updated_at: now,
     data: { ...data },
   };
+
   rows[idx] = row;
   saveToFile();
+
   return row;
 }
