@@ -9,10 +9,12 @@ export class GameRoom extends Room {
   // sessionId -> seat (0,1,...,n)
   private seatBySessionId = new Map<string, number>();
 
-  maxClients = 2; // just doing 2 players for now, will update later based on what we want
+  // TODO: just doing 2 players for now, will update later based on what we want
+  maxClients = 2;
 
   onCreate(options: any) {
     console.log("Room created:", this.roomId);
+
     // message-based only for now (no schema sync yet)
     this.onMessage("DRAW", (client) => this.handleDraw(client));
     this.onMessage("PLAY_CARD", (client, msg: { cardId: string }) =>
@@ -30,10 +32,12 @@ export class GameRoom extends Room {
     // create game when first player joins (uses default Ruleset.json template)
     if (!this.gameMove.getGame(this.gameId)) {
       const players = [new Player(0, [])];
+
       this.gameMove.createGame(this.gameId, players);
     }
 
     const game = this.gameMove.getGame(this.gameId);
+
     if (game) {
       // Ensure the Player object exists for this seat.
       while (game.players.length <= seat) {
@@ -42,11 +46,16 @@ export class GameRoom extends Room {
       
       // Deal initial hand to late-joining player (match GameStatus.dealCards() = 3)
       const p = game.players[seat];
+
       if (p && (p.getHand()?.length ?? 0) === 0) {
         const hand = p.getHand() ?? [];
+
         for (let i = 0; i < 3; i++) {
           const card = game.deck.pop();
-          if (card) hand.push(card);
+
+          if (card) {
+            hand.push(card);
+          }
         }
         p.setHand(hand);
       }
@@ -54,7 +63,6 @@ export class GameRoom extends Room {
 
     // Send updated private state to everyone so player 1 updates when player 2 joins
     this.broadcastPrivateStates();
-
   }
 
   onLeave(client: Client) {
@@ -63,20 +71,30 @@ export class GameRoom extends Room {
 
   private assignSeat(sessionId: string): number {
     const existing = this.seatBySessionId.get(sessionId);
-    if (existing !== undefined) return existing;
+
+    if (existing !== undefined) {
+      return existing;
+    }
 
     const seat = this.seatBySessionId.size;
+
     this.seatBySessionId.set(sessionId, seat);
+
     return seat;
   }
 
   private handleDraw(client: Client) {
     const seat = this.seatBySessionId.get(client.sessionId);
-    if (seat === undefined) return;
+
+    if (seat === undefined) {
+      return;
+    }
 
     const result = this.gameMove.handleDrawCard(this.gameId, seat);
+
     if (!result.success) {
       client.send("ERROR", { message: result.message });
+
       return;
     }
 
@@ -85,11 +103,16 @@ export class GameRoom extends Room {
 
   private handlePlayCard(client: Client, cardId: string) {
     const seat = this.seatBySessionId.get(client.sessionId);
-    if (seat === undefined) return;
+
+    if (seat === undefined) {
+      return;
+    }
 
     const result = this.gameMove.handlePlayCard(this.gameId, seat, cardId);
+
     if (!result.success) {
       client.send("ERROR", { message: result.message });
+
       return;
     }
 
@@ -98,28 +121,43 @@ export class GameRoom extends Room {
 
   private handleEndTurn(client: Client) {
     const seat = this.seatBySessionId.get(client.sessionId);
-    if (seat === undefined) return;
+
+    if (seat === undefined) {
+      return;
+    }
 
     const game = this.gameMove.getGame(this.gameId);
-    if (!game) return;
+
+    if (!game) {
+      return;
+    }
 
     if (game.getCurrentTurn() !== seat) {
       client.send("ERROR", { message: "Not your turn" });
+
       return;
     }
 
     game.nextTurn();
+
     this.broadcastPrivateStates();
   }
 
   private handleCheckWinner(client: Client) {
     const seat = this.seatBySessionId.get(client.sessionId);
-    if (seat === undefined) return;
+
+    if (seat === undefined) {
+      return;
+    }
 
     const game = this.gameMove.getGame(this.gameId);
-    if (!game) return;  
+
+    if (!game) {
+      return;
+    } 
 
     const winnerId = game.checkWinner();
+
     if (winnerId !== null) {
       this.broadcast("GAME_OVER", { winnerId });
     }
@@ -129,10 +167,16 @@ export class GameRoom extends Room {
 
   private sendPrivateState(client: Client) {
     const seat = this.seatBySessionId.get(client.sessionId);
-    if (seat === undefined) return;
+
+    if (seat === undefined) {
+      return;
+    }
 
     const stateResult = this.gameMove.getGameState(this.gameId, seat);
-    if (!stateResult.success) return;
+
+    if (!stateResult.success) {
+      return;
+    }
 
     client.send("PRIVATE_STATE", stateResult.gameState);
   }
