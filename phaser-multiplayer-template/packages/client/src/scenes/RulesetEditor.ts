@@ -226,7 +226,7 @@ export class RulesetEditor extends Scene {
       .add(navigation_right_button);
 
     // Create draw rules section
-    // TODO: Delete this later, it is a rudimentary example of rules editing to show that it works
+    // TODO: Delete/edit this later, it is a rudimentary example of rules editing to show that it works
     this.createDrawRulesUI(options_container, width, height);
 
     // --------------------------
@@ -391,6 +391,8 @@ export class RulesetEditor extends Scene {
     try {
       const apiPath = `/.proxy/api/rulesets/by-name/${encodeURIComponent(name)}`;  
       const response = await fetch(apiPath);
+      // If the response isn't ok, use the DefaultRulesetData because the ruleset doesn't exist yet
+      // TODO: Maybe change how this is implemented, it's pretty clumsy
       if (!response.ok) {
         console.error("Error fetching ruleset:", response.statusText);
         return JSON.parse(JSON.stringify(DefaultRulesetData));
