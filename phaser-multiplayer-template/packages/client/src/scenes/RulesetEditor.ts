@@ -1,4 +1,5 @@
-import { Ruleset } from "../rules/Ruleset"
+import { RulesetClass } from "../rules/RulesetClass"
+import { Option } from "../rules/Option"
 import { GameObjects, Scene } from "phaser";
 import { Label } from 'phaser3-rex-plugins/templates/ui/ui-components.js';
 
@@ -7,29 +8,26 @@ export class RulesetEditor extends Scene {
   constructor() {
     super("RulesetEditor");
     this.name = "";
+    this.description = "";
+    this.working_ruleset = new RulesetClass();
   }
 
   name: string;
+  description: string;
+  working_ruleset: RulesetClass;
 
   init(args) {
+    // TODO: remove (replace really) below line once we're passing in the actual ruleset
     this.name = args.name;
   }
 
-  preload() {
-    this.load.scenePlugin({
-      key: 'rexuiplugin',
-      url: 'https://raw.githubusercontent.com/rexrainbow/phaser3-rex-notes/master/dist/rexuiplugin.min.js',
-      sceneKey: 'rexUI'
-    });
-  }
-
-  rulesets_temp_delete_later: Ruleset[] = [];
-  rulesets: Map<string, Phaser.GameObjects.Container> = new Map();
+  // TODO: populate this guy
+  // maps each category to a list of options
+  options: Map<String, Option<any>[]> = new Map();
+  option_objects: Map<Option<any>, Phaser.GameObjects.Container> = new Map();
   page_number: number = 0;
 
   create() {
-    console.log("hi");
-
     //Static elems
     const width = Number(this.game.config.width);
     const height = Number(this.game.config.height);
@@ -77,7 +75,7 @@ export class RulesetEditor extends Scene {
     });
 
     backButton.on("pointerdown", () => {
-      this.rulesets_temp_delete_later = [];
+      // this.options = [];
       this.scene.start("Rules");
     });
 
@@ -155,9 +153,6 @@ export class RulesetEditor extends Scene {
       // TODO: disable buttons when upper/lower limit reached (# rules / 5 (int div) === 0 || pagenum === 0)
       // depends on if this is left or right
       this.handle_visibility();
-
-
-
     })
 
     const page_number_indicator = this.add.text(width * 0.48, height * 0.84, String(this.page_number), {
@@ -173,13 +168,11 @@ export class RulesetEditor extends Scene {
       .add(navigation_left_button)
       .add(navigation_right_button);
 
-
     // --------------------------
-    var buttons = this.create_buttons_container("testing", true, ["hi", "hello", "howdy"])
+    // var buttons = this.create_buttons_container("testing", true, ["hi", "hello", "howdy"])
+    this.populate_options(width, height, container_width);
 
   }
-
-  update() { }
 
 
   //Helper fns
@@ -191,14 +184,66 @@ export class RulesetEditor extends Scene {
     }
   }
 
+  // Populates display objects for each category and option
+  // TODO: this should handle making each option
+
+  populate_options(width: number, height: number, container_width: number) {
+    const startY = height * 0.27;
+    const spacing = height * 0.125;
+
+    for (const category of this.options.keys()) {
+      // TODO: ENSURE THAT THIS EFFECTIVELY STARTS A NEW PAGE BEFORE ADDING A NEW CATEGORY
+      this.add_category(category);
+      const cat_options = this.options.get(category);
+      // now add all options
+      if (cat_options !== undefined) {
+        for (const option of cat_options) {
+          this.add_option(option);
+        }
+      }
+    }
+  };
+
+  add_category(name: String) {
+    // TODO: implement
+  }
+
+  add_option(option: Option<any>) {
+    // this will call one of the other creation fns as applicable
+    // TODO: implement fully
+    switch (option.kind) {
+      case "NOMINAL":
+        this.create_dropdown();
+        break;
+      case "NUMERICAL":
+        this.create_number_input();
+        break;
+      case "CHECKBOX":
+        this.create_buttons_container("placeholder", false, ["check1", "check2"]);
+        break;
+      case "RADIO":
+        this.create_buttons_container("placeholder", true, ["rad1", "rad2"]);
+        break;
+      default:
+        console.log("what did you do??")
+    }
+  }
+
+  create_dropdown() {
+
+  }
+
+  create_number_input() {
+
+  }
+
   // Creates a row w/ buttons
+  // create_buttons_container(title: string, radio: boolean, options: string[]) {
   create_buttons_container(title: string, radio: boolean, options: string[]) {
 
     // making a row that has buttons in it
     // should probably have wrapping 
-
     var buttons_children: Label[] = [];
-
     // TODO: set up a callback variable?
     // like the callback changes depending on what kind of thing you have
 
@@ -253,33 +298,25 @@ export class RulesetEditor extends Scene {
     return button;
   }
 
-
-  // Populates the list of categories
-  populate_options(width: number, height: number, container_width: number) {
-    const startY = height * 0.27;
-    const spacing = height * 0.125;
-
-    // TODO: this should handle making each option
-  };
-
   // Hides and shows options while navigating
   handle_visibility() {
     let num_to_show: number;
-    if (this.rulesets.size >= this.page_number * 5) {
+    if (this.option_objects.size >= this.page_number * 5) {
       num_to_show = 5;
     } else {
-      num_to_show = this.rulesets.size % 5;
+      num_to_show = this.option_objects.size % 5;
     }
 
-    this.rulesets_temp_delete_later.forEach((ruleset) => {
-      this.rulesets.get(ruleset.name)!.setVisible(false);
-    })
+    //TODO: update this to work with this structure
+    // this.options.forEach((ruleset) => {
+    //   this.option_objects.get()!.setVisible(false);
+    // })
 
     let index = this.page_number * 5;
     while (index < (this.page_number) * 5 + num_to_show) {
-      console.log(index);
-      console.log(this.rulesets.get(this.rulesets_temp_delete_later.at(index)!.name));
-      this.rulesets.get(this.rulesets_temp_delete_later.at(index)!.name)!.setVisible(true);
+      // console.log(index);
+      // console.log(this.rulesets.get(this.rulesets_temp_delete_later.at(index)!.name));
+      // this.rulesets.get(this.rulesets_temp_delete_later.at(index)!.name)!.setVisible(true);
       index += 1;
     }
   }

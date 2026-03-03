@@ -23,6 +23,8 @@ import { RulesetEditor } from "./scenes/RulesetEditor";
     backgroundColor: "#000000",
     roundPixels: false,
     pixelArt: false,
+    // dom required for some user interaction
+    // please be very careful about changing this
     dom: {
       createContainer: true
     },
