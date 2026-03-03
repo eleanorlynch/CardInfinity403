@@ -285,6 +285,10 @@ export class Rules extends Scene {
 
     container.on("pointerdown", () => {
       this.rulesets_temp_delete_later = [];
+
+      // Should pass in the parsed JSON for this file
+      // Will likely be a RulesetTypes object, I believe?
+      // TODO: replace "name" with parsed ruleset
       this.scene.start("RulesetEditor", {name: ruleset.name});
     });
     container.setVisible(false);

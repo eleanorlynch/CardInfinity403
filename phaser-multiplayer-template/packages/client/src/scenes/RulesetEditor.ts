@@ -1,10 +1,6 @@
 import { Ruleset } from "../rules/Ruleset"
-
 import { GameObjects, Scene } from "phaser";
-import { Arc } from "phaser3-rex-plugins/plugins/gameobjects/shape/shapes/geoms";
 import { Label } from 'phaser3-rex-plugins/templates/ui/ui-components.js';
-
-
 
 export class RulesetEditor extends Scene {
 
@@ -32,6 +28,7 @@ export class RulesetEditor extends Scene {
   page_number: number = 0;
 
   create() {
+    console.log("hi");
 
     //Static elems
     const width = Number(this.game.config.width);
@@ -43,7 +40,7 @@ export class RulesetEditor extends Scene {
     let scale = Math.max(scaleX, scaleY);
     bg.setScale(scale).setScrollFactor(0);
 
-    const title_text = this.add
+    var title_text = this.add
       .text(Number(this.game.config.width) * 0.5, Number(this.game.config.height) * 0.15, this.name, {
         fontFamily: "Arial Black",
         fontSize: "4.5rem",
@@ -55,18 +52,10 @@ export class RulesetEditor extends Scene {
       .setOrigin(0.5)
       .setInteractive({ useHandCursor: true });
 
-    title_text.on('pointerdown', () => {
-      this.rexUI.edit(title_text)
+    title_text.on("pointerdown", () => {
+      this.rexUI.edit(title_text);
     })
 
-    // const title_input = this.rexUI.add.inputText({
-    //   type: "text",
-    //   // text: this.name,
-    //   x: Number(this.game.config.width) * 0.5,
-    //   y: Number(this.game.config.height) * 0.15,
-    //   width: 100,
-    //   height: 100
-    // })
 
     const backButton = this.add
       .text(width * 0.05, height * 0.1, "← Back", {
@@ -189,6 +178,9 @@ export class RulesetEditor extends Scene {
     var buttons = this.create_buttons_container("testing", true, ["hi", "hello", "howdy"])
 
   }
+
+  update() { }
+
 
   //Helper fns
 

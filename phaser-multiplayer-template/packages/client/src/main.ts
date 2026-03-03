@@ -23,13 +23,25 @@ import { RulesetEditor } from "./scenes/RulesetEditor";
     backgroundColor: "#000000",
     roundPixels: false,
     pixelArt: false,
-    plugins: {
-      scene: [{
-        key: 'rexUI',
-        plugin: RexUIPlugin,
-        mapping: 'rexUI'
+    dom: {
+      createContainer: true
+    },
+    input: {
+      mouse: {
+        target: "gameParent"
       },
-      ]
+      touch: {
+        target: "gameParent"
+      },
+    },
+    plugins: {
+      scene: [
+        {
+          key: 'rexUI',
+          plugin: RexUIPlugin,
+          mapping: 'rexUI'
+        }
+      ],
     },
     scene: [Boot, Preloader, MainMenu, Game, Background, Rules, RulesetEditor],
   });
