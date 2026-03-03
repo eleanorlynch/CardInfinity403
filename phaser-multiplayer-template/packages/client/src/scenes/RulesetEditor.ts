@@ -170,8 +170,9 @@ export class RulesetEditor extends Scene {
 
     // --------------------------
     // var buttons = this.create_buttons_container("testing", true, ["hi", "hello", "howdy"])
-    this.populate_options(width, height, container_width);
-
+    // 
+    this.populate_options();
+    this.populate_option_objects(width, height, container_width);
   }
 
 
@@ -187,7 +188,7 @@ export class RulesetEditor extends Scene {
   // Populates display objects for each category and option
   // TODO: this should handle making each option
 
-  populate_options(width: number, height: number, container_width: number) {
+  populate_option_objects(width: number, height: number, container_width: number) {
     const startY = height * 0.27;
     const spacing = height * 0.125;
 
@@ -307,7 +308,8 @@ export class RulesetEditor extends Scene {
       num_to_show = this.option_objects.size % 5;
     }
 
-    //TODO: update this to work with this structure
+    //TODO: update this to work with our structure instead of the previous one
+    // IE: this is the code copied over from Rules.ts, we want it to work here
     // this.options.forEach((ruleset) => {
     //   this.option_objects.get()!.setVisible(false);
     // })
@@ -319,5 +321,18 @@ export class RulesetEditor extends Scene {
       // this.rulesets.get(this.rulesets_temp_delete_later.at(index)!.name)!.setVisible(true);
       index += 1;
     }
+  }
+
+  save_ruleset() {
+    //TODO: implement
+    //this is for the save button
+    //ruleset should not save or modify DB file until this is done
+  }
+
+  populate_options() {
+    //TODO: god help you
+    //TODO: implement
+    // this is going to have to be done MANUALLY, option by option.
+    
   }
 }
