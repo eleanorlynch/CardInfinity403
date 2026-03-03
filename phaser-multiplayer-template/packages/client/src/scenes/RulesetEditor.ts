@@ -1,4 +1,5 @@
 import { Ruleset } from "../rules/Ruleset"
+import DefaultRulesetData from "../utils/DefaultRuleset.json"
 
 import { GameObjects, Scene } from "phaser";
 import { Arc } from "phaser3-rex-plugins/plugins/gameobjects/shape/shapes/geoms";
@@ -15,7 +16,12 @@ export class RulesetEditor extends Scene {
 
   name: string;
 
-  init(args) {
+  // Track user changes to rules
+  private ruleChanges: Map<string, any> = new Map();
+  private baseRuleset: any = null;
+
+
+  init(args: any) {
     this.name = args.name;
   }
 
@@ -31,7 +37,19 @@ export class RulesetEditor extends Scene {
   rulesets: Map<string, Phaser.GameObjects.Container> = new Map();
   page_number: number = 0;
 
-  create() {
+  async create() {
+    // Load the base ruleset to use for defaults
+    if (this.name !== undefined && this.name !== null) {
+      this.baseRuleset = await this.fetchRulesetData(this.name);
+      // Show an alert with the current ruleset loaded from the database.
+      try {
+        alert("Loaded ruleset from database:\n\n" + JSON.stringify(this.baseRuleset, null, 2));
+      } catch (e) {
+        console.log("Ruleset loaded (alert suppressed):", this.baseRuleset);
+      }
+    } else {
+      this.baseRuleset = JSON.parse(JSON.stringify(DefaultRulesetData));
+    }
 
     //Static elems
     const width = Number(this.game.config.width);
@@ -90,6 +108,29 @@ export class RulesetEditor extends Scene {
     backButton.on("pointerdown", () => {
       this.rulesets_temp_delete_later = [];
       this.scene.start("Rules");
+    });
+
+    const saveButton = this.add
+      .text(width * 0.95, height * 0.1, "Save →", {
+        fontFamily: "Arial",
+        fontSize: "20px",
+        color: "#E9DFD9",
+        backgroundColor: "#101814",
+        padding: { x: 12, y: 6 }
+      })
+      .setOrigin(1, 0.5)
+      .setInteractive({ useHandCursor: true });
+
+    saveButton.on("pointerover", () => {
+      saveButton.setStyle({ backgroundColor: "#228B22" });
+    });
+
+    saveButton.on("pointerout", () => {
+      saveButton.setStyle({ backgroundColor: "#101814" });
+    });
+
+    saveButton.on("pointerdown", () => {
+      this.handleSaveRuleset();
     });
 
     const options_container = this.add.container();
@@ -184,6 +225,9 @@ export class RulesetEditor extends Scene {
       .add(navigation_left_button)
       .add(navigation_right_button);
 
+    // Create draw rules section
+    // TODO: Delete this later, it is a rudimentary example of rules editing to show that it works
+    this.createDrawRulesUI(options_container, width, height);
 
     // --------------------------
     var buttons = this.create_buttons_container("testing", true, ["hi", "hello", "howdy"])
@@ -200,7 +244,7 @@ export class RulesetEditor extends Scene {
   }
 
   // Creates a row w/ buttons
-  create_buttons_container(title: string, radio: boolean, options: string[]) {
+  create_buttons_container(title: string, radio: boolean, options: string[], onSelect?: (selectedOption: string) => void) {
 
     // making a row that has buttons in it
     // should probably have wrapping 
@@ -227,6 +271,9 @@ export class RulesetEditor extends Scene {
       type: ((radio) ? 'radio' : 'checkboxes'),
       setValueCallback: function (button, value) {
         ((button as Label).getElement("icon") as GameObjects.Arc)!.setFillStyle((value) ? 0xffffff : undefined);
+        if (value && onSelect) {
+          onSelect((button as any).name);
+        }
       }
     })
       .layout();
@@ -270,6 +317,47 @@ export class RulesetEditor extends Scene {
     // TODO: this should handle making each option
   };
 
+  // Creates the draw rules UI with radio buttons for whenToDraw
+  // TODO: Delete/edit this later, it is only here to show/test that saving rules edits works
+  createDrawRulesUI(container: Phaser.GameObjects.Container, width: number, height: number) {
+    const startX = width * 0.15;
+    const startY = height * 0.25;
+    const labelFontSize = "16px";
+
+    // Label for draw rules section
+    const drawRulesLabel = this.add.text(startX, startY, "When to Draw:", {
+      fontFamily: "Arial",
+      fontSize: labelFontSize,
+      color: "#000000",
+      align: "left"
+    });
+
+    container.add(drawRulesLabel);
+
+    // Options for when to draw
+    const drawOptions = [
+      "startOfTurn",
+      "endOfTurn",
+      "afterPlay",
+      "afterDiscard",
+      "any"
+    ];
+
+    // Create radio buttons for draw timing
+    const drawButtons = this.create_buttons_container(
+      "When to Draw",
+      true,
+      drawOptions,
+      (selectedOption: string) => {
+        this.trackChange('drawRules.whenToDraw', selectedOption);
+      }
+    );
+
+    // Position the buttons
+    drawButtons.setPosition(startX, startY + 40);
+    container.add(drawButtons);
+  };
+
   // Hides and shows options while navigating
   handle_visibility() {
     let num_to_show: number;
@@ -289,6 +377,120 @@ export class RulesetEditor extends Scene {
       console.log(this.rulesets.get(this.rulesets_temp_delete_later.at(index)!.name));
       this.rulesets.get(this.rulesets_temp_delete_later.at(index)!.name)!.setVisible(true);
       index += 1;
+    }
+  }
+
+  // Track a change made by the user to a rule option
+  trackChange(key: string, value: any) {
+    this.ruleChanges.set(key, value);
+    console.log(`Tracked change (in-memory): ${key} = ${JSON.stringify(value)}`);
+  }
+
+  // Fetch ruleset data from the server
+  private async fetchRulesetData(name: string): Promise<any> {
+    try {
+      const apiPath = `/.proxy/api/rulesets/by-name/${encodeURIComponent(name)}`;  
+      const response = await fetch(apiPath);
+      if (!response.ok) {
+        console.error("Error fetching ruleset:", response.statusText);
+        return JSON.parse(JSON.stringify(DefaultRulesetData));
+      }
+      const data = await response.json();
+      return data.data || data;
+    } catch (error) {
+      console.error("Error fetching ruleset by name:", error);
+      alert("Error fetching ruleset: " + (error instanceof Error ? error.message : String(error)));
+      return null;
+  }
+  }
+
+  // Merge user changes with default ruleset values
+  private getMergedRuleset(): any {
+    // Deep clone the base ruleset (either fetched existing ruleset or default)
+    const merged: any = JSON.parse(JSON.stringify(this.baseRuleset));
+
+    // Apply user changes
+    Array.from(this.ruleChanges.entries()).forEach(([key, value]) => {
+      const keys = key.split('.');
+      let current: any = merged;
+      
+      // Navigate to the nested property
+      for (let i = 0; i < keys.length - 1; i++) {
+        const keyName = keys[i]!;
+        if (!(keyName in current)) {
+          current[keyName] = {};
+        }
+        current = current[keyName];
+      }
+      
+      // Set the final value
+      const lastKey = keys[keys.length - 1]!;
+      current[lastKey] = value;
+    });
+
+    // Update the name from the title
+    merged.name = this.name;
+
+    return merged;
+  }
+
+  // Handle saving the ruleset
+  private async handleSaveRuleset() {
+    try {
+      const mergedRuleset = this.getMergedRuleset();
+
+      // Check if ruleset exists by name
+      let exists = false;
+
+      if (this.name) {
+        const checkRes = await fetch(`/.proxy/api/rulesets/by-name/${encodeURIComponent(this.name)}`);
+        exists = checkRes.ok;
+      }
+
+      let apiPath: string;
+      let method: string;
+
+      if (exists) {
+        apiPath = `/.proxy/api/rulesets/by-name/${encodeURIComponent(this.name)}`;
+        method = "PUT";
+      } else {
+        apiPath = "/.proxy/api/rulesets";
+        method = "POST";
+      }
+
+      const response = await fetch(apiPath, {
+        method: method,
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(mergedRuleset),
+      });
+
+      if (!response.ok) {
+        let errorText = await response.text();
+        let error;
+
+        try {
+          error = JSON.parse(errorText);
+        } catch {
+          error = { error: errorText || "Unknown error" };
+        }
+        console.error("Error saving ruleset:", error);
+        alert("Error saving ruleset: " + (error.error || "Unknown error"));
+        return;
+      }
+
+      const savedRuleset = await response.json();
+      console.log("Ruleset saved successfully:", savedRuleset);
+      // TODO: Remove this later, it is only here to confirm that saving works and show the result
+      alert("Ruleset saved successfully!\n\n" + JSON.stringify(savedRuleset.data, null, 2));
+      
+      // Clear in-memory changes after successful save
+      this.ruleChanges.clear();
+      console.log("Cleared in-memory rule changes after successful save");
+    } catch (error) {
+      console.error("Error saving ruleset:", error);
+      alert("Error saving ruleset: " + (error instanceof Error ? error.message : String(error)));
     }
   }
 }
