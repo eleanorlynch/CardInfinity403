@@ -2,7 +2,7 @@ import fs from "fs";
 import path from "path";
 import type { Ruleset } from "./RulesetTypes";
 
-const RULESET_JSON_PATH = path.join(__dirname, "Ruleset.json");
+const RULESET_JSON_PATH = path.join(__dirname, "..", "..", "src", "card-game", "Ruleset.json");
 
 /**
  * Load the default ruleset from the template Ruleset.json file.
