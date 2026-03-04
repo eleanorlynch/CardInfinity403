@@ -1,5 +1,5 @@
 import { Scene } from "phaser";
-import {Client as ColyseusClient, Room} from "colyseus.js"
+import { Client as ColyseusClient, Room } from "colyseus.js"
 
 interface Card {
   suit: string;
@@ -164,7 +164,7 @@ export class Game extends Scene {
         this.endTurnButton.setStyle({ backgroundColor: "#EBC9B3" });
       }
     });
-    
+
     this.endTurnButton.on("pointerdown", () => {
       if (!this.room) return;
       if (this.netState?.gameOver) return;
@@ -175,7 +175,7 @@ export class Game extends Scene {
     // Initialize game
     this.connectToRoom().catch((err) => {
       console.error(err);
-      if(this.statusText) this.statusText.setText("Failed to connect");
+      if (this.statusText) this.statusText.setText("Failed to connect");
     });
   }
 
@@ -183,21 +183,21 @@ export class Game extends Scene {
     // Clean up existing sprites
     this.cardSprites.forEach(sprite => sprite.destroy());
     this.cardSprites.clear();
-    
+
     if (this.discardPileSprite) {
       this.discardPileSprite.destroy();
       this.discardPileSprite = null;
     }
-    
+
     if (this.deckSprite) {
       this.deckSprite.destroy();
       this.deckSprite = null;
     }
-    
+
     // Reset text references (they will be recreated in create())
     this.statusText = null;
     this.drawButton = null;
-    
+
     // Reset game move manager
     // TODO: Make sure this replacement works
     if (!this.room) {
@@ -231,20 +231,20 @@ export class Game extends Scene {
     this.room.onMessage("GAME", (state) => {
       game = state;
     })
-    
+
     // Get the actual game object for winner checking
-   
+
     if (!game) return;
 
     // Get game state
-   var stateResult: any = null;
-   console.log("Sending GET_GAME_STATE to server");
-   const playerId = this.playerId;
-   this.room.send("GET_GAME_STATE", { gameId, playerId });
-   this.room.onMessage("GAME_STATE", (state) => {
-    stateResult = state;
-   })
-    
+    var stateResult: any = null;
+    console.log("Sending GET_GAME_STATE to server");
+    const playerId = this.playerId;
+    this.room.send("GET_GAME_STATE", { gameId, playerId });
+    this.room.onMessage("GAME_STATE", (state) => {
+      stateResult = state;
+    })
+
     if (!stateResult.success || !stateResult.gameState) {
       return;
     }
@@ -316,7 +316,7 @@ export class Game extends Scene {
     }
 
     const container = this.add.container(x, y);
-    
+
     // Draw card back
     const cardBack = this.add.graphics();
     cardBack.fillStyle(0x1a4d8c);
@@ -388,7 +388,7 @@ export class Game extends Scene {
 
     if (interactive && !this.isGameOver()) {
       container.setInteractive(new Phaser.Geom.Rectangle(-30, -45, 60, 90), Phaser.Geom.Rectangle.Contains);
-      
+
       container.on("pointerover", () => {
         container.setY(y - 10);
         container.setScale(scale * 1.1);
@@ -446,42 +446,31 @@ export class Game extends Scene {
 
   private async connectToRoom() {
     const channelId = "dev-channel-1";
-    // Match the template endpoint strategy:
-    // - local browser connects directly to the Colyseus server on :3001
-    // - Discord/tunnel connects through the proxied /colyseus path
-    const url =
-      location.host === "localhost:3000"
-        ? "ws://localhost:3001"
-        : `wss://${location.host}/.proxy/api/colyseus`;
 
-    this.netClient = new ColyseusClient(url);
+    // ===== LOCAL DEV (comment this out when using tunnel) =====
+    const wsEndpoint = "ws://localhost:3001";
+
+    // ===== TUNNEL / DISCORD (comment this out when using local) =====
+    // Browser Colyseus must use ws:// or wss:// (not http://)
+    // const wsEndpoint = window.location.origin.replace(/^http/, "ws");
+
+    this.netClient = new ColyseusClient(wsEndpoint);
+
     this.room = await this.netClient.joinOrCreate("game", { channelId });
 
-      this.room = await this.netClient.joinOrCreate("game", { channelId });
+    this.room.onMessage("PRIVATE_STATE", (state) => {
+      this.netState = state;
+      this.updateDisplayFromNet();
+    });
 
-      this.room.onMessage("PRIVATE_STATE", (state) => {
-        this.netState = state;
-        this.updateDisplayFromNet();
-      });
+    this.room.onMessage("ERROR", (msg: any) => {
+      if (this.statusText) this.statusText.setText(msg?.message ?? "Error");
+    });
 
-      this.room.onMessage("ERROR", (msg: any) => {
-        if (this.statusText) this.statusText.setText(msg?.message ?? "Error");
-      });
+    if (this.statusText) this.statusText.setText("Connected...");
+  }
 
-      this.room.onLeave(() => {
-        console.warn("Room connection closed");
-        if (this.statusText) this.statusText.setText("Disconnected. Refresh to reconnect.");
-      });
-
-      if (this.statusText) this.statusText.setText("Connected...");
-    } catch (error) {
-      console.error("Failed to connect to room:", error);
-      const errorMsg = error instanceof Error ? error.message : String(error);
-      if (this.statusText) this.statusText.setText(`Connection failed: ${errorMsg}`);
-      throw error;
-    }
-
-    private updateDisplayFromNet() {
+  private updateDisplayFromNet() {
     if (!this.netState) return;
 
     const width = Number(this.game.config.width);

@@ -22,18 +22,6 @@ const server = new Server({
   }),
 });
 
-// Middleware for CORS and WebSocket headers
-app.use((req, res, next) => {
-  res.header("Access-Control-Allow-Origin", "*");
-  res.header("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS");
-  res.header("Access-Control-Allow-Headers", "Content-Type, Authorization");
-  if (req.method === "OPTIONS") {
-    res.sendStatus(200);
-  } else {
-    next();
-  }
-});
-
 // Game Rooms
 server
   .define("game", GameRoom)
@@ -48,31 +36,39 @@ app.use(router);
 router.get("/rulesets", (req: Request, res: Response) => {
   const name = req.query.name as string | undefined;
   const list = rulesetDb.listRulesets(name);
+
   res.json(list);
 });
 
 router.get("/rulesets/:id", (req: Request, res: Response) => {
   const id = Number(req.params.id);
+
   if (Number.isNaN(id)) {
     res.status(400).json({ error: "Invalid ruleset id" });
     return;
   }
+
   const row = rulesetDb.getRulesetById(id);
-  if (!row) {
+
+  if (row === undefined) {
     res.status(404).json({ error: "Ruleset not found" });
     return;
   }
+
   res.json(row);
 });
 
 router.post("/rulesets", (req: Request, res: Response) => {
   const data = req.body;
-  if (!data || typeof data !== "object") {
+
+  if (data === undefined || data === null || typeof data !== "object") {
     res.status(400).json({ error: "Invalid ruleset body" });
     return;
   }
+
   try {
     const row = rulesetDb.insertRuleset(data as Ruleset);
+
     res.status(201).json(row);
   } catch (e) {
     res.status(400).json({ error: (e as Error).message });
@@ -81,25 +77,32 @@ router.post("/rulesets", (req: Request, res: Response) => {
 
 router.put("/rulesets/:id", (req: Request, res: Response) => {
   const id = Number(req.params.id);
+
   if (Number.isNaN(id)) {
     res.status(400).json({ error: "Invalid ruleset id" });
     return;
   }
+
   const data = req.body;
-  if (!data || typeof data !== "object") {
+
+  if (data === undefined || data === null || typeof data !== "object") {
     res.status(400).json({ error: "Invalid ruleset body" });
     return;
   }
+
   const row = rulesetDb.updateRuleset(id, data as Ruleset);
-  if (!row) {
+
+  if (row === undefined) {
     res.status(404).json({ error: "Ruleset not found" });
     return;
   }
+
   res.json(row);
 });
 
 if (process.env.NODE_ENV === "production") {
   const clientBuildPath = path.join(__dirname, "../../client/dist");
+
   app.use(express.static(clientBuildPath));
 }
 
@@ -145,11 +148,4 @@ app.use(process.env.NODE_ENV === "production" ? "/.proxy/api" : "/", router);
 
 server.listen(port).then(() => {
   console.log(`App is listening on port ${port} !`);
-});
-
-process.on("SIGINT", () => {
-  console.log("Shutting down...");
-  server.gracefullyShutdown(true).then(() => {
-    process.exit(0);
-  });
 });
