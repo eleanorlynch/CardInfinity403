@@ -480,7 +480,6 @@ export class Game extends Scene {
       if (this.statusText) this.statusText.setText(`Connection failed: ${errorMsg}`);
       throw error;
     }
-  }
 
     private updateDisplayFromNet() {
     if (!this.netState) return;
