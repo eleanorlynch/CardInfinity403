@@ -11,10 +11,10 @@ export class GameMove {
     }
     
     // Create a new game. rulesetId: optional saved ruleset id; if omitted, uses default Ruleset.json template.
-    createGame(gameId: number, players: any[], rulesetId?: number) {
+    async createGame(gameId: number, players: any[], rulesetId?: number): Promise<GameStatus> {
         let ruleset: Ruleset;
         if (rulesetId != null) {
-            const row = rulesetDb.getRulesetById(rulesetId);
+            const row = await rulesetDb.getRulesetById(rulesetId);
             if (!row) throw new Error(`Ruleset ${rulesetId} not found`);
             ruleset = row.data;
         } else {
@@ -30,10 +30,15 @@ export class GameMove {
         this.activeGames.set(gameId, game);
         return game;
     }
-    
+
     // Get a game by ID
     getGame(gameId: number) {
         return this.activeGames.get(gameId);
+    }
+
+    /** Restore a game from a saved session (e.g. from current_session table). */
+    setGame(gameId: number, game: GameStatus): void {
+        this.activeGames.set(gameId, game);
     }
 
     // TODO: Make sure to test this function especially
