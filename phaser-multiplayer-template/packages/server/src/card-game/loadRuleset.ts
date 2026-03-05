@@ -2,22 +2,13 @@ import fs from "fs";
 import path from "path";
 import type { Ruleset } from "./RulesetTypes";
 
+const RULESET_JSON_PATH = path.join(__dirname, "..", "..", "src", "card-game", "Ruleset.json");
+
 /**
  * Load the default ruleset from the template Ruleset.json file.
  * Used when creating a game without a specific saved ruleset id.
  */
 export function loadDefaultRuleset(): Ruleset {
-  // Compute path at runtime to handle different deployment environments
-  const RULESET_JSON_PATH = path.join(__dirname, "Ruleset.json");
-  
-  if (!fs.existsSync(RULESET_JSON_PATH)) {
-    throw new Error(
-      `Ruleset.json not found at ${RULESET_JSON_PATH}. ` +
-      `Make sure the file is copied to the dist directory during build. ` +
-      `Current __dirname: ${__dirname}`
-    );
-  }
-  
   const raw = fs.readFileSync(RULESET_JSON_PATH, "utf-8");
   const data = JSON.parse(raw) as unknown;
   return parseRuleset(data);

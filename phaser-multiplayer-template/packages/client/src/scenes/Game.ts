@@ -446,16 +446,15 @@ export class Game extends Scene {
 
   private async connectToRoom() {
     const channelId = "dev-channel-1";
-    // Match the template endpoint strategy:
-    // - local browser connects directly to the Colyseus server on :3001
-    // - Discord/tunnel connects through the proxied /colyseus path
-    const url =
-      location.host === "localhost:3000"
-        ? "ws://localhost:3001"
-        : `wss://${location.host}/.proxy/api/colyseus`;
 
-    this.netClient = new ColyseusClient(url);
-    this.room = await this.netClient.joinOrCreate("game", { channelId });
+    // ===== LOCAL DEV (comment this out when using tunnel) =====
+    const wsEndpoint = "ws://localhost:3001";
+
+    // ===== TUNNEL / DISCORD (comment this out when using local) =====
+    // Browser Colyseus must use ws:// or wss:// (not http://)
+    // const wsEndpoint = window.location.origin.replace(/^http/, "ws");
+
+    this.netClient = new ColyseusClient(wsEndpoint);
 
     this.room = await this.netClient.joinOrCreate("game", { channelId });
 
@@ -468,19 +467,8 @@ export class Game extends Scene {
       if (this.statusText) this.statusText.setText(msg?.message ?? "Error");
     });
 
-    this.room.onLeave(() => {
-      console.warn("Room connection closed");
-      if (this.statusText) this.statusText.setText("Disconnected. Refresh to reconnect.");
-    });
-
     if (this.statusText) this.statusText.setText("Connected...");
-  } catch(error) {
-    console.error("Failed to connect to room:", error);
-    const errorMsg = error instanceof Error ? error.message : String(error);
-    if (this.statusText) this.statusText.setText(`Connection failed: ${errorMsg}`);
-    throw error;
   }
-
 
   private updateDisplayFromNet() {
     if (!this.netState) return;
