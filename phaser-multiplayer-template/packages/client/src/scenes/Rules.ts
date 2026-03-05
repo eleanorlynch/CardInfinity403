@@ -285,7 +285,7 @@ export class Rules extends Scene {
 
     container.on("pointerdown", () => {
       this.rulesets_temp_delete_later = [];
-      this.scene.start("RulesetEditor", {name: ruleset.name});
+      this.scene.start("RulesetEditor", { name: ruleset.name });
     });
     container.setVisible(false);
 
