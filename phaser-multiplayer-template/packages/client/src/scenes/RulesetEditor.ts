@@ -16,7 +16,7 @@ export class RulesetEditor extends Scene {
   description: string;
   working_ruleset: RulesetClass;
 
-  init(args) {
+  init(args: any) {
     // TODO: remove (replace really) below line once we're passing in the actual ruleset
     this.name = args.name;
   }
@@ -333,6 +333,11 @@ export class RulesetEditor extends Scene {
     //TODO: god help you
     //TODO: implement
     // this is going to have to be done MANUALLY, option by option.
-    
+    const example_nominal_option = new Option<string>("NOMINAL", "example nominal option");
+    const example_numerical_option = new Option<number>("NUMERICAL", 15);
+    const example_checkbox_option = new Option<boolean>("CHECKBOX", true);
+    const example_radio_option = new Option<boolean>("RADIO", true);
+
+    this.options.set("Max Players", [new Option<number>("NUMERICAL", 4)]);
   }
 }
