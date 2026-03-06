@@ -7,11 +7,14 @@ export class MainMenu extends Scene {
   }
 
   create() {
-    let authInProgress = false;
     const bg = this.add.image(this.cameras.main.width / 2, this.cameras.main.height / 2, "background");
+
+    let authInProgress = false;
+
     let scaleX = this.cameras.main.width / bg.width + 0.2;
     let scaleY = this.cameras.main.height / bg.height + 0.2;
     let scale = Math.max(scaleX, scaleY);
+
     bg.setScale(scale).setScrollFactor(0);
 
     this.add.image(Number(this.game.config.width) * 0.5, Number(this.game.config.height) * 0.2, "infinity of spades").setScale(0.4);
@@ -105,10 +108,13 @@ export class MainMenu extends Scene {
       if (authInProgress) {
         return;
       }
+
       authInProgress = true;
       console.log("Start game clicked");
+
       // Show immediate feedback so Discord auth does not look frozen.
       authErrorText.setText("Authorizing with Discord...");
+      
       try {
         await authorizeDiscordUser();
         this.scene.start("Game");
