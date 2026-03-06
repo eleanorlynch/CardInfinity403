@@ -26,8 +26,16 @@ export class Game extends Scene {
     super("Game");
   }
 
-  create() {
+  async create() {
     // Reset all game state when entering the scene
+    // Initialize game
+    await this.connectToRoom().catch((err) => {
+      console.error(err);
+      if (this.statusText) this.statusText.setText("Failed to connect");
+    });
+
+    // console.log("Connected to room " + this.room?.name)
+
     this.resetGameState();
 
     const width = Number(this.game.config.width);
@@ -172,11 +180,7 @@ export class Game extends Scene {
     });
 
 
-    // Initialize game
-    this.connectToRoom().catch((err) => {
-      console.error(err);
-      if (this.statusText) this.statusText.setText("Failed to connect");
-    });
+
   }
 
   resetGameState() {
@@ -201,7 +205,7 @@ export class Game extends Scene {
     // Reset game move manager
     // TODO: Make sure this replacement works
     if (!this.room) {
-      console.warn("No room connection");
+      console.warn("No room connection, cannot reset ");
       return;
     }
 
@@ -216,7 +220,7 @@ export class Game extends Scene {
 
   updateDisplay() {
     if (!this.room) {
-      console.warn("No room connection");
+      console.warn("No room connection, cannot update");
       return;
     }
 
@@ -414,7 +418,7 @@ export class Game extends Scene {
   // multiplayer handle draw using room
   handleDrawCard() {
     if (!this.room) {
-      console.warn("No room connection");
+      console.warn("No room connection, cannot draw");
       return;
     }
 
@@ -428,7 +432,7 @@ export class Game extends Scene {
 
   handlePlayCard(cardId: string) {
     if (!this.room) {
-      console.warn("No room connection");
+      console.warn("No room connection, cannot play card");
       return;
     }
 

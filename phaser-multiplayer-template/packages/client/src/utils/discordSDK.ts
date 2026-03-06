@@ -8,13 +8,8 @@ const isEmbedded = queryParams.get("frame_id") != null;
 let discordSdk: DiscordSDK | DiscordSDKMock;
 
 const initiateDiscordSDK = async () => {
-  const clientId = import.meta.env.VITE_CLIENT_ID;
-  if (!clientId) {
-    throw new Error("Missing VITE_CLIENT_ID. Add it to phaser-multiplayer-template/.env");
-  }
-
   if (isEmbedded) {
-    discordSdk = new DiscordSDK(clientId);
+    discordSdk = new DiscordSDK(import.meta.env.VITE_CLIENT_ID);
     await discordSdk.ready();
   } else {
     // We're using session storage for user_id, guild_id, and channel_id
@@ -26,9 +21,8 @@ const initiateDiscordSDK = async () => {
     const mockUserId = getOverrideOrRandomSessionValue("user_id");
     const mockGuildId = getOverrideOrRandomSessionValue("guild_id");
     const mockChannelId = getOverrideOrRandomSessionValue("channel_id");
-    const mockLocationId = getOverrideOrRandomSessionValue("location_id");
 
-    discordSdk = new DiscordSDKMock(clientId, mockGuildId, mockChannelId, mockLocationId);
+    discordSdk = new DiscordSDKMock(import.meta.env.VITE_CLIENT_ID, mockGuildId, mockChannelId);
     const discriminator = String(mockUserId.charCodeAt(0) % 5);
 
     discordSdk._updateCommandMocks({
@@ -61,9 +55,6 @@ const authorizeDiscordUser = async () => {
   if (!isEmbedded) {
     return;
   }
-  if (!discordSdk) {
-    throw new Error("Discord SDK is not initialized.");
-  }
 
   const { code } = await discordSdk.commands.authorize({
     client_id: import.meta.env.VITE_CLIENT_ID,
@@ -73,11 +64,8 @@ const authorizeDiscordUser = async () => {
     scope: ["identify", "applications.commands"],
   });
 
-  // Match the original template path and log it so we can confirm the live bundle in Discord.
-  const tokenPath = "/.proxy/api/token";
-  console.log("Discord auth requesting token from:", tokenPath);
-
-  const response = await fetch(tokenPath, {
+  // Retrieve an access_token from your application's server
+  const response = await fetch("/.proxy/api/token", {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
@@ -86,12 +74,7 @@ const authorizeDiscordUser = async () => {
       code,
     }),
   });
-
-  if (!response.ok) {
-    throw new Error(`Token endpoint ${tokenPath} returned ${response.status}`);
-  }
-
-  const { access_token } = (await response.json()) as { access_token: string };
+  const { access_token } = await response.json();
 
   // Authenticate with Discord client (using the access_token)
   auth = await discordSdk.commands.authenticate({
@@ -111,7 +94,6 @@ enum SessionStorageQueryParam {
   user_id = "user_id",
   guild_id = "guild_id",
   channel_id = "channel_id",
-  location_id = "location_id",
 }
 
 function getOverrideOrRandomSessionValue(queryParam: `${SessionStorageQueryParam}`) {
