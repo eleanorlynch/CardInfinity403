@@ -36,7 +36,7 @@ export class Game extends Scene {
 
     // console.log("Connected to room " + this.room?.name)
 
-    this.resetGameState();
+    // this.resetGameState();
 
     const width = Number(this.game.config.width);
     const height = Number(this.game.config.height);
@@ -449,18 +449,12 @@ export class Game extends Scene {
   }
 
   private async connectToRoom() {
-    const channelId = "dev-channel-1";
+    const url =
+      location.host === "localhost:3000" ? `ws://localhost:3001` : `wss://${location.host}/.proxy/api/colyseus`;
 
-    // ===== LOCAL DEV (comment this out when using tunnel) =====
-    const wsEndpoint = "ws://localhost:3001";
+    this.netClient = new ColyseusClient(`${url}`);
 
-    // ===== TUNNEL / DISCORD (comment this out when using local) =====
-    // Browser Colyseus must use ws:// or wss:// (not http://)
-    // const wsEndpoint = window.location.origin.replace(/^http/, "ws");
-
-    this.netClient = new ColyseusClient(wsEndpoint);
-
-    this.room = await this.netClient.joinOrCreate("game", { channelId });
+    this.room = await this.netClient.joinOrCreate("game");
 
     this.room.onMessage("PRIVATE_STATE", (state) => {
       this.netState = state;
