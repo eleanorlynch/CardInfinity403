@@ -460,18 +460,49 @@ export class Game extends Scene {
   }
 
   private async connectToRoom() {
-    const channelId = "dev-channel-1";
+    const data = this.scene.settings.data as any;
+    const isHost: boolean = data?.isHost ?? true;
+    const roomId: string | undefined = data?.roomId;
 
-    // ===== LOCAL DEV (comment this out when using tunnel) =====
-    const wsEndpoint = "ws://localhost:3001";
-
-    // ===== TUNNEL / DISCORD (comment this out when using local) =====
-    // Browser Colyseus must use ws:// or wss:// (not http://)
-    // const wsEndpoint = window.location.origin.replace(/^http/, "ws");
+    // Use localhost in dev, tunnel/production URL otherwise
+    const wsEndpoint = import.meta.env.DEV
+      ? "ws://localhost:3001"
+      : window.location.origin.replace(/^http/, "ws");
 
     this.netClient = new ColyseusClient(wsEndpoint);
 
-    this.room = await this.netClient.joinOrCreate("game", { channelId });
+    try {
+      if (isHost) {
+        this.room = await this.netClient.create("game");
+        // Display the room code so the host can share it
+        const width = Number(this.game.config.width);
+        this.add.text(width * 0.5, Number(this.game.config.height) * 0.08, `Room Code: ${this.room.roomId}`, {
+          fontFamily: "Arial",
+          fontSize: "18px",
+          color: "#EBC9B3",
+          backgroundColor: "#101814",
+          padding: { x: 10, y: 5 }
+        }).setOrigin(0.5);
+      } else {
+        if (!roomId) {
+          if (this.statusText) this.statusText.setText("No room code provided.");
+          return;
+        }
+        this.room = await this.netClient.joinById(roomId);
+      }
+    } catch (err: any) {
+      if (this.statusText) {
+        const msg = err?.message ?? "";
+        if (msg.includes("not found") || err?.code === 4212) {
+          this.statusText.setText("Room not found. Check the code.");
+        } else if (msg.includes("full")) {
+          this.statusText.setText("Room is full.");
+        } else {
+          this.statusText.setText("Failed to connect.");
+        }
+      }
+      return;
+    }
 
     this.room.onMessage("PRIVATE_STATE", (state) => {
       this.netState = state;

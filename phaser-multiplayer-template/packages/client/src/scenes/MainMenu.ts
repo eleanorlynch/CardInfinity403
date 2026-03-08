@@ -105,25 +105,81 @@ export class MainMenu extends Scene {
     });
 
     button_start_game.on('pointerdown', async () => {
-      if (authInProgress) {
-        return;
-      }
-
+      if (authInProgress) return;
       authInProgress = true;
-      console.log("Start game clicked");
-
-      // Show immediate feedback so Discord auth does not look frozen.
       authErrorText.setText("Authorizing with Discord...");
-      
       try {
         await authorizeDiscordUser();
-        this.scene.start("Game");
+        this.scene.start("Game", { isHost: true });
       } catch (error) {
         console.error("Discord authorization failed:", error);
         const message = error instanceof Error ? error.message : "Unknown auth error";
         authErrorText.setText(`Discord auth failed: ${message}`);
         authInProgress = false;
       }
+    });
+
+    button_join_game.setInteractive({ useHandCursor: true });
+
+    button_join_game.on('pointerover', () => {
+      button_join_game.setBackgroundColor('#8d8d8d');
+    });
+
+    button_join_game.on('pointerout', () => {
+      button_join_game.setBackgroundColor('#EBC9B3');
+    });
+
+    button_join_game.on('pointerdown', () => {
+      if (authInProgress) return;
+
+      const input = document.createElement('input');
+      input.type = 'text';
+      input.placeholder = 'Enter room code...';
+      input.style.cssText = `
+        position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);
+        font-size: 24px; padding: 12px 20px; border-radius: 8px;
+        border: 2px solid #EBC9B3; background: #101814; color: #E9DFD9;
+        text-align: center; z-index: 1000; outline: none;
+      `;
+
+      const confirmBtn = document.createElement('button');
+      confirmBtn.textContent = 'Join';
+      confirmBtn.style.cssText = `
+        position: fixed; top: calc(50% + 60px); left: 50%; transform: translateX(-50%);
+        font-size: 20px; padding: 10px 30px; border-radius: 8px; border: none;
+        background: #EBC9B3; color: #101814; cursor: pointer; z-index: 1000;
+      `;
+
+      document.body.appendChild(input);
+      document.body.appendChild(confirmBtn);
+      input.focus();
+
+      const cleanup = () => {
+        document.body.removeChild(input);
+        document.body.removeChild(confirmBtn);
+      };
+
+      const submit = async () => {
+        const roomId = input.value.trim();
+        if (!roomId) return;
+        cleanup();
+        authInProgress = true;
+        authErrorText.setText("Authorizing with Discord...");
+        try {
+          await authorizeDiscordUser();
+          this.scene.start("Game", { isHost: false, roomId });
+        } catch (error) {
+          const message = error instanceof Error ? error.message : "Unknown auth error";
+          authErrorText.setText(`Discord auth failed: ${message}`);
+          authInProgress = false;
+        }
+      };
+
+      confirmBtn.onclick = submit;
+      input.onkeydown = (e) => {
+        if (e.key === 'Enter') submit();
+        if (e.key === 'Escape') cleanup();
+      };
     });
 
     button_manage_rules.setInteractive({ useHandCursor: true });
