@@ -1,7 +1,7 @@
-import { Ruleset } from "../rules/Ruleset"
-
+import { Ruleset } from "../rules/Ruleset";
 import { Scene } from "phaser";
-import { authorizeDiscordUser } from "../utils/discordSDK";
+import type { LoadedRuleset } from "../utils/server/loadRuleset";
+import { listRulesets } from "../utils/server/loadRuleset";
 
 
 export class Rules extends Scene {
@@ -9,7 +9,7 @@ export class Rules extends Scene {
     super("Rules");
   }
 
-  rulesets_temp_delete_later: Ruleset[] = [];
+  rulesets_temp_delete_later: (Ruleset | LoadedRuleset)[] = [];
   rulesets: Map<string, Phaser.GameObjects.Container> = new Map();
   page_number: number = 0;
 
@@ -20,9 +20,11 @@ export class Rules extends Scene {
     const height = Number(this.game.config.height);
     const container_width = width * 0.75;
     const bg = this.add.image(this.cameras.main.width / 2, this.cameras.main.height / 2, "background");
+
     let scaleX = this.cameras.main.width / bg.width + 0.2;
     let scaleY = this.cameras.main.height / bg.height + 0.2;
     let scale = Math.max(scaleX, scaleY);
+
     bg.setScale(scale).setScrollFactor(0);
 
     const title_text = this.add
@@ -175,21 +177,34 @@ export class Rules extends Scene {
       .add(navigation_right_button);
 
 
-    //populate rules
-
-    this.rulesets_temp_delete_later.push(new Ruleset("uno"));
-    this.rulesets_temp_delete_later.push(new Ruleset("hiii"));
-    this.rulesets_temp_delete_later.push(new Ruleset("the joke one"));
-    this.rulesets_temp_delete_later.push(new Ruleset("e"));
-    this.rulesets_temp_delete_later.push(new Ruleset("th is me"));
-
-    this.populate_rulesets(width, height, container_width);
-    this.handle_visibility();
-
+    // Populate rules: load from DB then draw (fallback to hardcoded if API fails)
+    this.loadRulesetsThenPopulate(width, height, container_width, page_number_indicator);
   }
 
-  //Helper fns
-  handle_navigation_click(increment: number) {
+  async loadRulesetsThenPopulate(
+    width: number,
+    height: number,
+    container_width: number,
+    page_number_indicator: Phaser.GameObjects.Text
+  ) {
+    try {
+      const list = await listRulesets();
+      this.rulesets_temp_delete_later = list.length > 0 ? list : [
+        new Ruleset("uno"),
+        new Ruleset("Default (no saved ruleset)")
+      ];
+    } catch {
+      this.rulesets_temp_delete_later = [
+        new Ruleset("uno"),
+        new Ruleset("hiii"),
+        new Ruleset("the joke one"),
+        new Ruleset("e"),
+        new Ruleset("th is me")
+      ];
+    }
+    this.populate_rulesets(width, height, container_width);
+    this.handle_visibility();
+  }
     if (increment > 0 || this.page_number > 0) {
       this.page_number += increment;
     }
@@ -201,17 +216,11 @@ export class Rules extends Scene {
   populate_rulesets(width: number, height: number, container_width: number) {
     const startY = height * 0.27;
     const spacing = height * 0.125;
-    //consists of loading from DB
-    //TODO: jerry 
-
-    //this will hold a list of Ruleset objs loaded from DB
-    const rulesets: Ruleset[] = this.rulesets_temp_delete_later;
-
-    //and drawing each elem
+    const rulesets = this.rulesets_temp_delete_later;
     rulesets.forEach((ruleset, index) => {
       this.make_ruleset_entry_card(ruleset, width * 0.185, startY + (index % 5) * spacing, container_width);
-    })
-  };
+    });
+  }
 
   handle_visibility() {
     let num_to_show: number;
@@ -220,19 +229,20 @@ export class Rules extends Scene {
     } else {
       num_to_show = this.rulesets.size % 5;
     }
-
-    this.rulesets_temp_delete_later.forEach((ruleset) => {
-      this.rulesets.get(ruleset.name)!.setVisible(false);
-    })
-
+    const list = this.rulesets_temp_delete_later;
+    list.forEach((r) => {
+      const key = "id" in r && typeof (r as LoadedRuleset).id === "number" ? `id-${(r as LoadedRuleset).id}` : (r as Ruleset).name;
+      const container = this.rulesets.get(key);
+      if (container) container.setVisible(false);
+    });
     let index = this.page_number * 5;
-    while (index < (this.page_number) * 5 + num_to_show) {
-      console.log(index);
-      console.log(this.rulesets.get(this.rulesets_temp_delete_later.at(index)!.name));
-      this.rulesets.get(this.rulesets_temp_delete_later.at(index)!.name)!.setVisible(true);
+    while (index < (this.page_number) * 5 + num_to_show && index < list.length) {
+      const r = list[index];
+      const key = r && "id" in r && typeof (r as LoadedRuleset).id === "number" ? `id-${(r as LoadedRuleset).id}` : (r as Ruleset).name;
+      const container = this.rulesets.get(key);
+      if (container) container.setVisible(true);
       index += 1;
     }
-
   }
 
   draw_ruleset_entry_cards() {
@@ -245,21 +255,20 @@ export class Rules extends Scene {
     // this.make_ruleset_entry_card(new Ruleset("test"), 100, 100);
   }
 
-  make_ruleset_entry_card(ruleset: Ruleset, x_pos: number, y_pos: number, container_width: number) {
-    //called by above two fns
-    //actually handles making the card and adding
+  make_ruleset_entry_card(ruleset: Ruleset | LoadedRuleset, x_pos: number, y_pos: number, container_width: number) {
+    const name = ruleset.name;
+    const id = "id" in ruleset && typeof (ruleset as LoadedRuleset).id === "number" ? (ruleset as LoadedRuleset).id : null;
+    const key = id != null ? `id-${id}` : name;
     const container = this.add.container(x_pos, y_pos);
 
-    // Card background
     const ruleset_bg = this.add.graphics();
     ruleset_bg.fillStyle(0xffffff);
     ruleset_bg.lineStyle(2, 0x000000);
     ruleset_bg.fillRoundedRect(x_pos * -0.125, y_pos * -0.05, container_width * 0.9, 55, 5);
     ruleset_bg.strokeRoundedRect(x_pos * -0.125, y_pos * -0.05, container_width * 0.9, 55, 5);
-    // ruleset_bg.setInteractive({useHandCursor: true})
     container.add(ruleset_bg);
 
-    const ruleset_text = this.add.text(0, y_pos * -0.05 + 10, ruleset.name, {
+    const ruleset_text = this.add.text(0, y_pos * -0.05 + 10, name, {
       fontFamily: "Arial",
       fontSize: "20px",
       fontStyle: "bold",
@@ -267,8 +276,24 @@ export class Rules extends Scene {
     });
     container.add(ruleset_text);
 
+    if (id != null) {
+      const playBtn = this.add.text(container_width * 0.7, y_pos * -0.05 + 15, "Play", {
+        fontFamily: "Arial",
+        fontSize: "16px",
+        color: "#101814",
+        backgroundColor: "#EBC9B3",
+        padding: { x: 8, y: 4 }
+      }).setOrigin(0, 0.5).setInteractive({ useHandCursor: true });
+      playBtn.on("pointerdown", (e: Phaser.Input.Pointer) => {
+        e.event.stopPropagation();
+        this.registry.set("rulesetId", id);
+        this.scene.start("Game");
+      });
+      container.add(playBtn);
+    }
+
     container.setInteractive(new Phaser.Geom.Rectangle(-x_pos * 0.125, y_pos * -0.05, container_width * 0.9, 55), Phaser.Geom.Rectangle.Contains);
-    container.setInteractive({ usehandcursor: true });
+    container.setInteractive({ useHandCursor: true });
 
     container.on("pointerover", () => {
       ruleset_bg.fillStyle(0x8d8d8d);
@@ -282,14 +307,12 @@ export class Rules extends Scene {
       ruleset_bg.strokeRoundedRect(x_pos * -0.125, y_pos * -0.05, container_width * 0.9, 55, 5);
     });
 
-
     container.on("pointerdown", () => {
+      if (id != null) return;
       this.rulesets_temp_delete_later = [];
-      this.scene.start("RulesetEditor", {name: ruleset.name});
+      this.scene.start("RulesetEditor", { name });
     });
     container.setVisible(false);
-
-
-    this.rulesets.set(ruleset.name, container);
+    this.rulesets.set(key, container);
   }
 }

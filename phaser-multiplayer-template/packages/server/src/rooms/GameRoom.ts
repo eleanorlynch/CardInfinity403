@@ -14,6 +14,8 @@ export class GameRoom extends Room {
   private hostUserId: string | null = null;
   /** Session number for this room (for lookup in current_session). Set from room options. */
   private sessionNumber: number | null = null;
+  /** Saved ruleset id to load from DB when creating a new game. Set from room options. */
+  private rulesetId: number | null = null;
 
   // sessionId -> seat (0,1,...,n)
   private seatBySessionId = new Map<string, number>();
@@ -24,6 +26,7 @@ export class GameRoom extends Room {
     console.log("Room created:", this.roomId);
     this.hostUserId = options?.userId ?? null;
     this.sessionNumber = options?.sessionNumber ?? null;
+    this.rulesetId = options?.rulesetId ?? null;
     // message-based only for now (no schema sync yet)
     this.onMessage("DRAW", (client) => this.handleDraw(client));
     this.onMessage("PLAY_CARD", (client, msg: { cardId: string }) =>
@@ -57,7 +60,11 @@ export class GameRoom extends Room {
         }
       }
       if (!this.gameMove.getGame(this.gameId)) {
-        await this.gameMove.createGame(this.gameId, players);
+        await this.gameMove.createGame(
+          this.gameId,
+          players,
+          this.rulesetId ?? undefined
+        );
       }
     }
 

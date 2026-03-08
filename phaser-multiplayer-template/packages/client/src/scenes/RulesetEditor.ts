@@ -15,7 +15,7 @@ export class RulesetEditor extends Scene {
 
   name: string;
 
-  init(args) {
+  init(args: any) {
     this.name = args.name;
   }
 

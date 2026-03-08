@@ -12,10 +12,13 @@ export class GameStatus implements Ruleset {
     players: Player[];
     deck: Card[];
     gameOver: boolean;
+    // winner is a player id
     winner: number;
-    winners: number[]; // this is a list ofplayer ids (use if tie)
+    // winners is a list of player ids (use if tie)
+    winners: number[];
     tied: boolean;
-    currentTurn: number; // this is a player id
+    // currentTurn is a player id
+    currentTurn: number;
     discardPile: Card[];
     totalRounds: number;
     drawsThisTurn: number;
@@ -25,6 +28,7 @@ export class GameStatus implements Ruleset {
     skipNextPlayer: boolean;
     reverseTurnOrder: boolean;
 
+    // Ruleset variables
     name: string;
     description: string;
     maxPlayers: number;
@@ -156,7 +160,8 @@ export class GameStatus implements Ruleset {
             this.winConditions = { ...ruleset.winConditions };
             this.deckContents = { cards: ruleset.deckContents?.cards ? [...ruleset.deckContents.cards] : [] };
             this.cardAbilities = ruleset.cardAbilities ? { ...ruleset.cardAbilities } : ({} as Ruleset["cardAbilities"]);
-        } else {
+        } else { 
+            // Default rules
             this.name = "";
             this.description = "";
             this.maxPlayers = 10;
@@ -252,51 +257,42 @@ export class GameStatus implements Ruleset {
         return this.discardsThisTurn;
     }
     
-    //creates a 52 card deck 
-    createDeck(){
-       /* const suits = ['clubs','spades','hearts','diamonds'];
-        const ranks = [2,3,4,5,6,7,8,9,10,11,12,13,14];
-
-        this.deck = [];
-    
-        for(const suit of suits){
-            for(const rank of ranks){
-                this.deck.push(new Card(suit, rank));
+    // Creates a deck based on the given ruleset
+    createDeck() {
+        for (const card of this.deckContents.cards) {
+            this.deck.push(new Card(card.suit, card.rank));
         }
-    } */
-   for (const card of this.deckContents.cards) {
-        this.deck.push(new Card(card.suit, card.rank));
-   }
-}
+    }
 
-    //shuffles the deck before game starts
+    // Shuffles the deck before game starts
     shuffleDeck() {
         for (let i = this.deck.length - 1; i > 0; i--) {
             const j = Math.floor(Math.random() * (i + 1));
             const firstCard = this.deck[i];
             const secondCard = this.deck[j];
+
             if (firstCard !== undefined && secondCard !== undefined) {
                 [this.deck[i], this.deck[j]] = [secondCard, firstCard];
             }
         }
     }
     
-    //deals cards to players for the game to begin
+    // Deals cards to players for the game to begin
     dealCards() {
         // Initialize empty hand for each player
         this.players.forEach(player => {
            player.setHand([]);
         });
         
-        // Deal cards (default 7 cards per player)
-        //const cardsPerPlayer = 3;
-        
+        // Deal cards based on the starting hand size given in the ruleset
         for (let i = 0; i < this.handRules.startingHandSize; i++) {
             this.players.forEach(player => {
                 if (this.deck.length > 0) {
                     const card = this.deck.pop();
                     const hand = player.getHand();
-                    if (hand !== undefined && card !== undefined) { // add error message for else
+
+                    // TODO: add error message for else
+                    if (hand !== undefined && card !== undefined) {
                         hand.push(card);
                         player.setHand(hand);
                     }
@@ -304,10 +300,11 @@ export class GameStatus implements Ruleset {
             });
         }
 
-        this.discardPile.push(this.deck.pop()!); // TODO: add error message for if undefined
+        // TODO: add error message for if undefined
+        this.discardPile.push(this.deck.pop()!);
     }
  
-    //Player drawing a card from the deck 
+    // Player draws a card from the deck 
     drawCard(playerId: number) {
         const player = this.players[playerId];
 
@@ -321,12 +318,17 @@ export class GameStatus implements Ruleset {
         
         // If deck is empty, reshuffle discard pile
         if (this.deck.length === 0) {
+
             if (this.discardPile.length > 1) {
                 const topCard = this.discardPile.pop();
-                if (topCard !== undefined) { // TODO: make an error message for if false
+
+                // TODO: make an error message for if false
+                if (topCard !== undefined) {
                     this.deck = [...this.discardPile];
                     this.shuffleDeck();
-                    this.discardPile = [topCard]; // Put top card back
+
+                    // Puts the top card back
+                    this.discardPile = [topCard];
                 }
             } else {
                 return { 
@@ -338,9 +340,12 @@ export class GameStatus implements Ruleset {
         
         // Draw the top card from deck
         const drawnCard = this.deck.pop();
+
         if (drawnCard !== undefined) {
+
             if (player !== undefined && player.getHand() !== undefined) {
                 const hand = player.getHand();
+
                 hand.push(drawnCard);
                 player.setHand(hand);
                 
@@ -348,7 +353,7 @@ export class GameStatus implements Ruleset {
 
                 var isSpecial: boolean = false;
                 var ability: string = "";
-                // For use later, currently special cards are not implemented
+                // TODO: For use later, currently special cards are not implemented
                /* for (const specialCard of this.cardAbilities.specialCards.cards) { // checks if the card has a special ability when played
                     if (specialCard.rank === drawnCard.getRank() && specialCard.suit === drawnCard.getSuit() && specialCard.activatesOn === "draw") {
                         isSpecial = true;
@@ -400,6 +405,7 @@ export class GameStatus implements Ruleset {
                 };
             }
         }
+
         if (player !== undefined && player.getHand() !== undefined) {
             return {
                 success: false,
@@ -407,8 +413,7 @@ export class GameStatus implements Ruleset {
                 playerHand: player.getHand(),
                 deckRemaining: this.deck.length
             }
-        }
-        else {
+        } else {
             return {
                 success: false,
                 card: undefined,
@@ -421,6 +426,8 @@ export class GameStatus implements Ruleset {
 
     // Player plays a card from hand to discard pile
     playCard(playerId: number, cardId: string) {
+        const player = this.players[playerId];
+
         // Check if it's player's turn
         if (this.currentTurn !== playerId) {
             return { 
@@ -428,8 +435,6 @@ export class GameStatus implements Ruleset {
                 message: "Not your turn" 
             };
         }
-
-        const player = this.players[playerId];
         
         // Check if game is over
         if (this.gameOver) {
@@ -442,7 +447,9 @@ export class GameStatus implements Ruleset {
         // Find the card in player's hand
         if (player !== undefined && player.getHand() !== undefined) {
             const playerHand = player.getHand();
-            if (playerHand !== undefined) { // TODO: add error message for if false
+
+            // TODO: add error message for if false
+            if (playerHand !== undefined) {
                 const cardIndex = playerHand.findIndex(card => card.id === cardId);
                 
                 if (cardIndex === -1) {
@@ -460,7 +467,8 @@ export class GameStatus implements Ruleset {
                     this.discardPile.push(playedCard);
                 }
                 
-               this.playsThisTurn++;
+                this.playsThisTurn++;
+
                 return { 
                     success: true, 
                     message: "Card played successfully",
@@ -471,23 +479,25 @@ export class GameStatus implements Ruleset {
             }
             return {
                 success: false, 
-                    message: "Card not played successfully",
-                    playerHand: playerHand,
-                    discardTop: this.discardPile[this.discardPile.length],
-                    nextPlayer: this.currentTurn
-            }
-        }
-            return {
-                success: false,
                 message: "Card not played successfully",
-                playerHand: [],
+                playerHand: playerHand,
                 discardTop: this.discardPile[this.discardPile.length],
                 nextPlayer: this.currentTurn
             }
+        }
+        return {
+            success: false,
+            message: "Card not played successfully",
+            playerHand: [],
+            discardTop: this.discardPile[this.discardPile.length],
+            nextPlayer: this.currentTurn
+        }
     }
         
-   // Discard a card from hand to discard pile
+    // Discard a card from hand to discard pile
     discardCard(playerId: number, cardId: string) {
+        const player = this.players[playerId];
+
         // Check if it's player's turn
         if (this.currentTurn !== playerId) {
             return { 
@@ -503,12 +513,11 @@ export class GameStatus implements Ruleset {
                 message: "Game is over" 
             };
         }
-        
-        const player = this.players[playerId];
 
         // Find the card in player's hand
         if (player !== undefined && player.getHand() !== undefined) {
             const playerHand = player.getHand();
+
             if (playerHand !== undefined) {
                 const cardIndex = playerHand.findIndex(card => card.id === cardId);
                 
@@ -582,46 +591,65 @@ export class GameStatus implements Ruleset {
         return this.currentTurn;
     }
 
+    // Move to the next turn
     nextTurn() {
+        // Check for a winner
+        const Winner = new GameWinner;
+        const winnerInfo = Winner.checkWinner(this);
+
+        // Reset number of draws/plays/discards this turn
         this.drawsThisTurn = 0;
         this.playsThisTurn = 0;
         this.discardsThisTurn = 0;
-        const Winner = new GameWinner;
-        const winnerInfo = Winner.checkWinner(this);
+
+        // See if a winner was found
         if (winnerInfo !== null) {
             this.gameOver = true;
         }
+
+        // Check if there is an extra turn for the current player
         if (!this.extraTurn) {
+
+            // Check if next player is going to be skipped
             if (this.skipNextPlayer) {
+
+                // turn order is regular (not reversed)
                 if (!this.reverseTurnOrder) {
+                    // Skip the next player
                     this.currentTurn = (this.currentTurn + 2) % this.players.length;
                     this.skipNextPlayer = false;
-                }
-                else { // if turn order is reversed, 
+                } else { // turn order is reversed 
+                    // Skip the previous player (since turn order is backwards)
                     this.currentTurn = this.currentTurn - 2;
+
                     if (this.currentTurn === -1) {
                         this.currentTurn = this.players.length - 1;
-                    }
-                    else if (this.currentTurn === -2) {
+                    } else if (this.currentTurn === -2) {
                         this.currentTurn = this.players.length - 2;
                     }
                 }
             }
+            // Next player isn't skipped
             else {
+                // turn order is regular (not reversed)
                 if (!this.reverseTurnOrder) {
                     this.currentTurn = (this.currentTurn + 1) % this.players.length;
-                }
-                else {
+                } else { // turn order is reversed
                     this.currentTurn = this.currentTurn - 1;
                     if (this.currentTurn < 0) {
                         this.currentTurn = this.players.length - 1;
                     }
                 }
             }
+
+            // Go to a new round if we reach the starting player
+            // TODO: Make the starting point variable based on ruleset
             if (this.currentTurn === 0) {
                 this.totalRounds++;
             }
         }
+
+        // If there is an extra turn for the player, reset the draw/play/discard info but allow the current player to take another turn
         this.extraTurn = false;
     }
 
@@ -646,27 +674,28 @@ export class GameStatus implements Ruleset {
         this.discardPile = pile;
     }
 
+    // Gets the current game state information for a player
     getGameState(playerId: number) {
-    return {
-        gameId: this.gameId,
-        ruleset: this.ruleset,
+        return {
+            gameId: this.gameId,
+            ruleset: this.ruleset,
 
-        players: this.players.map((p) => ({
-        id: p.getID(),
-        name: `Player ${p.getID()}`,
-        handCount: p.getHand()?.length ?? 0,
-        })),
+            players: this.players.map((p) => ({
+            id: p.getID(),
+            name: `Player ${p.getID()}`,
+            handCount: p.getHand()?.length ?? 0,
+            })),
 
-        currentTurn: this.currentTurn,
-        isMyTurn: this.currentTurn === playerId,
+            currentTurn: this.currentTurn,
+            isMyTurn: this.currentTurn === playerId,
 
-        myHand: this.players[playerId]?.getHand() ?? [],
-        discardTop: this.getTopDiscard(),
-        deckCount: this.getDeckCount(),
+            myHand: this.players[playerId]?.getHand() ?? [],
+            discardTop: this.getTopDiscard(),
+            deckCount: this.getDeckCount(),
 
-        gameOver: this.gameOver,
-        winner: this.winner,
-    };
+            gameOver: this.gameOver,
+            winner: this.winner,
+        };
     }
 
     /** Serialize to a plain object for DB persistence (current_session.game_state). */
