@@ -100,6 +100,50 @@ router.put("/rulesets/:id", (req: Request, res: Response) => {
   res.json(row);
 });
 
+// Fetch ruleset by name
+router.get("/rulesets/by-name/:name", (req: Request, res: Response) => {
+  const name = decodeURIComponent(req.params.name);
+
+  if (name === undefined || name === null || typeof name !== "string" || !name.trim()) {
+    res.status(400).json({ error: "Missing or invalid ruleset name" });
+    return;
+  }
+
+  const row = rulesetDb.getRulesetByName(name);
+
+  if (row === undefined) {
+    res.status(404).json({ error: "Ruleset not found" });
+    return;
+  }
+  
+  res.json(row);
+});
+
+router.put("/rulesets/by-name/:name", (req: Request, res: Response) => {
+  const name = decodeURIComponent(req.params.name);
+
+  if (name === undefined || name === null || typeof name !== "string" || !name.trim()) {
+    res.status(400).json({ error: "Missing or invalid ruleset name" });
+    return;
+  }
+
+  const data = req.body;
+
+  if (data === undefined || data === null || typeof data !== "object") {
+    res.status(400).json({ error: "Invalid ruleset body" });
+    return;
+  }
+
+  const row = rulesetDb.updateRulesetByName(name, data as Ruleset);
+
+  if (row === undefined) {
+    res.status(404).json({ error: "Ruleset not found" });
+    return;
+  }
+
+  res.json(row);
+});
+
 if (process.env.NODE_ENV === "production") {
   const clientBuildPath = path.join(__dirname, "../../client/dist");
 

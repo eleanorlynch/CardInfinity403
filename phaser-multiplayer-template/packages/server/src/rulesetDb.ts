@@ -67,6 +67,10 @@ export function getRulesetById(id: number): SavedRulesetRow | undefined {
   return rows.find((r) => r.id === id);
 }
 
+export function getRulesetByName(name: string): SavedRulesetRow | undefined {
+  return rows.find((r) => r.name === name);
+}
+
 export function insertRuleset(data: Ruleset): SavedRulesetRow {
   const now = new Date().toISOString();
   const row: SavedRulesetRow = {
@@ -89,6 +93,30 @@ export function updateRuleset(
   data: Ruleset
 ): SavedRulesetRow | undefined {
   const idx = rows.findIndex((r) => r.id === id);
+  if (idx === -1) {
+    return undefined;
+  }
+
+  const now = new Date().toISOString();
+  const row: SavedRulesetRow = {
+    ...rows[idx]!,
+    name: data.name,
+    description: data.description,
+    updated_at: now,
+    data: { ...data },
+  };
+
+  rows[idx] = row;
+  saveToFile();
+
+  return row;
+}
+
+export function updateRulesetByName(
+  name: string,
+  data: Ruleset
+): SavedRulesetRow | undefined {
+  const idx = rows.findIndex((r) => r.name === name);
   if (idx === -1) {
     return undefined;
   }
