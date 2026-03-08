@@ -23,6 +23,9 @@ export class RulesetEditor extends Scene {
   private ruleChanges: Map<string, any> = new Map();
   private baseRuleset: any = null;
 
+  private editorFields: any[] = [];
+  private fieldPaths: Map<string, string> = new Map();
+
 
   init(args: any) {
     // TODO: remove (replace really) below line once we're passing in the actual ruleset
@@ -50,8 +53,8 @@ export class RulesetEditor extends Scene {
       this.baseRuleset = JSON.parse(JSON.stringify(DefaultRulesetData));
     }
 
-    this.types = this.getTypes();
-    alert("Types are:\n\n" + JSON.stringify(this.types, null, 2));
+    this.editorFields = await this.getTypes();
+    alert("Types are:\n\n" + JSON.stringify(this.editorFields, null, 2));
 
     //Static elems
     const width = Number(this.game.config.width);
@@ -218,13 +221,58 @@ export class RulesetEditor extends Scene {
 
     // Create draw rules section
     // TODO: Delete/edit this later, it is a rudimentary example of rules editing to show that it works
-    this.createDrawRulesUI(options_container, width, height);
+   // this.createDrawRulesUI(options_container, width, height);
 
     // --------------------------
     // var buttons = this.create_buttons_container("testing", true, ["hi", "hello", "howdy"])
     // 
     this.populate_options();
     this.populate_option_objects(width, height, container_width);
+
+        // Add this test in create() after setting up the containers
+    // TEST: Create a simple numerical input directly
+    const testLabel = this.add.text(200, 300, "5", {
+      fontFamily: "Arial",
+      fontSize: "16px",
+      color: "#101814",
+      backgroundColor: "#ffffff",
+      padding: { x: 10, y: 5 }
+    }).setInteractive({ useHandCursor: true });
+    
+    testLabel.on('pointerdown', () => {
+      console.log("Test label clicked!");
+      
+      const canvas = this.game.canvas;
+      const canvasRect = canvas.getBoundingClientRect();
+      
+      const input = document.createElement('input');
+      input.type = 'number';
+      input.value = testLabel.text;
+      input.style.position = 'absolute';
+      input.style.left = `${canvasRect.left + 200}px`;
+      input.style.top = `${canvasRect.top + 300}px`;
+      input.style.fontSize = '16px';
+      input.style.width = '80px';
+      input.style.zIndex = '1000';
+      
+      document.body.appendChild(input);
+      input.focus();
+      input.select();
+      
+      input.addEventListener('blur', () => {
+        const newValue = parseInt(input.value);
+        if (!isNaN(newValue)) {
+          testLabel.setText(`${newValue}`);
+          console.log("New value:", newValue);
+        }
+        input.remove();
+      });
+      
+      input.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') input.blur();
+        if (e.key === 'Escape') input.remove();
+      });
+    });
   }
 
 
@@ -240,7 +288,7 @@ export class RulesetEditor extends Scene {
   // Populates display objects for each category and option
   // TODO: this should handle making each option
 
-  populate_option_objects(width: number, height: number, container_width: number) {
+  /*populate_option_objects(width: number, height: number, container_width: number) {
     const startY = height * 0.27;
     const spacing = height * 0.125;
 
@@ -255,7 +303,220 @@ export class RulesetEditor extends Scene {
         }
       }
     }
-  };
+  };*/
+
+    populate_option_objects(width: number, height: number, container_width: number) {
+    const startX = width * 0.15;
+    const startY = height * 0.27;
+    const spacing = height * 0.1;
+    const itemsPerPage = 5;
+    
+    let currentY = startY;
+    let optionIndex = 0;
+    let currentCategory = "";
+    
+    for (const [category, cat_options] of this.options.entries()) {
+      if (cat_options === undefined || cat_options.length === 0) continue;
+      
+      // Create a container for each category/option group
+      const optionContainer = this.add.container(0, 0);
+      
+      // Add category label
+      const categoryLabel = this.add.text(0, 0, String(category) + ":", {
+        fontFamily: "Arial Black",
+        fontSize: "16px",
+        color: "#101814",
+        padding: { x: 4, y: 4 }
+      });
+      optionContainer.add(categoryLabel);
+      
+      // Determine the type of input based on the first option
+      const firstOption = cat_options[0];
+      let inputObject: any;
+      
+      switch (firstOption?.kind) {
+        case "NOMINAL":
+          // Dropdown - collect all nominal options as dropdown choices
+          const dropdownOptions = cat_options
+            .filter(opt => opt.kind === "NOMINAL")
+            .map(opt => String(opt.value));
+          
+          if (dropdownOptions.length > 0) {
+            const dropdown = this.create_dropdown(
+              dropdownOptions,
+              dropdownOptions[0],
+              (selectedOption: string) => {
+                const path = this.fieldPaths.get(String(category)) || String(category);
+                this.trackChange(path, selectedOption);
+              }
+            );
+            dropdown.setPosition(150, 0);
+            inputObject = dropdown;
+            optionContainer.add(dropdown);
+          }
+          break;
+    
+        case "NUMERICAL":
+          // Number input
+          const numValue = firstOption.value as number;
+          const numLabel = this.add.text(150, 0, `${numValue}`, {
+            fontFamily: "Arial",
+            fontSize: "16px",
+            color: "#101814",
+            backgroundColor: "#ffffff",
+            padding: { x: 10, y: 5 }
+          }).setInteractive({ useHandCursor: true });
+          
+          // Add border effect
+          const numBg = this.add.rectangle(150 + numLabel.width / 2, numLabel.height / 2, numLabel.width + 4, numLabel.height + 4)
+            .setStrokeStyle(2, 0x101814)
+            .setFillStyle(0xffffff);
+          optionContainer.add(numBg);
+          optionContainer.add(numLabel);
+          numLabel.setDepth(1);
+          
+          // Store category for use in callback
+          const categoryPath = this.fieldPaths.get(String(category)) || String(category);
+          
+          numLabel.on('pointerdown', () => {
+            const config = {
+              type: 'number',
+              text: numLabel.text,
+              onTextChanged: (textObject: any, text: string) => {
+                textObject.text = text;
+              },
+              onClose: (textObject: any) => {
+                const newValue = parseInt(textObject.text);
+                if (!isNaN(newValue)) {
+                  this.trackChange(categoryPath, newValue);
+                }
+              }
+            };
+            
+            this.rexUI.edit(numLabel, config);
+          });
+          
+          numLabel.on('pointerover', () => {
+            numBg.setFillStyle(0xEBC9B3);
+          });
+          
+          numLabel.on('pointerout', () => {
+            numBg.setFillStyle(0xffffff);
+          });
+          
+          inputObject = numLabel;
+          break;
+          
+        case "CHECKBOX":
+          // Checkbox buttons - collect all checkbox options
+          const checkboxOptions = cat_options
+            .filter(opt => opt.kind === "CHECKBOX")
+            .map(opt => String(opt.value));
+          
+          if (checkboxOptions.length > 0) {
+            const checkboxButtons = this.create_buttons_container(
+              String(category),
+              false,
+              checkboxOptions,
+              (selectedOption: string) => {
+                const path = this.fieldPaths.get(String(category)) || String(category);
+                this.trackChange(path, selectedOption);
+              }
+            );
+            checkboxButtons.setPosition(150, 10);
+            inputObject = checkboxButtons;
+            optionContainer.add(checkboxButtons);
+            
+            for (let i = 0; i < checkboxOptions.length; i++) {
+              const optionName = checkboxOptions[i];
+              if (optionName !== undefined) {
+                checkboxButtons.getButton(i)?.setName(optionName);
+              }
+            }
+
+            // Set initial state if value is true
+            if (firstOption.value === true) {
+              const optionName = checkboxOptions[0];
+              if (optionName !== undefined) {
+                checkboxButtons.setButtonState(optionName, true);
+              }
+            }
+          }
+          break;
+          
+        case "RADIO":
+          // Radio buttons - collect all radio options
+          const radioOptions = cat_options
+            .filter(opt => opt.kind === "RADIO")
+            .map(opt => String(opt.value));
+          
+          if (radioOptions.length > 0) {
+            const radioButtons = this.create_buttons_container(
+              String(category),
+              true,
+              radioOptions,
+              (selectedOption: string) => {
+                const path = this.fieldPaths.get(String(category)) || String(category);
+                this.trackChange(path, selectedOption);
+              }
+            );
+            radioButtons.setPosition(150, 10);
+            inputObject = radioButtons;
+            optionContainer.add(radioButtons);
+            
+            // Set button names for state management
+            for (let i = 0; i < radioOptions.length; i++) {
+              const optionName = radioOptions[i];
+              if (optionName !== undefined) {
+                radioButtons.getButton(i)?.setName(optionName);
+              }
+            }
+            
+            // Set initial selected state based on current value
+            const currentValue = this.getValueFromPath(this.fieldPaths.get(String(category)) || "");
+            if (currentValue !== undefined) {
+              radioButtons.setButtonState(String(currentValue), true);
+            }
+          }
+          break;
+          
+        default:
+          console.log(`Unknown option kind: ${firstOption?.kind} for category: ${category}`);
+      }
+      
+      // Store the option container
+      if (inputObject !== undefined && firstOption !== undefined) {
+        this.option_objects.set(firstOption, optionContainer);
+      }
+      
+      // Position the container
+      optionContainer.setPosition(startX, currentY);
+      
+      // Set visibility based on current page
+      const itemPage = Math.floor(optionIndex / itemsPerPage);
+      optionContainer.setVisible(itemPage === this.page_number);
+      
+      currentY += spacing;
+      optionIndex++;
+    }
+    
+    console.log(`Created ${this.option_objects.size} option objects`);
+  }
+
+  // Helper function to get a value from the base ruleset using a dot-notation path
+  private getValueFromPath(path: string): any {
+    if (!path || !this.baseRuleset) return undefined;
+    
+    const keys = path.split('.');
+    let current = this.baseRuleset;
+    
+    for (const key of keys) {
+      if (current === undefined || current === null) return undefined;
+      current = current[key];
+    }
+    
+    return current;
+  }
 
   add_category(name: String) {
     // TODO: implement
@@ -266,24 +527,93 @@ export class RulesetEditor extends Scene {
     // TODO: implement fully
     switch (option.kind) {
       case "NOMINAL":
-        this.create_dropdown();
+        this.create_dropdown(option.value as string[], undefined /*for now*/, undefined /*TODO: callback*/);
         break;
       case "NUMERICAL":
         this.create_number_input();
         break;
       case "CHECKBOX":
-        this.create_buttons_container("placeholder", false, ["check1", "check2"]);
+        this.create_buttons_container(option.name, false, option.value);
         break;
       case "RADIO":
-        this.create_buttons_container("placeholder", true, ["rad1", "rad2"]);
+        this.create_buttons_container(option.name, true, option.value);
         break;
       default:
         console.log("what did you do??")
     }
   }
 
-  create_dropdown() {
-
+    create_dropdown(options: string[], defaultValue?: string, onSelect?: (selectedOption: string) => void) {
+    // Create the dropdown using rex UI
+    const dropdown = this.rexUI.add.dropDownList({
+      x: 0,
+      y: 0,
+      background: this.rexUI.add.roundRectangle(0, 0, 2, 2, 0, 0xE9DFD9).setStrokeStyle(2, 0x101814),
+      
+      text: this.add.text(0, 0, defaultValue || options[0] || 'Select...', {
+        fontSize: '16px',
+        color: '#101814'
+      }),
+      
+      space: {
+        left: 10,
+        right: 10,
+        top: 5,
+        bottom: 5,
+        icon: 10
+      },
+      
+      options: options,
+      
+      list: {
+        createBackgroundCallback: (scene: any) => {
+          return scene.rexUI.add.roundRectangle(0, 0, 2, 2, 0, 0xffffff).setStrokeStyle(2, 0x101814);
+        },
+        
+        createButtonCallback: (scene: any, option: string) => {
+          return scene.rexUI.add.label({
+            background: scene.rexUI.add.roundRectangle(0, 0, 2, 2, 0, 0xE9DFD9),
+            text: scene.add.text(0, 0, option, {
+              fontSize: '16px',
+              color: '#101814'
+            }),
+            space: {
+              left: 10,
+              right: 10,
+              top: 8,
+              bottom: 8
+            }
+          });
+        },
+        
+        onButtonOver: (button: any) => {
+          button.getElement('background').setFillStyle(0xEBC9B3);
+        },
+        
+        onButtonOut: (button: any) => {
+          button.getElement('background').setFillStyle(0xE9DFD9);
+        },
+        
+        space: {
+          left: 10,
+          right: 10,
+          top: 10,
+          bottom: 10,
+          item: 5
+        }
+      },
+      
+      setValueCallback: (dropDownList: any, value: any) => {
+        dropDownList.text = value;
+        if (onSelect) {
+          onSelect(value);
+        }
+      }
+    });
+    
+    dropdown.layout();
+    
+    return dropdown;
   }
 
   create_number_input() {
@@ -304,9 +634,9 @@ export class RulesetEditor extends Scene {
         buttons_children.push(this.create_radio_button(option, option));
       })
     } else {
-      // options.forEach((option) => {
-      //   buttons_children.push(this.create_checkbox_button(option, option));
-      // })
+       options.forEach((option) => {
+         buttons_children.push(this.create_checkbox_button(option, option));
+       })
     }
 
     var buttons = this.rexUI.add.buttons({
@@ -333,11 +663,11 @@ export class RulesetEditor extends Scene {
     }
     var button = this.rexUI.add.label({
       width: 100,
-      height: 40,
+      height: 100,
       text: this.add.text(200, 200, text, {
         fontSize: 18
       }),
-      icon: this.add.rectangle(200, 200, 10).setStrokeStyle(1, 0x000000),
+      icon: this.add.rectangle(20, 20, 20, 20).setStrokeStyle(1, 0x000000),
       space: {
         left: 10,
         right: 10,
@@ -345,6 +675,7 @@ export class RulesetEditor extends Scene {
       },
       name: name
     });
+    
     return button;
   }
 
@@ -381,7 +712,7 @@ export class RulesetEditor extends Scene {
 
   // Creates the draw rules UI with radio buttons for whenToDraw
   // TODO: Delete/edit this later, it is only here to show/test that saving rules edits works
-  createDrawRulesUI(container: Phaser.GameObjects.Container, width: number, height: number) {
+  /*createDrawRulesUI(container: Phaser.GameObjects.Container, width: number, height: number) {
     const startX = width * 0.15;
     const startY = height * 0.25;
     const labelFontSize = "16px";
@@ -490,8 +821,24 @@ export class RulesetEditor extends Scene {
     
     yOffset += 40;
 
-
-  };
+    const checkboxOptions = [
+      "Allow Empty Draw",
+      "Reshuffle Discard",
+      "Draw Until Hand Full"
+    ];
+    
+    const checkboxButtons = this.create_buttons_container(
+      "Draw Options",
+      false,
+      checkboxOptions,
+      (selectedOption: string) => {
+        this.trackChange('drawRules.options', selectedOption);
+      }
+    );
+    
+    checkboxButtons.setPosition(startX + xOffset, startY + yOffset);
+    container.add(checkboxButtons);
+  };*/
 
   // Hides and shows options while navigating
   handle_visibility() {
@@ -633,8 +980,21 @@ export class RulesetEditor extends Scene {
     }
   }
 
-  private async getTypes() {
-    return await fetch(`/.proxy/api/rulesets/editorFields/${encodeURIComponent(this.name)}`);
+  private async getTypes(): Promise<any[]> {
+    try {
+      const response = await fetch(`/.proxy/api/rulesets/editorFields/${encodeURIComponent(this.name)}`);
+      
+      if (!response.ok) {
+        console.error("Error fetching editor fields:", response.statusText);
+        return [];
+      }
+      
+      const data = await response.json();
+      return data.data || [];
+    } catch (error) {
+      console.error("Error fetching editor fields:", error);
+      return [];
+    }
   }
 
   save_ruleset() {
@@ -647,7 +1007,7 @@ export class RulesetEditor extends Scene {
     //TODO: god help you
     //TODO: implement
     // this is going to have to be done MANUALLY, option by option.
-    const example_nominal_option = new Option<string>("NOMINAL", "example nominal option");
+    /*const example_nominal_option = new Option<string>("NOMINAL", "example nominal option");
     const example_numerical_option = new Option<number>("NUMERICAL", 15);
     const example_checkbox_option = new Option<boolean>("CHECKBOX", true);
     const example_radio_option = new Option<boolean>("RADIO", true);
@@ -687,7 +1047,68 @@ export class RulesetEditor extends Scene {
     this.options.set("Hand Size to Win (if First to a Hand Size is selected)", [new Option<number>("NUMERICAL", this.baseRuleset.handSizeToWin)]);
     this.options.set("Most of One Suit - Suit", [new Option<string>("RADIO", "hearts"), new Option<string>("RADIO", "diamonds"), new Option<string>("RADIO", "clubs"), new Option<string>("RADIO", "spades")]);
     this.options.set("Most of One Rank - Rank", [new Option<number>("NUMERICAL", this.baseRuleset.mostOfOneRank.rank)]);
-    this.options.set("Most of One Color - Color", [new Option<string>("RADIO", "red"), new Option<string>("RADIO", "black")]);
+    this.options.set("Most of One Color - Color", [new Option<string>("RADIO", "red"), new Option<string>("RADIO", "black")]);*/
+    //  populate_options() {
+    // Use editorFields from server if available
+    //  populate_options() {
+    if (this.editorFields && this.editorFields.length > 0) {
+      for (const field of this.editorFields) {
+        this.fieldPaths.set(field.label, field.path);
 
+        switch (field.inputKind) {
+          case 'numerical':
+            this.options.set(field.label, [
+              new Option<number>("NUMERICAL", field.label, field.value)
+            ]);
+            break;
+            
+          case 'checkbox':
+            this.options.set(field.label, [
+              new Option<boolean>("CHECKBOX", field.label, field.value)
+            ]);
+            break;
+            
+          case 'radio':
+            if (field.options && field.options.length > 0) {
+              const radioOptions = field.options.map((opt: any) => 
+                new Option<any>("RADIO", opt.label, opt.value)
+              );
+              this.options.set(field.label, radioOptions);
+            }
+            break;
+            
+          case 'nominal':
+            if (field.options && field.options.length > 0) {
+              const nominalOptions = field.options.map((opt: any) => 
+                new Option<any>("NOMINAL", opt.label, opt.value)
+              );
+              this.options.set(field.label, nominalOptions);
+            }
+            break;
+            
+          default:
+            console.log(`Unknown input kind: ${field.inputKind} for field: ${field.label}`);
+        }
+      }
+      
+      console.log(`Populated ${this.options.size} options from editor fields`);
+      alert(`Populated ${this.options.size} options from editor fields:\n\n` + JSON.stringify(Array.from(this.options.entries()), null, 2));
+    } else {
+      // Fallback to manual options
+      this.options.set("Max Players", [new Option<number>("NUMERICAL", "Max Players", this.baseRuleset.maxPlayers)]);
+      this.options.set("Min Players", [new Option<number>("NUMERICAL", "Min Players", this.baseRuleset.minPlayers)]);
+      
+      this.options.set("A Value", [
+        new Option<number>("RADIO", "1", 1), 
+        new Option<number>("RADIO", "14", 14)
+      ]);
+      
+      this.options.set("Turn Order", [
+        new Option<string>("RADIO", "Clockwise", "clockwise"), 
+        new Option<string>("RADIO", "Counterclockwise", "counterclockwise")
+      ]);
+      
+      // ... update rest of manual options similarly ...
+    }
   }
 }

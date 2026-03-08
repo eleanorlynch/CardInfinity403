@@ -55,9 +55,9 @@ router.get("/rulesets/editorFields/:name", (req: Request, res: Response) => {
   const defaultRuleset: Ruleset = DefaultRulesetData as Ruleset;
 
   if (row === undefined) {
-    res.json(toEditorFields(defaultRuleset));
+    res.json({ data: toEditorFields(defaultRuleset) });
   } else {
-    res.json(toEditorFields(row.data));
+    res.json({ data: toEditorFields(row.data) });
   }
 });
 

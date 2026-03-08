@@ -13,22 +13,9 @@ export class Option<T> {
   value: T;
   kind: "NUMERICAL" | "NOMINAL" | "RADIO" | "CHECKBOX" | "CATEGORY";
 
-  constructor(name: string, value: T) {
+  constructor(kind: "NUMERICAL" | "NOMINAL" | "RADIO" | "CHECKBOX" | "CATEGORY", name: string, value: T) {
+    this.kind = kind;
     this.name = name;
     this.value = value;
-
-    // oh lord
-    // get ready for the world's worst conditional
-    // TODO: this is very flawed rn for obvious reasons.
-    // dies to enums
-    if (value instanceof Number) {
-      this.kind = "NUMERICAL";
-    } else if (value instanceof String) {
-      this.kind = "NOMINAL";
-    } else {
-      this.kind = "RADIO";
-    }
-
   }
-
 }
