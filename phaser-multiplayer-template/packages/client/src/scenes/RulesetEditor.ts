@@ -17,6 +17,7 @@ export class RulesetEditor extends Scene {
   name: string;
   description: string;
   working_ruleset: RulesetClass;
+  types: any;
 
   // Track user changes to rules
   private ruleChanges: Map<string, any> = new Map();
@@ -26,6 +27,7 @@ export class RulesetEditor extends Scene {
   init(args: any) {
     // TODO: remove (replace really) below line once we're passing in the actual ruleset
     this.name = args.name;
+    this.types = undefined;;
   }
 
   // TODO: populate this guy
@@ -47,6 +49,9 @@ export class RulesetEditor extends Scene {
     } else {
       this.baseRuleset = JSON.parse(JSON.stringify(DefaultRulesetData));
     }
+
+    this.types = this.getTypes();
+    alert("Types are:\n\n" + JSON.stringify(this.types, null, 2));
 
     //Static elems
     const width = Number(this.game.config.width);
@@ -323,7 +328,24 @@ export class RulesetEditor extends Scene {
 
   // Creates a singular checkbox button
   create_checkbox_button(text: string, name: string) {
-
+    if (name === undefined) {
+      name = text;
+    }
+    var button = this.rexUI.add.label({
+      width: 100,
+      height: 40,
+      text: this.add.text(200, 200, text, {
+        fontSize: 18
+      }),
+      icon: this.add.rectangle(200, 200, 10).setStrokeStyle(1, 0x000000),
+      space: {
+        left: 10,
+        right: 10,
+        icon: 10
+      },
+      name: name
+    });
+    return button;
   }
 
   // Creates a single radio button 
@@ -383,6 +405,25 @@ export class RulesetEditor extends Scene {
       "any"
     ];
 
+    const discardOptions = [
+      "startOfTurn",
+      "endOfTurn",
+      "afterPlay",
+      "afterDraw",
+      "any"
+    ];
+
+    const playOptions = [
+      "startOfTurn",
+      "endOfTurn",
+      "afterDraw",
+      "afterDiscard",
+      "any"
+    ];
+
+    let xOffset = 40;
+    let yOffset = 40;
+
     // Create radio buttons for draw timing
     const drawButtons = this.create_buttons_container(
       "When to Draw",
@@ -393,9 +434,63 @@ export class RulesetEditor extends Scene {
       }
     );
 
+    drawButtons.getButton(0)!.setName("startOfTurn");
+    drawButtons.getButton(1)!.setName("endOfTurn");
+    drawButtons.getButton(2)!.setName("afterPlay");
+    drawButtons.getButton(3)!.setName("afterDiscard");
+    drawButtons.getButton(4)!.setName("any");
+
     // Position the buttons
-    drawButtons.setPosition(startX, startY + 40);
+    drawButtons.setPosition(startX + xOffset, startY + yOffset);
+    drawButtons.setButtonState(this.baseRuleset.drawRules.whenToDraw, true);
+    
     container.add(drawButtons);
+    
+    yOffset += 40;
+
+    const discardButtons = this.create_buttons_container(
+      "When to Discard",
+      true,
+      discardOptions,
+      (selectedOption: string) => {
+        this.trackChange('drawRules.whenToDiscard', selectedOption);
+      }
+    );
+
+    // Position the buttons
+    discardButtons.setPosition(startX + xOffset, startY + yOffset);
+    discardButtons.getButton(0)!.setName("startOfTurn");
+    discardButtons.getButton(1)!.setName("endOfTurn");
+    discardButtons.getButton(2)!.setName("afterPlay");
+    discardButtons.getButton(3)!.setName("afterDraw");
+    discardButtons.getButton(4)!.setName("any");
+    discardButtons.setButtonState(this.baseRuleset.discardRules.whenToDiscard, true);
+    container.add(discardButtons);
+    
+    yOffset += 40;
+
+    const playButtons = this.create_buttons_container(
+      "When to Play",
+      true,
+      playOptions,
+      (selectedOption: string) => {
+        this.trackChange('drawRules.whenToPlay', selectedOption);
+      }
+    );
+
+    // Position the buttons
+    playButtons.setPosition(startX + xOffset, startY + yOffset);
+    playButtons.getButton(0)!.setName("startOfTurn");
+    playButtons.getButton(1)!.setName("endOfTurn");
+    playButtons.getButton(2)!.setName("afterDraw");
+    playButtons.getButton(3)!.setName("afterDiscard");
+    playButtons.getButton(4)!.setName("any");
+    playButtons.setButtonState(this.baseRuleset.playRules.whenToPlay, true);
+    container.add(playButtons);
+    
+    yOffset += 40;
+
+
   };
 
   // Hides and shows options while navigating
@@ -445,7 +540,7 @@ export class RulesetEditor extends Scene {
       console.error("Error fetching ruleset by name:", error);
       alert("Error fetching ruleset: " + (error instanceof Error ? error.message : String(error)));
       return null;
-  }
+    }
   }
 
   // Merge user changes with default ruleset values
@@ -538,6 +633,10 @@ export class RulesetEditor extends Scene {
     }
   }
 
+  private async getTypes() {
+    return await fetch(`/.proxy/api/rulesets/editorFields/${encodeURIComponent(this.name)}`);
+  }
+
   save_ruleset() {
     //TODO: implement
     //this is for the save button
@@ -553,6 +652,42 @@ export class RulesetEditor extends Scene {
     const example_checkbox_option = new Option<boolean>("CHECKBOX", true);
     const example_radio_option = new Option<boolean>("RADIO", true);
 
-    this.options.set("Max Players", [new Option<number>("NUMERICAL", 4)]);
+    this.options.set("Max Players", [new Option<number>("NUMERICAL", this.baseRuleset.maxPlayers)]);
+    this.options.set("Min Players", [new Option<number>("NUMERICAL", this.baseRuleset.minPlayers)]);
+    
+    this.options.set("A Value", [new Option<number>("RADIO", 1), new Option<number>("RADIO", 14)]);
+    
+    this.options.set("Turn Order", [new Option<string>("RADIO", "clockwise"), new Option<string>("RADIO", "counterclockwise")]);
+    
+    this.options.set("Who Starts", [new Option<string>("RADIO", "host"), new Option<string>("RADIO", "highestCard"), new Option<string>("RADIO", "lowestCard")]);
+
+    this.options.set("When To Draw", [new Option<string>("RADIO", "startOfTurn"), new Option<string>("RADIO", "endOfTurn"), new Option<string>("RADIO", "afterPlay"), new Option<string>("RADIO", "afterDiscard"), new Option<string>("RADIO", "any")]);
+    this.options.set("Minimum Cards to Draw", [new Option<number>("NUMERICAL", this.baseRuleset.drawRules.minCardsToDraw)]);
+    this.options.set("Maximum Cards to Draw", [new Option<number>("NUMERICAL", this.baseRuleset.drawRules.maxCardsToDraw)]);
+    
+    this.options.set("When to Discard", [new Option<string>("RADIO", "endOfTurn"), new Option<string>("RADIO", "afterPlay"), new Option<string>("RADIO", "afterDraw"), new Option<string>("RADIO", "any")]);
+    this.options.set("Minimum Cards to Discard", [new Option<number>("NUMERICAL", this.baseRuleset.discardRules.minCardsToDiscard)]);
+    this.options.set("Maximum Cards to Discard", [new Option<number>("NUMERICAL", this.baseRuleset.discardRules.maxCardsToDiscard)]);
+
+    this.options.set("When To Play", [new Option<string>("RADIO", "startOfTurn"), new Option<string>("RADIO", "endOfTurn"), new Option<string>("RADIO", "afterDraw"), new Option<string>("RADIO", "afterDiscard"), new Option<string>("RADIO", "any")]);
+    this.options.set("Minimum Cards to Play", [new Option<number>("NUMERICAL", this.baseRuleset.playRules.minCardsToPlay)]);
+    this.options.set("Maximum Cards to Play", [new Option<number>("NUMERICAL", this.baseRuleset.playRules.maxCardsToPlay)]);
+
+    this.options.set("Starting Hand Size", [new Option<number>("NUMERICAL", this.baseRuleset.startingHandSize)]);
+    this.options.set("Max Hand Size", [new Option<number>("NUMERICAL", this.baseRuleset.maxHandSize)]);
+    this.options.set("Minimum Hand Size", [new Option<number>("NUMERICAL", this.baseRuleset.minHandSize)]);
+
+    this.options.set("Has Max Num Rounds", [new Option<boolean>("CHECKBOX", this.baseRuleset.hasMaxNumRounds)]);
+    this.options.set("Max Num Rounds", [new Option<number>("NUMERICAL", this.baseRuleset.maxNumRounds)]);
+
+    this.options.set("Min Num Rounds", [new Option<number>("NUMERICAL", this.baseRuleset.minNumRounds)]);
+
+    this.options.set("Win Conditions", [new Option<string>("CHECKBOX", "First to a Score"), new Option<string>("CHECKBOX", "First to a Hand Size"), new Option<string>("CHECKBOX", "Most of One Suit"), new Option<string>("CHECKBOX", "Most of One Rank"), new Option<string>("CHECKBOX", "Most of One Color"), new Option<string>("CHECKBOX", "Most Cards in Hand"), new Option<string>("CHECKBOX", "Least Cards in Hand"), new Option<string>("CHECKBOX", "Last to Have Cards in Hand")]);
+    this.options.set("Points to Win (if First to a Score is selected)", [new Option<number>("NUMERICAL", this.baseRuleset.pointsToWin)]);
+    this.options.set("Hand Size to Win (if First to a Hand Size is selected)", [new Option<number>("NUMERICAL", this.baseRuleset.handSizeToWin)]);
+    this.options.set("Most of One Suit - Suit", [new Option<string>("RADIO", "hearts"), new Option<string>("RADIO", "diamonds"), new Option<string>("RADIO", "clubs"), new Option<string>("RADIO", "spades")]);
+    this.options.set("Most of One Rank - Rank", [new Option<number>("NUMERICAL", this.baseRuleset.mostOfOneRank.rank)]);
+    this.options.set("Most of One Color - Color", [new Option<string>("RADIO", "red"), new Option<string>("RADIO", "black")]);
+
   }
 }
