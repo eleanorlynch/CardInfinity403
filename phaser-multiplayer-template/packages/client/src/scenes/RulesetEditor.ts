@@ -313,7 +313,6 @@ export class RulesetEditor extends Scene {
     
     let currentY = startY;
     let optionIndex = 0;
-    let currentCategory = "";
     
     for (const [category, cat_options] of this.options.entries()) {
       if (cat_options === undefined || cat_options.length === 0) continue;
@@ -330,9 +329,15 @@ export class RulesetEditor extends Scene {
       });
       optionContainer.add(categoryLabel);
       
+      // Get current value from base ruleset using the field path
+      const fieldPath = this.fieldPaths.get(String(category));
+      const currentValue = fieldPath ? this.getValueFromPath(fieldPath) : undefined;
+      
       // Determine the type of input based on the first option
       const firstOption = cat_options[0];
       let inputObject: any;
+      
+      console.log(`Category: ${category}, Kind: ${firstOption?.kind}, CurrentValue: ${currentValue}`);
       
       switch (firstOption?.kind) {
         case "NOMINAL":
@@ -342,9 +347,14 @@ export class RulesetEditor extends Scene {
             .map(opt => String(opt.value));
           
           if (dropdownOptions.length > 0) {
+            // Use current value from ruleset, or fall back to first option
+            const defaultDropdownValue = currentValue !== undefined 
+              ? String(currentValue) 
+              : dropdownOptions[0];
+            
             const dropdown = this.create_dropdown(
               dropdownOptions,
-              dropdownOptions[0],
+              defaultDropdownValue,
               (selectedOption: string) => {
                 const path = this.fieldPaths.get(String(category)) || String(category);
                 this.trackChange(path, selectedOption);
@@ -355,45 +365,80 @@ export class RulesetEditor extends Scene {
             optionContainer.add(dropdown);
           }
           break;
-    
+          
         case "NUMERICAL":
-          // Number input
-          const numValue = firstOption.value as number;
-          const numLabel = this.add.text(150, 0, `${numValue}`, {
+          // Number input - use current value from ruleset
+          const numValue = currentValue !== undefined ? currentValue : firstOption.value as number;
+          
+          // Add border/background first (so it's behind the text)
+          const numBg = this.add.rectangle(190, 12, 80, 30)
+            .setStrokeStyle(2, 0x101814)
+            .setFillStyle(0xffffff)
+            .setOrigin(0.5);
+          optionContainer.add(numBg);
+          
+          const numLabel = this.add.text(190, 12, `${numValue}`, {
             fontFamily: "Arial",
             fontSize: "16px",
             color: "#101814",
-            backgroundColor: "#ffffff",
             padding: { x: 10, y: 5 }
-          }).setInteractive({ useHandCursor: true });
-          
-          // Add border effect
-          const numBg = this.add.rectangle(150 + numLabel.width / 2, numLabel.height / 2, numLabel.width + 4, numLabel.height + 4)
-            .setStrokeStyle(2, 0x101814)
-            .setFillStyle(0xffffff);
-          optionContainer.add(numBg);
+          })
+            .setOrigin(0.5)
+            .setInteractive({ useHandCursor: true });
           optionContainer.add(numLabel);
-          numLabel.setDepth(1);
           
           // Store category for use in callback
           const categoryPath = this.fieldPaths.get(String(category)) || String(category);
           
           numLabel.on('pointerdown', () => {
-            const config = {
-              type: 'number',
-              text: numLabel.text,
-              onTextChanged: (textObject: any, text: string) => {
-                textObject.text = text;
-              },
-              onClose: (textObject: any) => {
-                const newValue = parseInt(textObject.text);
-                if (!isNaN(newValue)) {
-                  this.trackChange(categoryPath, newValue);
-                }
+            // Create a native HTML input for editing
+            const canvas = this.game.canvas;
+            const canvasRect = canvas.getBoundingClientRect();
+            
+            // Calculate screen position
+            const worldPoint = optionContainer.getWorldTransformMatrix();
+            const screenX = canvasRect.left + worldPoint.tx + 150;
+            const screenY = canvasRect.top + worldPoint.ty;
+            
+            const input = document.createElement('input');
+            input.type = 'number';
+            input.value = numLabel.text;
+            input.style.position = 'absolute';
+            input.style.left = `${screenX}px`;
+            input.style.top = `${screenY}px`;
+            input.style.fontSize = '16px';
+            input.style.width = '80px';
+            input.style.height = '30px';
+            input.style.zIndex = '1000';
+            input.style.border = '2px solid #101814';
+            input.style.padding = '4px';
+            input.style.textAlign = 'center';
+            
+            document.body.appendChild(input);
+            input.focus();
+            input.select();
+            
+            const handleBlur = () => {
+              const newValue = parseInt(input.value);
+              if (!isNaN(newValue)) {
+                numLabel.setText(`${newValue}`);
+                this.trackChange(categoryPath, newValue);
+              }
+              if (input.parentNode) {
+                input.remove();
               }
             };
             
-            this.rexUI.edit(numLabel, config);
+            input.addEventListener('blur', handleBlur);
+            input.addEventListener('keydown', (e) => {
+              if (e.key === 'Enter') {
+                input.blur();
+              } else if (e.key === 'Escape') {
+                if (input.parentNode) {
+                  input.remove();
+                }
+              }
+            });
           });
           
           numLabel.on('pointerover', () => {
@@ -427,19 +472,17 @@ export class RulesetEditor extends Scene {
             inputObject = checkboxButtons;
             optionContainer.add(checkboxButtons);
             
+            // Set button names first
             for (let i = 0; i < checkboxOptions.length; i++) {
               const optionName = checkboxOptions[i];
-              if (optionName !== undefined) {
+              if (optionName) {
                 checkboxButtons.getButton(i)?.setName(optionName);
               }
             }
-
-            // Set initial state if value is true
-            if (firstOption.value === true) {
-              const optionName = checkboxOptions[0];
-              if (optionName !== undefined) {
-                checkboxButtons.setButtonState(optionName, true);
-              }
+            
+            // Set initial state based on current value from ruleset
+            if (currentValue === true && checkboxOptions[0]) {
+              checkboxButtons.setButtonState(checkboxOptions[0], true);
             }
           }
           break;
@@ -467,15 +510,17 @@ export class RulesetEditor extends Scene {
             // Set button names for state management
             for (let i = 0; i < radioOptions.length; i++) {
               const optionName = radioOptions[i];
-              if (optionName !== undefined) {
+              if (optionName) {
                 radioButtons.getButton(i)?.setName(optionName);
               }
             }
             
-            // Set initial selected state based on current value
-            const currentValue = this.getValueFromPath(this.fieldPaths.get(String(category)) || "");
+            // Set initial selected state based on current value from ruleset
             if (currentValue !== undefined) {
-              radioButtons.setButtonState(String(currentValue), true);
+              const currentValueStr = String(currentValue);
+              if (radioOptions.includes(currentValueStr)) {
+                radioButtons.setButtonState(currentValueStr, true);
+              }
             }
           }
           break;
@@ -543,8 +588,7 @@ export class RulesetEditor extends Scene {
     }
   }
 
-    create_dropdown(options: string[], defaultValue?: string, onSelect?: (selectedOption: string) => void) {
-    // Create the dropdown using rex UI
+      create_dropdown(options: string[], defaultValue?: string, onSelect?: (selectedOption: string) => void) {
     const dropdown = this.rexUI.add.dropDownList({
       x: 0,
       y: 0,
@@ -570,7 +614,7 @@ export class RulesetEditor extends Scene {
           return scene.rexUI.add.roundRectangle(0, 0, 2, 2, 0, 0xffffff).setStrokeStyle(2, 0x101814);
         },
         
-        createButtonCallback: (scene: any, option: string) => {
+        createButtonCallback: (scene: any, option: string, index: number, options: any) => {
           return scene.rexUI.add.label({
             background: scene.rexUI.add.roundRectangle(0, 0, 2, 2, 0, 0xE9DFD9),
             text: scene.add.text(0, 0, option, {
@@ -582,8 +626,22 @@ export class RulesetEditor extends Scene {
               right: 10,
               top: 8,
               bottom: 8
-            }
+            },
+            name: option
           });
+        },
+        
+        onButtonClick: (button: any, index: number, pointer: any, event: any) => {
+          // Get the selected option text
+          const selectedValue = button.text || button.name;
+          
+          // Update the dropdown display text
+          dropdown.text = selectedValue;
+          
+          // Call the callback if provided
+          if (onSelect) {
+            onSelect(selectedValue);
+          }
         },
         
         onButtonOver: (button: any) => {
@@ -603,12 +661,7 @@ export class RulesetEditor extends Scene {
         }
       },
       
-      setValueCallback: (dropDownList: any, value: any) => {
-        dropDownList.text = value;
-        if (onSelect) {
-          onSelect(value);
-        }
-      }
+      value: defaultValue || options[0]
     });
     
     dropdown.layout();
