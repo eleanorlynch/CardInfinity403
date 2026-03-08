@@ -20,9 +20,11 @@ export class Rules extends Scene {
     const height = Number(this.game.config.height);
     const container_width = width * 0.75;
     const bg = this.add.image(this.cameras.main.width / 2, this.cameras.main.height / 2, "background");
+
     let scaleX = this.cameras.main.width / bg.width + 0.2;
     let scaleY = this.cameras.main.height / bg.height + 0.2;
     let scale = Math.max(scaleX, scaleY);
+
     bg.setScale(scale).setScrollFactor(0);
 
     const title_text = this.add
@@ -215,6 +217,7 @@ export class Rules extends Scene {
 
   handle_visibility() {
     let num_to_show: number;
+
     if (this.rulesets.size >= this.page_number * 5) {
       num_to_show = 5;
     } else {
@@ -226,6 +229,7 @@ export class Rules extends Scene {
     })
 
     let index = this.page_number * 5;
+
     while (index < (this.page_number) * 5 + num_to_show) {
       console.log(index);
       console.log(this.rulesets.get(this.rulesets_temp_delete_later.at(index)!.name));
@@ -252,11 +256,13 @@ export class Rules extends Scene {
 
     // Card background
     const ruleset_bg = this.add.graphics();
+
     ruleset_bg.fillStyle(0xffffff);
     ruleset_bg.lineStyle(2, 0x000000);
     ruleset_bg.fillRoundedRect(x_pos * -0.125, y_pos * -0.05, container_width * 0.9, 55, 5);
     ruleset_bg.strokeRoundedRect(x_pos * -0.125, y_pos * -0.05, container_width * 0.9, 55, 5);
     // ruleset_bg.setInteractive({useHandCursor: true})
+
     container.add(ruleset_bg);
 
     const ruleset_text = this.add.text(0, y_pos * -0.05 + 10, ruleset.name, {
@@ -265,6 +271,7 @@ export class Rules extends Scene {
       fontStyle: "bold",
       color: "#101814"
     });
+
     container.add(ruleset_text);
 
     container.setInteractive(new Phaser.Geom.Rectangle(-x_pos * 0.125, y_pos * -0.05, container_width * 0.9, 55), Phaser.Geom.Rectangle.Contains);
@@ -288,7 +295,6 @@ export class Rules extends Scene {
       this.scene.start("RulesetEditor", { name: ruleset.name });
     });
     container.setVisible(false);
-
 
     this.rulesets.set(ruleset.name, container);
   }

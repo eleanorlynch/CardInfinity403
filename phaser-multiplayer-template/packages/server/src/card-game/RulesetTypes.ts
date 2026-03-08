@@ -208,3 +208,83 @@ export interface DeckContents {
         suit: string;
     }>;
 }
+export type RuleInputKind = "nominal" | "numerical" | "radio" | "checkbox";
+
+export type RuleCategory =
+    | "General"
+    | "Start Rules"
+    | "Draw Rules"
+    | "Discard Rules"
+    | "Play Rules"
+    | "Hand Rules"
+    | "Win Conditions"
+    | "Card Abilities"
+    | "Deck";
+
+export interface RuleOption {
+    label: string;
+    value: string | number | boolean;
+}
+
+export interface RuleFieldMeta {
+    path: string;
+    label: string;
+    category: RuleCategory;
+    inputKind: RuleInputKind;
+    value: string | number | boolean;
+    options?: RuleOption[];
+}
+
+/**
+ * Parse a Ruleset into.
+ */
+export function toEditorFields(ruleset: Ruleset): RuleFieldMeta[] {
+    return [
+        { path: "minPlayers", label: "Min Players", category: "General", inputKind: "numerical", value: ruleset.minPlayers },
+        { path: "maxPlayers", label: "Max Players", category: "General", inputKind: "numerical", value: ruleset.maxPlayers },
+        {
+            path: "AValue",
+            label: "Ace Value",
+            category: "General",
+            inputKind: "radio",
+            value: ruleset.AValue,
+            options: [
+                { label: "1", value: 1 },
+                { label: "14", value: 14 },
+            ],
+        },
+        {
+            path: "turnOrder",
+            label: "Turn Order",
+            category: "General",
+            inputKind: "nominal",
+            value: ruleset.turnOrder,
+            options: [
+                { label: "Clockwise", value: "clockwise" },
+                { label: "Counterclockwise", value: "counterclockwise" },
+            ],
+        },
+        {
+            path: "drawRules.whenToDraw",
+            label: "When To Draw",
+            category: "Draw Rules",
+            inputKind: "nominal",
+            value: ruleset.drawRules.whenToDraw,
+            options: [
+                { label: "Start Of Turn", value: "startOfTurn" },
+                { label: "End Of Turn", value: "endOfTurn" },
+                { label: "After Play", value: "afterPlay" },
+                { label: "After Discard", value: "afterDiscard" },
+                { label: "Any", value: "any" },
+            ],
+        },
+        { path: "drawRules.minCardsToDraw", label: "Min Cards To Draw", category: "Draw Rules", inputKind: "numerical", value: ruleset.drawRules.minCardsToDraw },
+        { path: "drawRules.maxCardsToDraw", label: "Max Cards To Draw", category: "Draw Rules", inputKind: "numerical", value: ruleset.drawRules.maxCardsToDraw },
+        { path: "discardRules.minCardsToDiscard", label: "Min Cards To Discard", category: "Discard Rules", inputKind: "numerical", value: ruleset.discardRules.minCardsToDiscard },
+        { path: "discardRules.maxCardsToDiscard", label: "Max Cards To Discard", category: "Discard Rules", inputKind: "numerical", value: ruleset.discardRules.maxCardsToDiscard },
+        { path: "playRules.minCardsToPlay", label: "Min Cards To Play", category: "Play Rules", inputKind: "numerical", value: ruleset.playRules.minCardsToPlay },
+        { path: "playRules.maxCardsToPlay", label: "Max Cards To Play", category: "Play Rules", inputKind: "numerical", value: ruleset.playRules.maxCardsToPlay },
+        { path: "hasMaxNumRounds", label: "Has Max Num Rounds", category: "General", inputKind: "checkbox", value: ruleset.hasMaxNumRounds },
+    ];
+}
+
