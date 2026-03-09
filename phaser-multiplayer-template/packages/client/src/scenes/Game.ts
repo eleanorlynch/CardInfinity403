@@ -26,9 +26,17 @@ export class Game extends Scene {
     super("Game");
   }
 
-  create() {
+  async create() {
     // Reset all game state when entering the scene
-    this.resetGameState();
+    // Initialize game
+    await this.connectToRoom().catch((err) => {
+      console.error(err);
+      if (this.statusText) this.statusText.setText("Failed to connect");
+    });
+
+    // console.log("Connected to room " + this.room?.name)
+
+    // this.resetGameState();
 
     const width = Number(this.game.config.width);
     const height = Number(this.game.config.height);
@@ -173,11 +181,7 @@ export class Game extends Scene {
     });
 
 
-    // Initialize game
-    this.connectToRoom().catch((err) => {
-      console.error(err);
-      if (this.statusText) this.statusText.setText("Failed to connect");
-    });
+
   }
 
   resetGameState() {
@@ -204,7 +208,7 @@ export class Game extends Scene {
     // Reset game move manager
     // TODO: Make sure this replacement works
     if (this.room === undefined) {
-      console.warn("No room connection");
+      console.warn("No room connection, cannot reset ");
       return;
     }
 
@@ -224,7 +228,7 @@ export class Game extends Scene {
     var stateResult: any = null;
 
     if (this.room === undefined) {
-      console.warn("No room connection");
+      console.warn("No room connection, cannot update");
       return;
     }
 
@@ -429,7 +433,7 @@ export class Game extends Scene {
   // multiplayer handle draw using room
   handleDrawCard() {
     if (this.room === undefined) {
-      console.warn("No room connection");
+      console.warn("No room connection, cannot draw");
       return;
     }
 
@@ -443,7 +447,7 @@ export class Game extends Scene {
 
   handlePlayCard(cardId: string) {
     if (this.room === undefined) {
-      console.warn("No room connection");
+      console.warn("No room connection, cannot play card");
       return;
     }
 
@@ -464,12 +468,10 @@ export class Game extends Scene {
     const isHost: boolean = data?.isHost ?? true;
     const roomId: string | undefined = data?.roomId;
 
-    // Use localhost in dev, tunnel/production URL otherwise
-    const wsEndpoint = import.meta.env.DEV
-      ? "ws://localhost:3001"
-      : window.location.origin.replace(/^http/, "ws");
+    const url =
+      location.host === "localhost:3000" ? `ws://localhost:3001` : `wss://${location.host}/.proxy/api/colyseus`;
 
-    this.netClient = new ColyseusClient(wsEndpoint);
+    this.netClient = new ColyseusClient(`${url}`);
 
     try {
       if (isHost) {
