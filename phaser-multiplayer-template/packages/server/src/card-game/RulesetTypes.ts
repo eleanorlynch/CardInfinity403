@@ -374,7 +374,6 @@ export function toEditorFields(ruleset: Ruleset): RuleFieldMeta[] {
         { path: "minNumRounds", label: "Min Num Rounds", category: "General", inputKind: "numerical", value: ruleset.minNumRounds },
         { path: "hasMaxNumRounds", label: "Has Max Num Rounds", category: "General", inputKind: "checkbox", value: ruleset.hasMaxNumRounds },
         { path: "maxNumRounds", label: "Max Num Rounds", category: "General", inputKind: "numerical", value: ruleset.maxNumRounds },
-        // Find a way to make start rules mutually exclusive, and also they don't work (aside from choosing specific rank or suit)
         { path: "startRules.host.chosen", label: "Host Starts", category: "Start Rules", inputKind: "checkbox", value: ruleset.startRules.host.chosen },
         { path: "startRules.highestCard.chosen", label: "Highest Card Starts", category: "Start Rules", inputKind: "checkbox", value: ruleset.startRules.highestCard.chosen },
         { path: "startRules.lowestCard.chosen", label: "Lowest Card Starts", category: "Start Rules", inputKind: "checkbox", value: ruleset.startRules.lowestCard.chosen },

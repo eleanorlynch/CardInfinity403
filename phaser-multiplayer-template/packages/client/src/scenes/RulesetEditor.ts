@@ -26,6 +26,9 @@ export class RulesetEditor extends Scene {
   private editorFields: any[] = [];
   private fieldPaths: Map<string, string> = new Map();
 
+  // Track mutually exclusive checkbox groups
+  private mutuallyExclusiveGroups: Map<string, { paths: string[], buttons: Map<string, any> }> = new Map();
+
 
   init(args: any) {
     // TODO: remove (replace really) below line once we're passing in the actual ruleset
@@ -460,6 +463,10 @@ export class RulesetEditor extends Scene {
           inputObject = numLabel;
           break;
           
+        // ...existing code...
+
+        // ...existing code...
+
         case "CHECKBOX":
           // Checkbox buttons - collect all checkbox options
           const checkboxOptions = cat_options
@@ -467,13 +474,20 @@ export class RulesetEditor extends Scene {
             .map(opt => String(opt.value));
           
           if (checkboxOptions.length > 0) {
+            const categoryPathForCheckbox = this.fieldPaths.get(String(category)) || String(category);
+            
             const checkboxButtons = this.create_buttons_container(
               String(category),
               false,
               checkboxOptions,
-              (selectedOption: string) => {
-                const path = this.fieldPaths.get(String(category)) || String(category);
-                this.trackChange(path, selectedOption);
+              (selectedOption: string, isSelected?: boolean) => {
+                const path = categoryPathForCheckbox;
+                // Handle mutually exclusive groups
+                if (isSelected === true) {
+                  this.handleMutuallyExclusiveSelection(path, true);
+                }
+                // Track the boolean state
+                this.trackChange(path, isSelected === true);
               }
             );
             checkboxButtons.setPosition(150, 10);
@@ -488,12 +502,21 @@ export class RulesetEditor extends Scene {
               }
             }
             
+            // Register for mutually exclusive handling
+            if (checkboxOptions[0]) {
+              this.registerMutuallyExclusiveCheckbox(categoryPathForCheckbox, checkboxButtons, checkboxOptions[0]);
+            }
+            
             // Set initial state based on current value from ruleset
             if (currentValue === true && checkboxOptions[0]) {
               checkboxButtons.setButtonState(checkboxOptions[0], true);
             }
           }
           break;
+
+// ...existing code...
+
+// ...existing code...
           
         case "RADIO":
           // Radio buttons - collect all radio options
@@ -681,8 +704,10 @@ export class RulesetEditor extends Scene {
 
   }
 
+  // ...existing code...
+
   // Creates a row w/ buttons
-  create_buttons_container(title: string, radio: boolean, options: string[], onSelect?: (selectedOption: string) => void) {
+  create_buttons_container(title: string, radio: boolean, options: string[], onSelect?: (selectedOption: string, isSelected?: boolean) => void) {
 
     // making a row that has buttons in it
     // should probably have wrapping 
@@ -707,8 +732,9 @@ export class RulesetEditor extends Scene {
       type: ((radio) ? 'radio' : 'checkboxes'),
       setValueCallback: function (button, value) {
         ((button as Label).getElement("icon") as GameObjects.Arc)!.setFillStyle((value) ? 0xffffff : undefined);
-        if (value && onSelect) {
-          onSelect((button as any).name);
+        if (onSelect) {
+          // Always call onSelect with the button name and the new value
+          onSelect((button as any).name, value);
         }
       }
     })
@@ -716,6 +742,8 @@ export class RulesetEditor extends Scene {
 
     return buttons;
   }
+
+// ...existing code...
 
   // Creates a singular checkbox button
   create_checkbox_button(text: string, name: string) {
@@ -762,6 +790,65 @@ export class RulesetEditor extends Scene {
     return button;
   }
 
+  // Define which fields are mutually exclusive (only one can be true at a time)
+  private getMutuallyExclusiveGroup(path: string): string | null {
+    // Define groups of mutually exclusive options
+    const whoStartsFields = [
+      'startRules.host.chosen',
+      'startRules.highestCard.chosen', 
+      'startRules.lowestCard.chosen',
+      'startRules.mostOfOneSuit.chosen',
+      'startRules.mostOfOneRank.chosen'
+    ];
+    
+    if (whoStartsFields.includes(path)) {
+      return 'whoStarts';
+    }
+    
+    // Add more mutually exclusive groups here as needed
+    // Example:
+    // const winConditionFields = ['winConditions.firstToScore', 'winConditions.lastStanding', ...];
+    // if (winConditionFields.includes(path)) {
+    //   return 'winConditions';
+    // }
+    
+    return null;
+  }
+
+  // Register a checkbox button for a mutually exclusive group
+  private registerMutuallyExclusiveCheckbox(path: string, buttonContainer: any, buttonName: string) {
+    const groupName = this.getMutuallyExclusiveGroup(path);
+    if (!groupName) return;
+    
+    if (!this.mutuallyExclusiveGroups.has(groupName)) {
+      this.mutuallyExclusiveGroups.set(groupName, { paths: [], buttons: new Map() });
+    }
+    
+    const group = this.mutuallyExclusiveGroups.get(groupName)!;
+    if (!group.paths.includes(path)) {
+      group.paths.push(path);
+    }
+    group.buttons.set(path, { container: buttonContainer, buttonName: buttonName });
+  }
+
+  // Handle mutually exclusive checkbox selection - uncheck others in the same group
+  private handleMutuallyExclusiveSelection(path: string, isSelected: boolean) {
+    const groupName = this.getMutuallyExclusiveGroup(path);
+    if (!groupName || !isSelected) return;
+    
+    const group = this.mutuallyExclusiveGroups.get(groupName);
+    if (!group) return;
+    
+    // Uncheck all other checkboxes in this group and track the changes
+    for (const [otherPath, buttonInfo] of group.buttons.entries()) {
+      if (otherPath !== path) {
+        // Uncheck the button visually
+        buttonInfo.container.setButtonState(buttonInfo.buttonName, false);
+        // Track the change as false
+        this.trackChange(otherPath, false);
+      }
+    }
+  }
 
   // Populates the list of categories
   /*populate_options(width: number, height: number, container_width: number) {
