@@ -48,6 +48,7 @@ export class Game extends Scene {
     // TABLE LAYOUT
     // =========================
     const tableGraphics = this.add.graphics();
+
     tableGraphics.lineStyle(2, 0xE9DFD9, 0.6);
 
     // Outer table
@@ -184,16 +185,18 @@ export class Game extends Scene {
   }
 
   resetGameState() {
+    const gameId = this.gameId;
+
     // Clean up existing sprites
     this.cardSprites.forEach(sprite => sprite.destroy());
     this.cardSprites.clear();
-
-    if (this.discardPileSprite) {
+    
+    if (this.discardPileSprite !== null) {
       this.discardPileSprite.destroy();
       this.discardPileSprite = null;
     }
-
-    if (this.deckSprite) {
+    
+    if (this.deckSprite !== null) {
       this.deckSprite.destroy();
       this.deckSprite = null;
     }
@@ -204,54 +207,58 @@ export class Game extends Scene {
 
     // Reset game move manager
     // TODO: Make sure this replacement works
-    if (!this.room) {
+    if (this.room === undefined) {
       console.warn("No room connection, cannot reset ");
       return;
     }
 
-    if (this.netState?.gameOver) {
+    if (this.netState?.gameOver === true) {
       return;
     }
 
     console.log("Sending END_GAME to server");
-    const gameId = this.gameId;
     this.room.send("END_GAME", { gameId });
   }
 
   updateDisplay() {
-    if (!this.room) {
+    const gameId = this.gameId;
+    const playerId = this.playerId;
+
+    var game = null;
+    var stateResult: any = null;
+
+    if (this.room === undefined) {
       console.warn("No room connection, cannot update");
       return;
     }
 
-    if (this.netState?.gameOver) {
+    if (this.netState?.gameOver === true) {
       return;
     }
 
     console.log("Sending GET_GAME to server");
-    const gameId = this.gameId;
     this.room.send("GET_GAME", { gameId });
-    var game = null;
+    
     this.room.onMessage("GAME", (state) => {
       game = state;
     })
 
-    // Get the actual game object for winner checking
-
-    if (!game) return;
-
-    // Get game state
-    var stateResult: any = null;
-    console.log("Sending GET_GAME_STATE to server");
-    const playerId = this.playerId;
-    this.room.send("GET_GAME_STATE", { gameId, playerId });
-    this.room.onMessage("GAME_STATE", (state) => {
-      stateResult = state;
-    })
-
-    if (!stateResult.success || !stateResult.gameState) {
+    // Get the actual game object for winner checking   
+    if (game === null) {
       return;
     }
+
+    // Get game state
+   console.log("Sending GET_GAME_STATE to server");
+   this.room.send("GET_GAME_STATE", { gameId, playerId });
+
+   this.room.onMessage("GAME_STATE", (state) => {
+    stateResult = state;
+   })
+    
+   if (stateResult.success === false || (stateResult.gameState === undefined || stateResult.gameState === null)) {
+      return;
+   }
 
     const gameState = stateResult.gameState;
     const width = Number(this.game.config.width);
@@ -259,16 +266,17 @@ export class Game extends Scene {
 
     console.log("Sending CHECK_WINNER to server");
     this.room.send("CHECK_WINNER");
+
     var winnerResult: any = null;
     this.room.onMessage("GAME_OVER", (winnerId) => {
       winnerResult = winnerId;
     })
 
     // Update status text
-    if (this.statusText) {
+    if (this.statusText !== null) {
       if (winnerResult) {
         this.statusText.setText(`You win！${winnerResult.message}`);
-      } else if (gameState.gameOver) {
+      } else if (gameState.gameOver === true) {
         this.statusText.setText("Game Over！");
       } else {
         this.statusText.setText(`Hand: ${gameState.myHand.length} cards | Deck: ${gameState.deckCount} cards`);
@@ -276,7 +284,7 @@ export class Game extends Scene {
     }
 
     // Update draw button visibility
-    if (this.drawButton) {
+    if (this.drawButton !== null) {
       this.drawButton.setVisible(!gameState.gameOver);
     }
 
@@ -288,7 +296,7 @@ export class Game extends Scene {
     this.displayHand(gameState.myHand, width * 0.5, height * 0.82);
 
     // Display discard pile in center
-    if (gameState.discardTop) {
+    if (gameState.discardTop !== null && gameState.discardTop !== undefined) {
       this.displayDiscardPile(gameState.discardTop, width * 0.5, height * 0.45);
     }
 
@@ -308,14 +316,15 @@ export class Game extends Scene {
   }
 
   displayDiscardPile(card: Card, x: number, y: number) {
-    if (this.discardPileSprite) {
+    if (this.discardPileSprite !== null) {
       this.discardPileSprite.destroy();
     }
+
     this.discardPileSprite = this.createCardSprite(card, x, y, 1, false);
   }
 
   displayDeckCount(count: number, x: number, y: number) {
-    if (this.deckSprite) {
+    if (this.deckSprite !== null) {
       this.deckSprite.destroy();
     }
 
@@ -323,6 +332,7 @@ export class Game extends Scene {
 
     // Draw card back
     const cardBack = this.add.graphics();
+
     cardBack.fillStyle(0x1a4d8c);
     cardBack.fillRoundedRect(-30, -45, 60, 90, 5);
     cardBack.lineStyle(2, 0xffffff);
@@ -337,6 +347,7 @@ export class Game extends Scene {
       backgroundColor: "#000000",
       padding: { x: 5, y: 2 }
     }).setOrigin(0.5);
+
     container.add(countText);
 
     this.deckSprite = container;
@@ -347,6 +358,7 @@ export class Game extends Scene {
 
     // Card background
     const cardBg = this.add.graphics();
+
     cardBg.fillStyle(0xffffff);
     cardBg.fillRoundedRect(-30, -45, 60, 90, 5);
     cardBg.lineStyle(2, 0x000000);
@@ -378,6 +390,7 @@ export class Game extends Scene {
       color: suitColor,
       fontStyle: "bold"
     });
+
     container.add(suitText);
 
     // Large suit symbol in center
@@ -386,6 +399,7 @@ export class Game extends Scene {
       fontSize: "36px",
       color: suitColor
     }).setOrigin(0.5);
+
     container.add(centerSuit);
 
     container.setScale(scale);
@@ -412,17 +426,18 @@ export class Game extends Scene {
   }
 
   isGameOver(): boolean {
-    return !!this.netState?.gameOver; // !! ensures that if netState is undefined or null, then it returns false (essentially same as a Boolean cast)
+    // !! ensures that if netState is undefined or null, then it returns false (essentially same as a Boolean cast)
+    return !!this.netState?.gameOver;
   }
 
   // multiplayer handle draw using room
   handleDrawCard() {
-    if (!this.room) {
+    if (this.room === undefined) {
       console.warn("No room connection, cannot draw");
       return;
     }
 
-    if (this.netState?.gameOver) {
+    if (this.netState?.gameOver === true) {
       return;
     }
 
@@ -431,12 +446,12 @@ export class Game extends Scene {
   }
 
   handlePlayCard(cardId: string) {
-    if (!this.room) {
+    if (this.room === undefined) {
       console.warn("No room connection, cannot play card");
       return;
     }
 
-    if (this.netState?.gameOver) {
+    if (this.netState?.gameOver === true) {
       return;
     }
 
@@ -469,7 +484,9 @@ export class Game extends Scene {
   }
 
   private updateDisplayFromNet() {
-    if (!this.netState) return;
+    if (this.netState === undefined || this.netState === null) {
+      return;
+    }
 
     const width = Number(this.game.config.width);
     const height = Number(this.game.config.height);
@@ -483,7 +500,7 @@ export class Game extends Scene {
     const deckCount: number = this.netState.deckCount ?? 0;
     const gameOver: boolean = this.netState.gameOver ?? false;
 
-    if (this.statusText) {
+    if (this.statusText !== null) {
       if (gameOver) {
         this.statusText.setText("Game Over!");
       } else {
@@ -495,22 +512,21 @@ export class Game extends Scene {
       }
     }
 
-    if (this.drawButton) {
+    if (this.drawButton !== null) {
       this.drawButton.setVisible(!gameOver && !!this.netState?.isMyTurn);
     }
 
-    if (this.endTurnButton) {
+    if (this.endTurnButton !== null) {
       this.endTurnButton.setVisible(!gameOver && !!this.netState?.isMyTurn);
     }
 
     // Render from server state
     this.displayHand(myHand, width * 0.5, height * 0.82);
 
-    if (discardTop) {
+    if (discardTop !== null) {
       this.displayDiscardPile(discardTop, width * 0.5, height * 0.45);
     }
 
     this.displayDeckCount(deckCount, width * 0.3, height * 0.45);
   }
-
 }
