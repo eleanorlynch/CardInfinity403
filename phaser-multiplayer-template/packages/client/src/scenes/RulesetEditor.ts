@@ -45,10 +45,10 @@ export class RulesetEditor extends Scene {
       try {
         alert("Loaded ruleset from database:\n\n" + JSON.stringify(this.baseRuleset, null, 2));
       } catch (e) {
-        console.log("Ruleset loaded (alert suppressed):", this.baseRuleset);
+        alert("Could not display loaded ruleset due to error: " + (e instanceof Error ? e.message : String(e)));
       }
     } else {
-      this.baseRuleset = JSON.parse(JSON.stringify(DefaultRulesetData));
+      this.baseRuleset = DefaultRulesetData;
     }
 
     //Static elems
@@ -111,7 +111,7 @@ export class RulesetEditor extends Scene {
     });
 
     const saveButton = this.add
-      .text(width * 0.95, height * 0.1, "Save →", {
+      .text(width * 0.95, height * 0.1, "Save ✓", {
         fontFamily: "Arial",
         fontSize: "20px",
         color: "#E9DFD9",
@@ -403,13 +403,13 @@ export class RulesetEditor extends Scene {
       console.error("Error fetching ruleset by name:", error);
       alert("Error fetching ruleset: " + (error instanceof Error ? error.message : String(error)));
       return null;
-  }
+    }
   }
 
   // Merge user changes with default ruleset values
   private getMergedRuleset(): any {
     // Deep clone the base ruleset (either fetched existing ruleset or default)
-    const merged: any = JSON.parse(JSON.stringify(this.baseRuleset));
+    const merged: any = this.baseRuleset;
 
     // Apply user changes
     Array.from(this.ruleChanges.entries()).forEach(([key, value]) => {
