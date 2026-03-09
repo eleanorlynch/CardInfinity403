@@ -11,6 +11,8 @@ import * as rulesetDb from "./rulesetDb";
 import * as sessionDb from "./sessionDb";
 import type { Ruleset } from "./card-game/RulesetTypes";
 import { initRulesetsSchema, initCurrentSessionSchema, isDatabaseConfigured } from "./db";
+import { toEditorFields } from "./card-game/RulesetTypes";
+import DefaultRulesetData from "./card-game/DefaultRuleset.json";
 
 dotenv.config({ path: "../../.env" });
 
@@ -55,6 +57,24 @@ router.get("/rulesets", async (req: Request, res: Response) => {
     res.json(list);
   } catch (e) {
     res.status(500).json({ error: (e as Error).message });
+  }
+});
+
+router.get("/rulesets/editorFields/:name", async (req: Request, res: Response) => {
+  const name = decodeURIComponent(req.params.name);
+
+  if (name === undefined || name === null || typeof name !== "string" || !name.trim()) {
+    res.status(400).json({ error: "Missing or invalid ruleset name" });
+    return;
+  }
+
+  const row = await rulesetDb.getRulesetByName(name);
+  const defaultRuleset: Ruleset = DefaultRulesetData as Ruleset;
+
+  if (row === undefined) {
+    res.json({ data: toEditorFields(defaultRuleset) });
+  } else {
+    res.json({ data: toEditorFields(row.data) });
   }
 });
 
@@ -145,6 +165,50 @@ router.get("/sessions/:user_id/:session_number", async (req: Request, res: Respo
   } catch (e) {
     res.status(500).json({ error: (e as Error).message });
   }
+});
+
+// Fetch ruleset by name
+router.get("/rulesets/by-name/:name", async (req: Request, res: Response) => {
+  const name = decodeURIComponent(req.params.name);
+
+  if (name === undefined || name === null || typeof name !== "string" || !name.trim()) {
+    res.status(400).json({ error: "Missing or invalid ruleset name" });
+    return;
+  }
+
+  const row = await rulesetDb.getRulesetByName(name);
+
+  if (row === undefined) {
+    res.status(404).json({ error: "Ruleset not found" });
+    return;
+  }
+
+  res.json(row);
+});
+
+router.put("/rulesets/by-name/:name", async (req: Request, res: Response) => {
+  const name = decodeURIComponent(req.params.name);
+
+  if (name === undefined || name === null || typeof name !== "string" || !name.trim()) {
+    res.status(400).json({ error: "Missing or invalid ruleset name" });
+    return;
+  }
+
+  const data = req.body;
+
+  if (data === undefined || data === null || typeof data !== "object") {
+    res.status(400).json({ error: "Invalid ruleset body" });
+    return;
+  }
+
+  const row = await rulesetDb.updateRulesetByName(name, data as Ruleset);
+
+  if (row === undefined) {
+    res.status(404).json({ error: "Ruleset not found" });
+    return;
+  }
+
+  res.json(row);
 });
 
 if (process.env.NODE_ENV === "production") {

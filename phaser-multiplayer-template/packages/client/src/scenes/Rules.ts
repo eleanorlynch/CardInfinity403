@@ -1,4 +1,4 @@
-import { Ruleset } from "../rules/Ruleset";
+import { RulesetClass } from "../rules/RulesetClass";
 import { Scene } from "phaser";
 import type { LoadedRuleset } from "../utils/server/loadRuleset";
 import { listRulesets } from "../utils/server/loadRuleset";
@@ -9,7 +9,7 @@ export class Rules extends Scene {
     super("Rules");
   }
 
-  rulesets_temp_delete_later: (Ruleset | LoadedRuleset)[] = [];
+  rulesets_temp_delete_later: (LoadedRuleset | RulesetClass)[] = [];
   rulesets: Map<string, Phaser.GameObjects.Container> = new Map();
   page_number: number = 0;
 
@@ -190,27 +190,26 @@ export class Rules extends Scene {
     try {
       const list = await listRulesets();
       this.rulesets_temp_delete_later = list.length > 0 ? list : [
-        new Ruleset("uno"),
-        new Ruleset("Default (no saved ruleset)")
+        new RulesetClass("uno"),
+        new RulesetClass("Default (no saved ruleset)")
       ];
     } catch {
       this.rulesets_temp_delete_later = [
-        new Ruleset("uno"),
-        new Ruleset("hiii"),
-        new Ruleset("the joke one"),
-        new Ruleset("e"),
-        new Ruleset("th is me")
+        new RulesetClass("uno"),
+        new RulesetClass("hiii"),
+        new RulesetClass("the joke one"),
+        new RulesetClass("e"),
+        new RulesetClass("th is me")
       ];
     }
     this.populate_rulesets(width, height, container_width);
     this.handle_visibility();
   }
+
+  handle_navigation_click(increment: number) {
     if (increment > 0 || this.page_number > 0) {
       this.page_number += increment;
     }
-
-    // not really sure if this should be a function?
-    // TODO: check style guide
   }
 
   populate_rulesets(width: number, height: number, container_width: number) {
@@ -231,14 +230,14 @@ export class Rules extends Scene {
     }
     const list = this.rulesets_temp_delete_later;
     list.forEach((r) => {
-      const key = "id" in r && typeof (r as LoadedRuleset).id === "number" ? `id-${(r as LoadedRuleset).id}` : (r as Ruleset).name;
+      const key = "id" in r && typeof (r as LoadedRuleset).id === "number" ? `id-${(r as LoadedRuleset).id}` : (r as RulesetClass).name;
       const container = this.rulesets.get(key);
       if (container) container.setVisible(false);
     });
     let index = this.page_number * 5;
     while (index < (this.page_number) * 5 + num_to_show && index < list.length) {
       const r = list[index];
-      const key = r && "id" in r && typeof (r as LoadedRuleset).id === "number" ? `id-${(r as LoadedRuleset).id}` : (r as Ruleset).name;
+      const key = r && "id" in r && typeof (r as LoadedRuleset).id === "number" ? `id-${(r as LoadedRuleset).id}` : (r as RulesetClass).name;
       const container = this.rulesets.get(key);
       if (container) container.setVisible(true);
       index += 1;
@@ -255,7 +254,7 @@ export class Rules extends Scene {
     // this.make_ruleset_entry_card(new Ruleset("test"), 100, 100);
   }
 
-  make_ruleset_entry_card(ruleset: Ruleset | LoadedRuleset, x_pos: number, y_pos: number, container_width: number) {
+  make_ruleset_entry_card(ruleset: LoadedRuleset | RulesetClass, x_pos: number, y_pos: number, container_width: number) {
     const name = ruleset.name;
     const id = "id" in ruleset && typeof (ruleset as LoadedRuleset).id === "number" ? (ruleset as LoadedRuleset).id : null;
     const key = id != null ? `id-${id}` : name;

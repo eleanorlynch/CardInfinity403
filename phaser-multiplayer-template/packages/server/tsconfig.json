@@ -11,6 +11,7 @@
       "emitDecoratorMetadata": true,
       "noEmit": false,
       "moduleResolution": "node",
+      "resolveJsonModule": true
 
     },
     "include": ["src/**/*.ts", "./environment.d.ts"],

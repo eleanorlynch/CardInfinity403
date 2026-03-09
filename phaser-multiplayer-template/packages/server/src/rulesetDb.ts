@@ -131,6 +131,24 @@ export async function getRulesetById(
   return Promise.resolve(rows.find((r) => r.id === id));
 }
 
+export function getRulesetByNameSync(name: string): SavedRulesetRow | undefined {
+  return rows.find((r) => r.name === name);
+}
+
+export async function getRulesetByName(name: string): Promise<SavedRulesetRow | undefined> {
+  if (isDatabaseConfigured()) {
+    const sql = getSql();
+    const result = await sql`
+      SELECT id, name, description, created_at, updated_at, data
+      FROM rulesets
+      WHERE name = ${name}
+    `;
+    const row = (result as { id: number; name: string; description: string; created_at: Date | string; updated_at: Date | string; data: Ruleset }[])[0];
+    return row ? rowFromDb(row) : undefined;
+  }
+  return Promise.resolve(rows.find((r) => r.name === name));
+}
+
 export async function insertRuleset(data: Ruleset): Promise<SavedRulesetRow> {
   if (isDatabaseConfigured()) {
     const sql = getSql();
@@ -185,4 +203,34 @@ export async function updateRuleset(
   rows[idx] = row;
   saveToFile();
   return Promise.resolve(row);
+}
+
+export async function updateRulesetByName(
+  name: string,
+  data: Ruleset
+): Promise<SavedRulesetRow | undefined> {
+  if (isDatabaseConfigured()) {
+    const sql = getSql();
+    const result = await sql`
+      UPDATE rulesets
+      SET name = ${data.name}, description = ${data.description ?? ""}, data = ${JSON.stringify(data)}::jsonb, updated_at = now()
+      WHERE name = ${name}
+      RETURNING id, name, description, created_at, updated_at, data
+    `;
+    const row = (result as { id: number; name: string; description: string; created_at: Date | string; updated_at: Date | string; data: Ruleset }[])[0];
+    return row ? rowFromDb(row) : undefined;
+  }
+  const idx = rows.findIndex((r) => r.name === name);
+  if (idx === -1) return undefined;
+  const now = new Date().toISOString();
+  const row: SavedRulesetRow = {
+    ...rows[idx]!,
+    name: data.name,
+    description: data.description,
+    updated_at: now,
+    data: { ...data },
+  };
+  rows[idx] = row;
+  saveToFile();
+  return row;
 }
