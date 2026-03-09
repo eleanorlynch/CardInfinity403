@@ -280,8 +280,17 @@ export class RulesetEditor extends Scene {
 
   // Handles page navigation. Visibility change should happen here if possible.
   handle_navigation_click(increment: number) {
-    if (increment > 0 || this.page_number > 0) {
+   /* if (increment > 0 || this.page_number > 0) {
       this.page_number += increment;
+    }*/
+   const itemsPerPage = 5;
+    const totalItems = this.option_objects.size;
+    const maxPage = Math.max(0, Math.ceil(totalItems / itemsPerPage) - 1);
+    
+    const newPage = this.page_number + increment;
+    
+    if (newPage >= 0 && newPage <= maxPage) {
+      this.page_number = newPage;
     }
   }
 
@@ -311,7 +320,6 @@ export class RulesetEditor extends Scene {
     const spacing = height * 0.1;
     const itemsPerPage = 5;
     
-    let currentY = startY;
     let optionIndex = 0;
     
     for (const [category, cat_options] of this.options.entries()) {
@@ -534,19 +542,19 @@ export class RulesetEditor extends Scene {
         this.option_objects.set(firstOption, optionContainer);
       }
       
-      // Position the container
-      optionContainer.setPosition(startX, currentY);
+      // Position the container - use modulo for Y position within page
+      const yPositionInPage = (optionIndex % itemsPerPage) * spacing;
+      optionContainer.setPosition(startX, startY + yPositionInPage);
       
-      // Set visibility based on current page
+      // Set initial visibility based on current page
       const itemPage = Math.floor(optionIndex / itemsPerPage);
       optionContainer.setVisible(itemPage === this.page_number);
       
-      currentY += spacing;
       optionIndex++;
     }
     
     console.log(`Created ${this.option_objects.size} option objects`);
-  }
+  };
 
   // Helper function to get a value from the base ruleset using a dot-notation path
   private getValueFromPath(path: string): any {
@@ -895,7 +903,7 @@ export class RulesetEditor extends Scene {
 
   // Hides and shows options while navigating
   handle_visibility() {
-    let num_to_show: number;
+   /* let num_to_show: number;
     if (this.option_objects.size >= this.page_number * 5) {
       num_to_show = 5;
     } else {
@@ -914,7 +922,39 @@ export class RulesetEditor extends Scene {
       // console.log(this.rulesets.get(this.rulesets_temp_delete_later.at(index)!.name));
       // this.rulesets.get(this.rulesets_temp_delete_later.at(index)!.name)!.setVisible(true);
       index += 1;
+    }*/
+   const itemsPerPage = 5;
+    const totalItems = this.option_objects.size;
+    const maxPage = Math.max(0, Math.ceil(totalItems / itemsPerPage) - 1);
+    
+    // Clamp page number to valid range
+    if (this.page_number > maxPage) {
+      this.page_number = maxPage;
     }
+    if (this.page_number < 0) {
+      this.page_number = 0;
+    }
+    
+    // Hide all options first
+    for (const [option, optionContainer] of this.option_objects.entries()) {
+      optionContainer.setVisible(false);
+    }
+    
+    // Calculate which items to show
+    const startIndex = this.page_number * itemsPerPage;
+    const endIndex = Math.min(startIndex + itemsPerPage, totalItems);
+    
+    // Show only options for current page
+    let currentIndex = 0;
+    for (const [option, optionContainer] of this.option_objects.entries()) {
+      if (currentIndex >= startIndex && currentIndex < endIndex) {
+        optionContainer.setVisible(true);
+      }
+      currentIndex++;
+    }
+    
+    console.log(`Showing page ${this.page_number}: items ${startIndex} to ${endIndex - 1} of ${totalItems}`);
+
   }
 
   // Track a change made by the user to a rule option
