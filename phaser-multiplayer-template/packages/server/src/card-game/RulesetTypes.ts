@@ -298,7 +298,7 @@ export function toEditorFields(ruleset: Ruleset): RuleFieldMeta[] {
         { path: "discardRules.maxCardsToDiscard", label: "Max Cards To Discard", category: "Discard Rules", inputKind: "numerical", value: ruleset.discardRules.maxCardsToDiscard },
         {
             path: "discardRules.cardMustMatch",
-            label: "Card Must Match",
+            label: "Card Discarded Must Match What Aspect of the Top Card",
             category: "Discard Rules",
             inputKind: "nominal",
             value: ruleset.discardRules.cardMustMatch,
@@ -313,7 +313,7 @@ export function toEditorFields(ruleset: Ruleset): RuleFieldMeta[] {
         },
         {
             path: "discardRules.cardMustNotMatch",
-            label: "Card Must Not Match",
+            label: "Card Discarded Must Not Match What Aspect of the Top Card",
             category: "Discard Rules",
             inputKind: "nominal",
             value: ruleset.discardRules.cardMustNotMatch,
@@ -342,7 +342,7 @@ export function toEditorFields(ruleset: Ruleset): RuleFieldMeta[] {
         { path: "playRules.maxCardsToPlay", label: "Max Cards To Play", category: "Play Rules", inputKind: "numerical", value: ruleset.playRules.maxCardsToPlay },
         {
             path: "playRules.cardMustMatch",
-            label: "Card Must Match",
+            label: "Card Played Must Match What Aspect of the Top Card",
             category: "Play Rules",
             inputKind: "nominal",
             value: ruleset.playRules.cardMustMatch,
@@ -357,7 +357,7 @@ export function toEditorFields(ruleset: Ruleset): RuleFieldMeta[] {
         },
         {
             path: "playRules.cardMustNotMatch",
-            label: "Card Must Not Match",
+            label: "Card Played Must Not Match What Aspect of the Top Card",
             category: "Play Rules",
             inputKind: "nominal",
             value: ruleset.playRules.cardMustNotMatch,
@@ -427,7 +427,8 @@ export function toEditorFields(ruleset: Ruleset): RuleFieldMeta[] {
                 { label: "Any", value: "any" },
             ],
         },
-        { path: "winConditions.collectsSetOfCards.chosen", label: "Collects Set Of Cards", category: "Win Conditions", inputKind: "checkbox", value: ruleset.winConditions.collectsSetOfCards.chosen },
+        // TODO: Add a way to choose a set of cards for the win condition of collectsSetOfCards
+      //  { path: "winConditions.collectsSetOfCards.chosen", label: "Collects Set Of Cards", category: "Win Conditions", inputKind: "checkbox", value: ruleset.winConditions.collectsSetOfCards.chosen },
         { path: "winConditions.mostCardsInHand.chosen", label: "Most Cards In Hand Wins", category: "Win Conditions", inputKind: "checkbox", value: ruleset.winConditions.mostCardsInHand.chosen },
         { path: "winConditions.leastCardsInHand.chosen", label: "Least Cards In Hand Wins", category: "Win Conditions", inputKind: "checkbox", value: ruleset.winConditions.leastCardsInHand.chosen },
         { path: "winConditions.lastToHaveCardsInHand.chosen", label: "Last To Have Cards Wins", category: "Win Conditions", inputKind: "checkbox", value: ruleset.winConditions.lastToHaveCardsInHand.chosen },
