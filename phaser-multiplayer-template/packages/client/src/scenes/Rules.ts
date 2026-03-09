@@ -289,6 +289,18 @@ export class Rules extends Scene {
         this.scene.start("Game");
       });
       container.add(playBtn);
+      const editBtn = this.add.text(container_width * 0.55, y_pos * -0.05 + 15, "Edit", {
+        fontFamily: "Arial",
+        fontSize: "16px",
+        color: "#101814",
+        backgroundColor: "#EBC9B3",
+        padding: { x: 8, y: 4 }
+      }).setOrigin(0, 0.5).setInteractive({ useHandCursor: true });
+      editBtn.on("pointerdown", (e: Phaser.Input.Pointer) => {
+        e.event.stopPropagation();
+        this.scene.start("RulesetEditor", { name });
+      });
+      container.add(editBtn);
     }
 
     container.setInteractive(new Phaser.Geom.Rectangle(-x_pos * 0.125, y_pos * -0.05, container_width * 0.9, 55), Phaser.Geom.Rectangle.Contains);
@@ -307,7 +319,6 @@ export class Rules extends Scene {
     });
 
     container.on("pointerdown", () => {
-      if (id != null) return;
       this.rulesets_temp_delete_later = [];
       this.scene.start("RulesetEditor", { name });
     });

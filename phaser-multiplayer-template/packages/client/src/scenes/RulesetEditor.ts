@@ -1021,8 +1021,8 @@ export class RulesetEditor extends Scene {
 
       const savedRuleset = await response.json();
       console.log("Ruleset saved successfully:", savedRuleset);
-      // TODO: Remove this later, it is only here to confirm that saving works and show the result
-      alert("Ruleset saved successfully!\n\n" + JSON.stringify(savedRuleset.data, null, 2));
+      const savedTo = savedRuleset.savedTo === "neon" ? "Neon" : "locally";
+      alert(`Ruleset saved successfully (${savedTo})!\n\n` + JSON.stringify(savedRuleset.data, null, 2));
       
       // Clear in-memory changes after successful save
       this.ruleChanges.clear();

@@ -2,6 +2,7 @@ import { MonitorOptions, monitor } from "@colyseus/monitor";
 import { Server } from "colyseus";
 import dotenv from "dotenv";
 import express, { Application, Request, Response } from "express";
+import fs from "fs";
 import { createServer } from "http";
 import { WebSocketTransport } from "@colyseus/ws-transport";
 import path from "path";
@@ -14,7 +15,26 @@ import { initRulesetsSchema, initCurrentSessionSchema, isDatabaseConfigured } fr
 import { toEditorFields } from "./card-game/RulesetTypes";
 import DefaultRulesetData from "./card-game/DefaultRuleset.json";
 
-dotenv.config({ path: "../../.env" });
+// Load .env: try multiple locations so it works from any run directory
+const envPaths = [
+  path.resolve(__dirname, "..", "..", ".env"),           // template/.env (from dist/ or src/)
+  path.resolve(__dirname, "..", ".env"),                  // server/.env
+  path.resolve(process.cwd(), "..", "..", ".env"),        // template/.env (cwd = server)
+  path.resolve(process.cwd(), ".env"),                    // cwd/.env
+];
+for (const envPath of envPaths) {
+  if (fs.existsSync(envPath)) {
+    const result = dotenv.config({ path: envPath });
+    if (process.env.DATABASE_URL) break;
+    if (result.error) console.warn("dotenv at", envPath, "error:", result.error.message);
+  }
+}
+if (!process.env.DATABASE_URL) {
+  console.warn(
+    "[env] DATABASE_URL not set. Tried (first existing wins):",
+    envPaths.map((p) => (fs.existsSync(p) ? p : null)).filter(Boolean)
+  );
+}
 
 const app: Application = express();
 const router = express.Router();
@@ -104,7 +124,8 @@ router.post("/rulesets", async (req: Request, res: Response) => {
   }
   try {
     const row = await rulesetDb.insertRuleset(data as Ruleset);
-    res.status(201).json(row);
+    const savedTo = isDatabaseConfigured() ? "neon" : "local";
+    res.status(201).json({ ...row, savedTo });
   } catch (e) {
     res.status(400).json({ error: (e as Error).message });
   }
@@ -127,7 +148,8 @@ router.put("/rulesets/:id", async (req: Request, res: Response) => {
       res.status(404).json({ error: "Ruleset not found" });
       return;
     }
-    res.json(row);
+    const savedTo = isDatabaseConfigured() ? "neon" : "local";
+    res.json({ ...row, savedTo });
   } catch (e) {
     res.status(500).json({ error: (e as Error).message });
   }
@@ -208,7 +230,8 @@ router.put("/rulesets/by-name/:name", async (req: Request, res: Response) => {
     return;
   }
 
-  res.json(row);
+  const savedTo = isDatabaseConfigured() ? "neon" : "local";
+  res.json({ ...row, savedTo });
 });
 
 if (process.env.NODE_ENV === "production") {
@@ -253,7 +276,12 @@ async function start() {
   if (isDatabaseConfigured()) {
     await initRulesetsSchema();
     await initCurrentSessionSchema();
-    console.log("Neon database connected; rulesets and current_session tables ready.");
+    console.log("Rulesets storage: Neon (DATABASE_URL connected).");
+  } else {
+    console.warn(
+      "Rulesets storage: local only (packages/server/data/rulesets.json). " +
+      "DATABASE_URL not set — add it to phaser-multiplayer-template/.env and restart to save to Neon."
+    );
   }
   await server.listen(port);
   console.log(`App is listening on port ${port} !`);

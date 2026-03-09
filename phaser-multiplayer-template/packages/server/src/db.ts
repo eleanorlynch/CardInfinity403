@@ -1,26 +1,29 @@
 import { neon } from "@neondatabase/serverless";
 
-const DATABASE_URL = process.env.DATABASE_URL;
-
 export type Sql = ReturnType<typeof neon>;
 
 let _sql: Sql | null = null;
+
+function getDatabaseUrl(): string | undefined {
+  return process.env.DATABASE_URL?.trim() || undefined;
+}
 
 /**
  * Get Neon serverless SQL client. Requires DATABASE_URL to be set.
  */
 export function getSql(): Sql {
-  if (!DATABASE_URL) {
+  const url = getDatabaseUrl();
+  if (!url) {
     throw new Error("DATABASE_URL is not set");
   }
   if (!_sql) {
-    _sql = neon(DATABASE_URL);
+    _sql = neon(url);
   }
   return _sql;
 }
 
 export function isDatabaseConfigured(): boolean {
-  return Boolean(DATABASE_URL?.trim());
+  return Boolean(getDatabaseUrl());
 }
 
 /**
