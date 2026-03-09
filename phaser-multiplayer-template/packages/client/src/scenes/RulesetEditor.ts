@@ -47,7 +47,7 @@ export class RulesetEditor extends Scene {
       this.baseRuleset = await this.fetchRulesetData(this.name);
       // Show an alert with the current ruleset loaded from the database.
       try {
-       // alert("Loaded ruleset from database:\n\n" + JSON.stringify(this.baseRuleset, null, 2));
+        alert("Loaded ruleset from database:\n\n" + JSON.stringify(this.baseRuleset, null, 2));
       } catch (e) {
         console.log("Ruleset loaded (alert suppressed):", this.baseRuleset);
       }
@@ -83,8 +83,13 @@ export class RulesetEditor extends Scene {
       .setInteractive({ useHandCursor: true });
 
     title_text.on("pointerdown", () => {
-      this.rexUI.edit(title_text);
-    })
+      const textEditor = this.rexUI.edit(title_text);
+      textEditor.on('close', () => {
+        // Update the ruleset name when editing is complete
+        alert(title_text.text);
+        this.trackChange("name", title_text.text);
+      });
+    });
 
     const backButton = this.add
       .text(width * 0.05, height * 0.1, "← Back", {
@@ -871,9 +876,6 @@ export class RulesetEditor extends Scene {
       current[lastKey] = value;
     });
 
-    // Update the name from the title
-    merged.name = this.name;
-
     return merged;
   }
 
@@ -926,7 +928,7 @@ export class RulesetEditor extends Scene {
       const savedRuleset = await response.json();
       console.log("Ruleset saved successfully:", savedRuleset);
       // TODO: Remove this later, it is only here to confirm that saving works and show the result
-      // alert("Ruleset saved successfully!\n\n" + JSON.stringify(savedRuleset.data, null, 2));
+       alert("Ruleset saved successfully!\n\n" + JSON.stringify(savedRuleset.data, null, 2));
       
       // Clear in-memory changes after successful save
       this.ruleChanges.clear();
