@@ -116,7 +116,7 @@ export class RulesetEditor extends Scene {
     });
 
     const saveButton = this.add
-      .text(width * 0.95, height * 0.1, "Save →", {
+      .text(width * 0.95, height * 0.1, "Save ✓", {
         fontFamily: "Arial",
         fontSize: "20px",
         color: "#E9DFD9",
