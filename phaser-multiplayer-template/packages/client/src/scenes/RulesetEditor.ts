@@ -49,10 +49,10 @@ export class RulesetEditor extends Scene {
       try {
         alert("Loaded ruleset from database:\n\n" + JSON.stringify(this.baseRuleset, null, 2));
       } catch (e) {
-        console.log("Ruleset loaded (alert suppressed):", this.baseRuleset);
+        alert("Could not display loaded ruleset due to error: " + (e instanceof Error ? e.message : String(e)));
       }
     } else {
-      this.baseRuleset = JSON.parse(JSON.stringify(DefaultRulesetData));
+      this.baseRuleset = DefaultRulesetData;
     }
 
     this.editorFields = await this.getTypes();
@@ -855,7 +855,7 @@ export class RulesetEditor extends Scene {
   // Merge user changes with default ruleset values
   private getMergedRuleset(): any {
     // Deep clone the base ruleset (either fetched existing ruleset or default)
-    const merged: any = JSON.parse(JSON.stringify(this.baseRuleset));
+    const merged: any = this.baseRuleset;
 
     // Apply user changes
     Array.from(this.ruleChanges.entries()).forEach(([key, value]) => {
