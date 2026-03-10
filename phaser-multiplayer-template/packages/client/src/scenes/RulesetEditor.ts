@@ -307,7 +307,7 @@ export class RulesetEditor extends Scene {
               }
             );
 
-            dropdown.setPosition(inputXOffset + 50, 10);
+            dropdown.setPosition(inputXOffset + 100, 10);
             inputObject = dropdown;
             optionContainer.add(dropdown);
           }
