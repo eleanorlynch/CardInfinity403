@@ -478,13 +478,30 @@ export class Game extends Scene {
         this.room = await this.netClient.create("game");
         // Display the room code so the host can share it
         const width = Number(this.game.config.width);
-        this.add.text(width * 0.5, Number(this.game.config.height) * 0.08, `Room Code: ${this.room.roomId}`, {
+        const roomId = this.room.roomId;
+        const roomCodeText = this.add.text(width * 0.5, Number(this.game.config.height) * 0.08, `Room Code: ${roomId}  📋`, {
           fontFamily: "Arial",
           fontSize: "18px",
           color: "#EBC9B3",
           backgroundColor: "#101814",
           padding: { x: 10, y: 5 }
-        }).setOrigin(0.5);
+        }).setOrigin(0.5).setInteractive({ useHandCursor: true });
+
+        roomCodeText.on("pointerover", () => roomCodeText.setColor("#ffffff"));
+        roomCodeText.on("pointerout", () => roomCodeText.setColor("#EBC9B3"));
+        roomCodeText.on("pointerdown", () => {
+          navigator.clipboard.writeText(roomId).then(() => {
+            roomCodeText.setText(`Room Code: ${roomId}  ✓ Copied!`);
+            this.time.delayedCall(2000, () => {
+              roomCodeText.setText(`Room Code: ${roomId}  📋`);
+            });
+          }).catch(() => {
+            roomCodeText.setText(`Room Code: ${roomId}  (copy failed)`);
+            this.time.delayedCall(2000, () => {
+              roomCodeText.setText(`Room Code: ${roomId}  📋`);
+            });
+          });
+        });
       } else {
         if (!roomId) {
           if (this.statusText) this.statusText.setText("No room code provided.");
