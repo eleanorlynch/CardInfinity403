@@ -64,7 +64,8 @@ export class GameRoom extends Room {
         await this.gameMove.createGame(
           this.gameId,
           players,
-          this.rulesetId ?? undefined
+          this.rulesetId ?? undefined,
+          this.hostUserId
         );
       }
     }

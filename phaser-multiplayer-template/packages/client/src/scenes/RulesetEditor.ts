@@ -4,6 +4,7 @@ import DefaultRulesetData from "../utils/DefaultRuleset.json"
 
 import { GameObjects, Scene } from "phaser";
 import { Label } from 'phaser3-rex-plugins/templates/ui/ui-components.js';
+import { getAuth } from "../utils/discordSDK";
 
 export class RulesetEditor extends Scene {
 
@@ -875,7 +876,9 @@ create_dropdown(options: string[], defaultValue?: string, onSelect?: (selectedOp
   // Fetch ruleset data from the server
   private async fetchRulesetData(name: string): Promise<any> {
     try {
-      const apiPath = `/.proxy/api/rulesets/by-name/${encodeURIComponent(name)}`;  
+      const userId = getAuth()?.user?.id;
+      const qs = userId ? `?user_id=${encodeURIComponent(userId)}` : "";
+      const apiPath = `/.proxy/api/rulesets/by-name/${encodeURIComponent(name)}${qs}`;
       const response = await fetch(apiPath);
       // If the response isn't ok, use the DefaultRulesetData because the ruleset doesn't exist yet
       // TODO: Maybe change how this is implemented, it's pretty clumsy
@@ -922,13 +925,17 @@ create_dropdown(options: string[], defaultValue?: string, onSelect?: (selectedOp
   // Handle saving the ruleset
   private async handleSaveRuleset() {
     try {
+      const userId = getAuth()?.user?.id;
+      if (!userId) {
+        alert("You must be signed in (Discord) to save rulesets.");
+        return;
+      }
       const mergedRuleset = this.getMergedRuleset();
 
-      // Check if ruleset exists by name
+      // Check if ruleset exists by name (for this user)
       let exists = false;
-
       if (this.name) {
-        const checkRes = await fetch(`/.proxy/api/rulesets/by-name/${encodeURIComponent(this.name)}`);
+        const checkRes = await fetch(`/.proxy/api/rulesets/by-name/${encodeURIComponent(this.name)}?user_id=${encodeURIComponent(userId)}`);
         exists = checkRes.ok;
       }
 
@@ -936,10 +943,10 @@ create_dropdown(options: string[], defaultValue?: string, onSelect?: (selectedOp
       let method: string;
 
       if (exists) {
-        apiPath = `/.proxy/api/rulesets/by-name/${encodeURIComponent(this.name)}`;
+        apiPath = `/.proxy/api/rulesets/by-name/${encodeURIComponent(this.name)}?user_id=${encodeURIComponent(userId)}`;
         method = "PUT";
       } else {
-        apiPath = "/.proxy/api/rulesets";
+        apiPath = `/.proxy/api/rulesets?user_id=${encodeURIComponent(userId)}`;
         method = "POST";
       }
 
@@ -981,7 +988,9 @@ create_dropdown(options: string[], defaultValue?: string, onSelect?: (selectedOp
 
   private async getTypes(): Promise<any[]> {
     try {
-      const response = await fetch(`/.proxy/api/rulesets/editorFields/${encodeURIComponent(this.name)}`);
+      const userId = getAuth()?.user?.id;
+      const qs = userId ? `?user_id=${encodeURIComponent(userId)}` : "";
+      const response = await fetch(`/.proxy/api/rulesets/editorFields/${encodeURIComponent(this.name)}${qs}`);
       
       if (!response.ok) {
         console.error("Error fetching editor fields:", response.statusText);

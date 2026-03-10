@@ -65,11 +65,12 @@ app.use(express.json());
 app.use(router);
 
 // Rulesets API: store/retrieve rulesets as JSON (structure matches Ruleset.json template)
-// When DATABASE_URL is set, rulesets are stored in Neon PostgreSQL.
+// When DATABASE_URL is set, rulesets are stored in Neon PostgreSQL. All routes require user_id (Discord user id) for per-user rulesets.
 router.get("/rulesets", async (req: Request, res: Response) => {
   try {
+    const userId = (req.query.user_id as string)?.trim() || null;
     const name = req.query.name as string | undefined;
-    const list = await rulesetDb.listRulesets(name);
+    const list = await rulesetDb.listRulesets(userId, name);
     res.json(list);
   } catch (e) {
     res.status(500).json({ error: (e as Error).message });
@@ -78,13 +79,14 @@ router.get("/rulesets", async (req: Request, res: Response) => {
 
 router.get("/rulesets/editorFields/:name", async (req: Request, res: Response) => {
   const name = decodeURIComponent(req.params.name);
+  const userId = (req.query.user_id as string)?.trim() || null;
 
   if (name === undefined || name === null || typeof name !== "string" || !name.trim()) {
     res.status(400).json({ error: "Missing or invalid ruleset name" });
     return;
   }
 
-  const row = await rulesetDb.getRulesetByName(name);
+  const row = await rulesetDb.getRulesetByName(name, userId);
   const defaultRuleset: Ruleset = DefaultRulesetData as Ruleset;
 
   if (row === undefined) {
@@ -96,12 +98,13 @@ router.get("/rulesets/editorFields/:name", async (req: Request, res: Response) =
 
 router.get("/rulesets/:id", async (req: Request, res: Response) => {
   const id = Number(req.params.id);
+  const userId = (req.query.user_id as string)?.trim() || null;
   if (Number.isNaN(id)) {
     res.status(400).json({ error: "Invalid ruleset id" });
     return;
   }
   try {
-    const row = await rulesetDb.getRulesetById(id);
+    const row = await rulesetDb.getRulesetById(id, userId);
     if (!row) {
       res.status(404).json({ error: "Ruleset not found" });
       return;
@@ -113,13 +116,18 @@ router.get("/rulesets/:id", async (req: Request, res: Response) => {
 });
 
 router.post("/rulesets", async (req: Request, res: Response) => {
+  const userId = (req.query.user_id as string)?.trim();
   const data = req.body;
+  if (!userId) {
+    res.status(400).json({ error: "Missing user_id query parameter" });
+    return;
+  }
   if (!data || typeof data !== "object") {
     res.status(400).json({ error: "Invalid ruleset body" });
     return;
   }
   try {
-    const row = await rulesetDb.insertRuleset(data as Ruleset);
+    const row = await rulesetDb.insertRuleset(data as Ruleset, userId);
     const savedTo = isDatabaseConfigured() ? "neon" : "local";
     res.status(201).json({ ...row, savedTo });
   } catch (e) {
@@ -129,6 +137,7 @@ router.post("/rulesets", async (req: Request, res: Response) => {
 
 router.put("/rulesets/:id", async (req: Request, res: Response) => {
   const id = Number(req.params.id);
+  const userId = (req.query.user_id as string)?.trim() || null;
   if (Number.isNaN(id)) {
     res.status(400).json({ error: "Invalid ruleset id" });
     return;
@@ -139,7 +148,7 @@ router.put("/rulesets/:id", async (req: Request, res: Response) => {
     return;
   }
   try {
-    const row = await rulesetDb.updateRuleset(id, data as Ruleset);
+    const row = await rulesetDb.updateRuleset(id, data as Ruleset, userId);
     if (!row) {
       res.status(404).json({ error: "Ruleset not found" });
       return;
@@ -188,13 +197,14 @@ router.get("/sessions/:user_id/:session_number", async (req: Request, res: Respo
 // Fetch ruleset by name
 router.get("/rulesets/by-name/:name", async (req: Request, res: Response) => {
   const name = decodeURIComponent(req.params.name);
+  const userId = (req.query.user_id as string)?.trim() || null;
 
   if (name === undefined || name === null || typeof name !== "string" || !name.trim()) {
     res.status(400).json({ error: "Missing or invalid ruleset name" });
     return;
   }
 
-  const row = await rulesetDb.getRulesetByName(name);
+  const row = await rulesetDb.getRulesetByName(name, userId);
 
   if (row === undefined) {
     res.status(404).json({ error: "Ruleset not found" });
@@ -206,6 +216,7 @@ router.get("/rulesets/by-name/:name", async (req: Request, res: Response) => {
 
 router.put("/rulesets/by-name/:name", async (req: Request, res: Response) => {
   const name = decodeURIComponent(req.params.name);
+  const userId = (req.query.user_id as string)?.trim() || null;
 
   if (name === undefined || name === null || typeof name !== "string" || !name.trim()) {
     res.status(400).json({ error: "Missing or invalid ruleset name" });
@@ -219,7 +230,7 @@ router.put("/rulesets/by-name/:name", async (req: Request, res: Response) => {
     return;
   }
 
-  const row = await rulesetDb.updateRulesetByName(name, data as Ruleset);
+  const row = await rulesetDb.updateRulesetByName(name, data as Ruleset, userId);
 
   if (row === undefined) {
     res.status(404).json({ error: "Ruleset not found" });

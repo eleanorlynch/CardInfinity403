@@ -1,5 +1,6 @@
 import { Scene } from "phaser";
 import { Client as ColyseusClient, Room } from "colyseus.js"
+import { getAuth } from "../utils/discordSDK";
 
 interface Card {
   suit: string;
@@ -468,8 +469,10 @@ export class Game extends Scene {
 
     this.netClient = new ColyseusClient(url);
 
-    const options: { channelId: string; rulesetId?: number } = { channelId };
+    const options: { channelId: string; rulesetId?: number; userId?: string } = { channelId };
     if (rulesetId != null) options.rulesetId = rulesetId;
+    const userId = getAuth()?.user?.id;
+    if (userId) options.userId = userId;
     this.room = await this.netClient.joinOrCreate("game", options);
 
     this.room.onMessage("PRIVATE_STATE", (state) => {

@@ -62,9 +62,11 @@ export function parseRulesetData(raw: unknown): Ruleset {
 /**
  * Save a new ruleset to the server. Payload should match the structure of
  * server card-game/Ruleset.json template. Returns the saved row (includes id, timestamps).
+ * userId: Discord user id (from getAuth()?.user?.id); required when using Neon.
  */
-export async function saveRuleset(ruleset: Ruleset): Promise<SavedRuleset> {
-  const res = await fetch(RULESETS_BASE, {
+export async function saveRuleset(ruleset: Ruleset, userId: string): Promise<SavedRuleset> {
+  const url = `${RULESETS_BASE}?user_id=${encodeURIComponent(userId)}`;
+  const res = await fetch(url, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(ruleset),
@@ -80,12 +82,15 @@ export async function saveRuleset(ruleset: Ruleset): Promise<SavedRuleset> {
 
 /**
  * Update an existing ruleset by id. Returns the updated row.
+ * userId: Discord user id (from getAuth()?.user?.id); required when using Neon.
  */
 export async function updateRuleset(
   id: number,
-  ruleset: Ruleset
+  ruleset: Ruleset,
+  userId: string
 ): Promise<SavedRuleset> {
-  const res = await fetch(`${RULESETS_BASE}/${id}`, {
+  const url = `${RULESETS_BASE}/${id}?user_id=${encodeURIComponent(userId)}`;
+  const res = await fetch(url, {
     method: "PUT",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(ruleset),

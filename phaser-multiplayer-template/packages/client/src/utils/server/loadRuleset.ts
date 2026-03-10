@@ -15,9 +15,14 @@ export interface LoadedRuleset {
 /**
  * Load a single ruleset by id. Throws if not found or request fails.
  * Parses response so `data` fits RulesetTypes and can be used in GameStatus/game config.
+ * userId: Discord user id (from getAuth()?.user?.id); required when using Neon so only that user's ruleset is returned.
  */
-export async function loadRuleset(id: number): Promise<LoadedRuleset> {
-  const res = await fetch(`${RULESETS_BASE}/${id}`);
+export async function loadRuleset(id: number, userId?: string | null): Promise<LoadedRuleset> {
+  const params = new URLSearchParams();
+  if (userId) params.set("user_id", userId);
+  const qs = params.toString();
+  const url = `${RULESETS_BASE}/${id}${qs ? `?${qs}` : ""}`;
+  const res = await fetch(url);
   if (!res.ok) {
     const err = (await res.json().catch(() => ({}))) as { error?: string };
     throw new Error(err.error ?? `Failed to load ruleset: ${res.status}`);
@@ -31,9 +36,9 @@ export async function loadRuleset(id: number): Promise<LoadedRuleset> {
  * Load the ruleset payload only (for use in game/config). Returns null if not found.
  * Result fits RulesetTypes so it can be loaded in GameStatus.
  */
-export async function loadRulesetData(id: number): Promise<Ruleset | null> {
+export async function loadRulesetData(id: number, userId?: string | null): Promise<Ruleset | null> {
   try {
-    const row = await loadRuleset(id);
+    const row = await loadRuleset(id, userId);
     return row.data;
   } catch {
     return null;
@@ -41,15 +46,19 @@ export async function loadRulesetData(id: number): Promise<Ruleset | null> {
 }
 
 /**
- * List all rulesets, optionally filtered by name (partial match).
+ * List all rulesets for the given user, optionally filtered by name (partial match).
+ * userId: Discord user id (from getAuth()?.user?.id); required when using Neon.
  * Each item's data is parsed to fit RulesetTypes.
  */
 export async function listRulesets(
+  userId?: string | null,
   nameFilter?: string
 ): Promise<LoadedRuleset[]> {
-  const url = nameFilter?.trim()
-    ? `${RULESETS_BASE}?name=${encodeURIComponent(nameFilter.trim())}`
-    : RULESETS_BASE;
+  const params = new URLSearchParams();
+  if (userId) params.set("user_id", userId);
+  if (nameFilter?.trim()) params.set("name", nameFilter.trim());
+  const qs = params.toString();
+  const url = qs ? `${RULESETS_BASE}?${qs}` : RULESETS_BASE;
   const res = await fetch(url);
   if (!res.ok) {
     const err = (await res.json().catch(() => ({}))) as { error?: string };
