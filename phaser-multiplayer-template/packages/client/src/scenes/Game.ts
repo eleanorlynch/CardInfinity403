@@ -3,9 +3,9 @@ import { Client as ColyseusClient, Room } from "colyseus.js"
 
 interface Card {
   suit: string;
-  rank: string;
+  rank: number | string;
   id: string;
-  code: string;
+  code?: string;
 }
 
 export class Game extends Scene {
@@ -27,17 +27,6 @@ export class Game extends Scene {
   }
 
   async create() {
-    // Reset all game state when entering the scene
-    // Initialize game
-    await this.connectToRoom().catch((err) => {
-      console.error(err);
-      if (this.statusText) this.statusText.setText("Failed to connect");
-    });
-
-    // console.log("Connected to room " + this.room?.name)
-
-    // this.resetGameState();
-
     const width = Number(this.game.config.width);
     const height = Number(this.game.config.height);
 
@@ -179,9 +168,14 @@ export class Game extends Scene {
       if (this.netState?.gameOver) return;
       this.room.send("END_TURN");
     });
-
-
-
+    // After UI is ready, connect to the Colyseus room
+    if (this.statusText) {
+      this.statusText.setText("Connecting...");
+    }
+    await this.connectToRoom().catch((err) => {
+      console.error(err);
+      if (this.statusText) this.statusText.setText("Failed to connect");
+    });
   }
 
   resetGameState() {
@@ -368,8 +362,8 @@ export class Game extends Scene {
     // Card suit color
     const suitColor = card.suit === "hearts" || card.suit === "diamonds" ? "#ff0000" : "#000000";
 
-    // Card rank
-    const rankText = this.add.text(-20, -35, card.rank, {
+    const rankStr = typeof card.rank === "number" ? String(card.rank) : card.rank;
+    const rankText = this.add.text(-20, -35, rankStr, {
       fontFamily: "Arial",
       fontSize: "20px",
       color: suitColor,
@@ -464,47 +458,19 @@ export class Game extends Scene {
   }
 
   private async connectToRoom() {
-    const data = this.scene.settings.data as any;
-    const isHost: boolean = data?.isHost ?? true;
-    const roomId: string | undefined = data?.roomId;
+    const channelId = "dev-channel-1";
+    const rulesetId = this.registry.get("rulesetId") as number | undefined;
 
-    const url =
-      location.host === "localhost:3000" ? `ws://localhost:3001` : `wss://${location.host}/.proxy/api/colyseus`;
+    const isLocalhost = location.hostname === "localhost" || location.hostname === "127.0.0.1";
+    const url = isLocalhost
+      ? "ws://localhost:3001"
+      : `wss://${location.host}/.proxy/api/colyseus`;
 
-    this.netClient = new ColyseusClient(`${url}`);
+    this.netClient = new ColyseusClient(url);
 
-    try {
-      if (isHost) {
-        this.room = await this.netClient.create("game");
-        // Display the room code so the host can share it
-        const width = Number(this.game.config.width);
-        this.add.text(width * 0.5, Number(this.game.config.height) * 0.08, `Room Code: ${this.room.roomId}`, {
-          fontFamily: "Arial",
-          fontSize: "18px",
-          color: "#EBC9B3",
-          backgroundColor: "#101814",
-          padding: { x: 10, y: 5 }
-        }).setOrigin(0.5);
-      } else {
-        if (!roomId) {
-          if (this.statusText) this.statusText.setText("No room code provided.");
-          return;
-        }
-        this.room = await this.netClient.joinById(roomId);
-      }
-    } catch (err: any) {
-      if (this.statusText) {
-        const msg = err?.message ?? "";
-        if (msg.includes("not found") || err?.code === 4212) {
-          this.statusText.setText("Room not found. Check the code.");
-        } else if (msg.includes("full")) {
-          this.statusText.setText("Room is full.");
-        } else {
-          this.statusText.setText("Failed to connect.");
-        }
-      }
-      return;
-    }
+    const options: { channelId: string; rulesetId?: number } = { channelId };
+    if (rulesetId != null) options.rulesetId = rulesetId;
+    this.room = await this.netClient.joinOrCreate("game", options);
 
     this.room.onMessage("PRIVATE_STATE", (state) => {
       this.netState = state;
@@ -516,6 +482,7 @@ export class Game extends Scene {
     });
 
     if (this.statusText) this.statusText.setText("Connected...");
+    this.room.send("REQUEST_STATE");
   }
 
   private updateDisplayFromNet() {
@@ -539,10 +506,12 @@ export class Game extends Scene {
       if (gameOver) {
         this.statusText.setText("Game Over!");
       } else {
+        const handCount = myHand.length;
+        const deckStr = deckCount.toString();
         this.statusText.setText(
           this.netState.isMyTurn
-            ? `Your turn | Hand: ${myHand.length} | Deck: ${deckCount}`
-            : `Opponent turn | Hand: ${myHand.length} | Deck: ${deckCount}`
+            ? `Your turn | Hand: ${handCount} | Deck: ${deckStr}`
+            : `Opponent turn | Hand: ${handCount} | Deck: ${deckStr}`
         );
       }
     }

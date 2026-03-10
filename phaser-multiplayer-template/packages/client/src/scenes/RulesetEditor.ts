@@ -33,9 +33,8 @@ export class RulesetEditor extends Scene {
   private activeDropdownOverlay: Phaser.GameObjects.Container | null = null;
 
   init(args: any) {
-    // TODO: remove (replace really) below line once we're passing in the actual ruleset
-    this.name = args.name;
-    this.types = undefined;;
+    this.name = args?.name ?? "";
+    this.types = undefined;
   }
 
   // maps each category to a list of options
@@ -44,23 +43,22 @@ export class RulesetEditor extends Scene {
   page_number: number = 0;
 
   async create() {
-    // Load the base ruleset to use for defaults
-    if (this.name !== undefined && this.name !== null) {
+    // Load the base ruleset to use for defaults (for new ruleset use default, for existing fetch by name)
+    if (this.name !== undefined && this.name !== null && this.name.trim() !== "") {
       this.baseRuleset = await this.fetchRulesetData(this.name);
-      // Show an alert with the current ruleset loaded from the database.
       try {
         alert("Loaded ruleset from database:\n\n" + JSON.stringify(this.baseRuleset, null, 2));
       } catch (e) {
         alert("Could not display loaded ruleset due to error: " + (e instanceof Error ? e.message : String(e)));
       }
     } else {
-      this.baseRuleset = DefaultRulesetData;
+      this.name = "New Ruleset";
+      this.baseRuleset = JSON.parse(JSON.stringify(DefaultRulesetData));
     }
 
     this.editorFields = await this.getTypes();
-   // alert("Types are:\n\n" + JSON.stringify(this.editorFields, null, 2));
 
-    //Static elems
+    const displayName = (this.name && this.name.trim()) ? this.name : "New Ruleset";
     const width = Number(this.game.config.width);
     const height = Number(this.game.config.height);
     const container_width = width * 0.75;
@@ -73,7 +71,7 @@ export class RulesetEditor extends Scene {
     bg.setScale(scale).setScrollFactor(0);
 
     var title_text = this.add
-      .text(Number(this.game.config.width) * 0.5, Number(this.game.config.height) * 0.15, this.name, {
+      .text(Number(this.game.config.width) * 0.5, Number(this.game.config.height) * 0.15, displayName, {
         fontFamily: "Arial Black",
         fontSize: "4.5rem",
         color: "#E9DFD9",
@@ -969,8 +967,8 @@ create_dropdown(options: string[], defaultValue?: string, onSelect?: (selectedOp
 
       const savedRuleset = await response.json();
       console.log("Ruleset saved successfully:", savedRuleset);
-      // TODO: Remove this later, it is only here to confirm that saving works and show the result
-       alert("Ruleset saved successfully!\n\n" + JSON.stringify(savedRuleset.data, null, 2));
+      const savedTo = savedRuleset.savedTo === "neon" ? "Neon" : "locally";
+      alert(`Ruleset saved successfully (${savedTo})!\n\n` + JSON.stringify(savedRuleset.data, null, 2));
       
       // Clear in-memory changes after successful save
       this.ruleChanges.clear();

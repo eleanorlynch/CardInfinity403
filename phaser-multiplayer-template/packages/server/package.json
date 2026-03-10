@@ -22,6 +22,7 @@
     "@colyseus/schema": "^3.0.0",
     "@colyseus/uwebsockets-transport": "^0.16.0",
     "@colyseus/ws-transport": "^0.16.0",
+    "@neondatabase/serverless": "^1.0.2",
     "colyseus": "^0.16.0",
     "colyseus.js": "^0.16.22",
     "dotenv": "^16.0.1",
