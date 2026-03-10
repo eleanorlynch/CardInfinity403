@@ -35,12 +35,26 @@ export class RulesetEditor extends Scene {
   init(args: any) {
     this.name = args?.name ?? "";
     this.types = undefined;
+
+    // Clear all instance data when re-entering the scene to avoid reloading issues
+    this.options.clear();
+    this.option_objects.clear();
+    this.fieldPaths.clear();
+    this.ruleChanges.clear();
+    this.mutuallyExclusiveGroups.clear();
+    this.page_number = 1;
+    
+    // Destroy any active dropdown overlay from previous session to avoid reloading issues
+    if (this.activeDropdownOverlay) {
+      this.activeDropdownOverlay.destroy();
+      this.activeDropdownOverlay = null;
+    }
   }
 
   // maps each category to a list of options
   options: Map<String, Option<any>[]> = new Map();
   option_objects: Map<Option<any>, Phaser.GameObjects.Container> = new Map();
-  page_number: number = 0;
+  page_number: number = 1;
 
   async create() {
     // Load the base ruleset to use for defaults (for new ruleset use default, for existing fetch by name)
@@ -57,6 +71,7 @@ export class RulesetEditor extends Scene {
     }
 
     this.editorFields = await this.getTypes();
+    alert("Editor fields:\n\n" + JSON.stringify(this.editorFields, null, 2));
 
     const displayName = (this.name && this.name.trim()) ? this.name : "New Ruleset";
     const width = Number(this.game.config.width);
@@ -238,11 +253,11 @@ export class RulesetEditor extends Scene {
   handle_navigation_click(increment: number) {
     const itemsPerPage = 5;
     const totalItems = this.option_objects.size;
-    const maxPage = Math.max(0, Math.ceil(totalItems / itemsPerPage) - 1);
+    const maxPage = Math.max(1, Math.ceil(totalItems / itemsPerPage) - 1);
     
     const newPage = this.page_number + increment;
     
-    if (newPage >= 0 && newPage <= maxPage) {
+    if (newPage >= 1 && newPage <= maxPage) {
       this.page_number = newPage;
     }
   }
