@@ -136,27 +136,52 @@ export class MainMenu extends Scene {
       input.type = 'text';
       input.placeholder = 'Enter room code...';
       input.style.cssText = `
-        position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);
         font-size: 24px; padding: 12px 20px; border-radius: 8px;
         border: 2px solid #EBC9B3; background: #101814; color: #E9DFD9;
-        text-align: center; z-index: 1000; outline: none;
+        text-align: center; outline: none; width: 240px;
+      `;
+
+      const overlay = document.createElement('div');
+      overlay.style.cssText = `
+        position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+        background: rgba(0,0,0,0.6); z-index: 999;
+      `;
+
+      const row = document.createElement('div');
+      row.style.cssText = `
+        position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);
+        display: flex; align-items: center; gap: 10px; z-index: 1000;
       `;
 
       const confirmBtn = document.createElement('button');
       confirmBtn.textContent = 'Join';
       confirmBtn.style.cssText = `
-        position: fixed; top: calc(50% + 60px); left: 50%; transform: translateX(-50%);
-        font-size: 20px; padding: 10px 30px; border-radius: 8px; border: none;
-        background: #EBC9B3; color: #101814; cursor: pointer; z-index: 1000;
+        font-size: 24px; padding: 12px 24px; border-radius: 8px; border: none;
+        background: #EBC9B3; color: #101814; cursor: pointer; pointer-events: auto;
+        flex-shrink: 0;
       `;
 
-      document.body.appendChild(input);
-      document.body.appendChild(confirmBtn);
+      const btnWrapper = document.createElement('div');
+      btnWrapper.style.cssText = `display: flex; flex-direction: column; align-items: center; gap: 6px;`;
+
+      const hint = document.createElement('div');
+      hint.textContent = 'or press Enter';
+      hint.style.cssText = `font-size: 13px; color: #E9DFD9; opacity: 0.7; white-space: nowrap;`;
+
+      confirmBtn.onmouseenter = () => { confirmBtn.style.background = '#8d8d8d'; };
+      confirmBtn.onmouseleave = () => { confirmBtn.style.background = '#EBC9B3'; };
+
+      btnWrapper.appendChild(confirmBtn);
+      btnWrapper.appendChild(hint);
+      row.appendChild(input);
+      row.appendChild(btnWrapper);
+      document.body.appendChild(overlay);
+      document.body.appendChild(row);
       input.focus();
 
       const cleanup = () => {
-        document.body.removeChild(input);
-        document.body.removeChild(confirmBtn);
+        document.body.removeChild(overlay);
+        document.body.removeChild(row);
       };
 
       const submit = async () => {
@@ -176,6 +201,7 @@ export class MainMenu extends Scene {
       };
 
       confirmBtn.onclick = submit;
+      overlay.onclick = cleanup;
       input.onkeydown = (e) => {
         if (e.key === 'Enter') submit();
         if (e.key === 'Escape') cleanup();
