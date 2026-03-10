@@ -29,6 +29,8 @@ export class RulesetEditor extends Scene {
   // Track mutually exclusive checkbox groups
   private mutuallyExclusiveGroups: Map<string, { paths: string[], buttons: Map<string, any> }> = new Map();
 
+  // Custom dropdown container to handle dropdown display (regular rex UI dropdown has some issues with display layering)
+  private activeDropdownOverlay: Phaser.GameObjects.Container | null = null;
 
   init(args: any) {
     // TODO: remove (replace really) below line once we're passing in the actual ruleset
@@ -552,83 +554,123 @@ export class RulesetEditor extends Scene {
     }
   }
 
-  create_dropdown(options: string[], defaultValue?: string, onSelect?: (selectedOption: string) => void) {
-    const dropdown = this.rexUI.add.dropDownList({
-      x: 0,
-      y: 0,
-      background: this.rexUI.add.roundRectangle(0, 0, 2, 2, 0, 0xE9DFD9).setStrokeStyle(2, 0x101814),
-      
-      text: this.add.text(0, 0, defaultValue || options[0] || 'Select...', {
-        fontSize: '16px',
-        color: '#101814'
-      }),
-      
-      space: {
-        left: 10,
-        right: 10,
-        top: 5,
-        bottom: 5,
-        icon: 10
-      },
-      
-      options: options,
-      
-      list: {
-        createBackgroundCallback: (scene: any) => {
-          return scene.rexUI.add.roundRectangle(0, 0, 2, 2, 0, 0xffffff).setStrokeStyle(2, 0x101814);
-        },
-        
-        createButtonCallback: (scene: any, option: string, index: number, options: any) => {
-          return scene.rexUI.add.label({
-            background: scene.rexUI.add.roundRectangle(0, 0, 2, 2, 0, 0xE9DFD9),
-            text: scene.add.text(0, 0, option, {
-              fontSize: '16px',
-              color: '#101814'
-            }),
-            space: {
-              left: 10,
-              right: 10,
-              top: 8,
-              bottom: 8
-            },
-            name: option
-          });
-        },
-        
-        onButtonClick: (button: any, index: number, pointer: any, event: any) => {
-          // Get the selected option text
-          const selectedValue = button.text || button.name;
-          
-          // Update the dropdown display text
-          dropdown.text = selectedValue;
-          
-          // Call the callback if provided
-          if (onSelect !== undefined) {
-            onSelect(selectedValue);
-          }
-        },
-        
-        onButtonOver: (button: any) => {
-          button.getElement('background').setFillStyle(0xEBC9B3);
-        },
-        
-        onButtonOut: (button: any) => {
-          button.getElement('background').setFillStyle(0xE9DFD9);
-        },
-        
-        space: {
-          left: 10,
-          right: 10,
-          top: 10,
-          bottom: 10,
-          item: 5
-        }
-      },
-      
-      value: defaultValue || options[0]
+create_dropdown(options: string[], defaultValue?: string, onSelect?: (selectedOption: string) => void) {
+    const self = this;
+    
+    // Create a simple button that looks like a dropdown
+    const dropdownBg = this.rexUI.add.roundRectangle(0, 0, 150, 30, 0, 0xE9DFD9).setStrokeStyle(2, 0x101814);
+    
+    const dropdownText = this.add.text(0, 0, defaultValue || options[0] || 'Select...', {
+      fontSize: '16px',
+      color: '#101814'
+    }).setOrigin(0.5);
+    
+    const dropdownArrow = this.add.text(60, 0, '▼', {
+      fontSize: '12px',
+      color: '#101814'
+    }).setOrigin(0.5);
+    
+    const dropdown = this.add.container(0, 0, [dropdownBg, dropdownText, dropdownArrow]);
+    dropdown.setSize(150, 30);
+    
+    // Make it interactive
+    dropdownBg.setInteractive({ useHandCursor: true });
+    
+    dropdownBg.on('pointerover', () => {
+      dropdownBg.setFillStyle(0xEBC9B3);
     });
     
-    dropdown.layout();
+    dropdownBg.on('pointerout', () => {
+      dropdownBg.setFillStyle(0xE9DFD9);
+    });
+    
+    dropdownBg.on('pointerdown', () => {
+      // Close any existing dropdown overlay
+      if (self.activeDropdownOverlay) {
+        self.activeDropdownOverlay.destroy();
+        self.activeDropdownOverlay = null;
+        return;
+      }
+      
+      // Get world position of the dropdown
+      const worldMatrix = dropdown.getWorldTransformMatrix();
+      const worldX = worldMatrix.tx;
+      const worldY = worldMatrix.ty;
+      
+      // Create the overlay container directly on the scene (not in any container)
+      const overlay = self.add.container(worldX, worldY + 20);
+      overlay.setDepth(9999);
+      self.activeDropdownOverlay = overlay;
+      
+      // Create background for the list
+      const listHeight = options.length * 35 + 10;
+      const listBg = self.add.graphics();
+      listBg.fillStyle(0xffffff, 1);
+      listBg.fillRoundedRect(-75, 0, 150, listHeight, 5);
+      listBg.lineStyle(2, 0x101814);
+      listBg.strokeRoundedRect(-75, 0, 150, listHeight, 5);
+      overlay.add(listBg);
+      
+      // Create option buttons
+      options.forEach((option, index) => {
+        const optionBg = self.add.rectangle(0, 15 + index * 35, 140, 30, 0xE9DFD9);
+        optionBg.setInteractive({ useHandCursor: true });
+        
+        const optionText = self.add.text(0, 15 + index * 35, option, {
+          fontSize: '16px',
+          color: '#101814'
+        }).setOrigin(0.5);
+        
+        optionBg.on('pointerover', () => {
+          optionBg.setFillStyle(0xEBC9B3);
+        });
+        
+        optionBg.on('pointerout', () => {
+          optionBg.setFillStyle(0xE9DFD9);
+        });
+        
+        optionBg.on('pointerdown', () => {
+          // Update the dropdown text
+          dropdownText.setText(option);
+          
+          // Call the callback
+          if (onSelect) {
+            onSelect(option);
+          }
+          
+          // Close the overlay
+          overlay.destroy();
+          self.activeDropdownOverlay = null;
+        });
+        
+        overlay.add(optionBg);
+        overlay.add(optionText);
+      });
+      
+      // Close dropdown when clicking elsewhere
+      const closeListener = (pointer: Phaser.Input.Pointer) => {
+        // Check if click is outside the overlay
+        const bounds = overlay.getBounds();
+        if (!bounds.contains(pointer.x, pointer.y)) {
+          overlay.destroy();
+          self.activeDropdownOverlay = null;
+          self.input.off('pointerdown', closeListener);
+        }
+      };
+      
+      // Delay adding the listener to avoid immediate close
+      self.time.delayedCall(100, () => {
+        self.input.on('pointerdown', closeListener);
+      });
+    });
+    
+    // Store the text reference so we can read the current value
+    (dropdown as any).text = defaultValue || options[0];
+    (dropdown as any).getText = () => dropdownText.text;
+    (dropdown as any).setText = (value: string) => {
+      dropdownText.setText(value);
+      (dropdown as any).text = value;
+    };
     
     return dropdown;
   }
