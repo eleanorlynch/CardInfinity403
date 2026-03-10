@@ -9,6 +9,8 @@ import path from "path";
 import { GameRoom } from "./rooms/GameRoom";
 import * as rulesetDb from "./rulesetDb";
 import type { Ruleset } from "./card-game/RulesetTypes";
+import { toEditorFields } from "./card-game/RulesetTypes";
+import DefaultRulesetData from "./card-game/DefaultRuleset.json";
 
 dotenv.config({ path: "../../.env" });
 
@@ -38,6 +40,25 @@ router.get("/rulesets", (req: Request, res: Response) => {
   const list = rulesetDb.listRulesets(name);
 
   res.json(list);
+});
+
+router.get("/rulesets/editorFields/:name", (req: Request, res: Response) => {
+  const name = decodeURIComponent(req.params.name);
+
+  if (name === undefined || name === null || typeof name !== "string" || !name.trim()) {
+    res.status(400).json({ error: "Missing or invalid ruleset name" });
+    return;
+  }
+
+  const row = rulesetDb.getRulesetByName(name);
+
+  const defaultRuleset: Ruleset = DefaultRulesetData as Ruleset;
+
+  if (row === undefined) {
+    res.json({ data: toEditorFields(defaultRuleset) });
+  } else {
+    res.json({ data: toEditorFields(row.data) });
+  }
 });
 
 router.get("/rulesets/:id", (req: Request, res: Response) => {
