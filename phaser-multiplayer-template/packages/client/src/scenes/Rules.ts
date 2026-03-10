@@ -1,5 +1,7 @@
-import { RulesetClass } from "../rules/RulesetClass"
+import { RulesetClass } from "../rules/RulesetClass";
 import { Scene } from "phaser";
+import type { LoadedRuleset } from "../utils/server/loadRuleset";
+import { listRulesets } from "../utils/server/loadRuleset";
 
 
 export class Rules extends Scene {
@@ -7,7 +9,7 @@ export class Rules extends Scene {
     super("Rules");
   }
 
-  rulesets_temp_delete_later: RulesetClass[] = [];
+  rulesets_temp_delete_later: (LoadedRuleset | RulesetClass)[] = [];
   rulesets: Map<string, Phaser.GameObjects.Container> = new Map();
   page_number: number = 0;
 
@@ -79,11 +81,14 @@ export class Rules extends Scene {
       addButton.setStyle({ backgroundColor: "#101814" });
     });
 
-    addButton.on("pointerdown", () => {
-      this.add_ruleset_entry();
+    addButton.on("pointerdown", (e: Phaser.Input.Pointer) => {
+      addButton.setStyle({ backgroundColor: "#ffffff" });
+      e.event.stopPropagation();
+      this.scene.start("RulesetEditor", { name: "" });
     });
 
-    const rules_container = this.add.container();
+    const rules_container = this.add.container(0, 0);
+    rules_container.setDepth(1);
     const navigation_container = this.add.container();
 
     const rules_container_bg = this.add
@@ -174,106 +179,127 @@ export class Rules extends Scene {
       .add(navigation_left_button)
       .add(navigation_right_button);
 
+    addButton.setDepth(1000);
 
-    //populate rules
-
-    this.rulesets_temp_delete_later.push(new RulesetClass("uno"));
-    this.rulesets_temp_delete_later.push(new RulesetClass("hiii"));
-    this.rulesets_temp_delete_later.push(new RulesetClass("the joke one"));
-    this.rulesets_temp_delete_later.push(new RulesetClass("e"));
-    this.rulesets_temp_delete_later.push(new RulesetClass("th is me"));
-
-    this.populate_rulesets(width, height, container_width);
-    this.handle_visibility();
-
+    // Populate rules: load from DB then draw (fallback to hardcoded if API fails)
+    this.loadRulesetsThenPopulate(width, height, container_width, page_number_indicator);
   }
 
-  //Helper fns
+  async loadRulesetsThenPopulate(
+    width: number,
+    height: number,
+    container_width: number,
+    page_number_indicator: Phaser.GameObjects.Text
+  ) {
+    try {
+      const list = await listRulesets();
+      this.rulesets_temp_delete_later = list.length > 0 ? list : [
+        new RulesetClass("uno"),
+        new RulesetClass("Default (no saved ruleset)")
+      ];
+    } catch {
+      this.rulesets_temp_delete_later = [
+        new RulesetClass("uno"),
+        new RulesetClass("hiii"),
+        new RulesetClass("the joke one"),
+        new RulesetClass("e"),
+        new RulesetClass("th is me")
+      ];
+    }
+    this.populate_rulesets(width, height, container_width);
+    this.handle_visibility();
+  }
+
   handle_navigation_click(increment: number) {
     if (increment > 0 || this.page_number > 0) {
       this.page_number += increment;
     }
-
-    // not really sure if this should be a function?
-    // TODO: check style guide
   }
 
   populate_rulesets(width: number, height: number, container_width: number) {
     const startY = height * 0.27;
     const spacing = height * 0.125;
-    //consists of loading from DB
-    //TODO: jerry 
-
-    //this will hold a list of Ruleset objs loaded from DB
-    const rulesets: RulesetClass[] = this.rulesets_temp_delete_later;
-
-    //and drawing each elem
+    const rulesets = this.rulesets_temp_delete_later;
     rulesets.forEach((ruleset, index) => {
       this.make_ruleset_entry_card(ruleset, width * 0.185, startY + (index % 5) * spacing, container_width);
-    })
-  };
+    });
+  }
 
   handle_visibility() {
     let num_to_show: number;
-
     if (this.rulesets.size >= this.page_number * 5) {
       num_to_show = 5;
     } else {
       num_to_show = this.rulesets.size % 5;
     }
-
-    this.rulesets_temp_delete_later.forEach((ruleset) => {
-      this.rulesets.get(ruleset.name)!.setVisible(false);
-    })
-
+    const list = this.rulesets_temp_delete_later;
+    list.forEach((r) => {
+      const key = "id" in r && typeof (r as LoadedRuleset).id === "number" ? `id-${(r as LoadedRuleset).id}` : (r as RulesetClass).name;
+      const container = this.rulesets.get(key);
+      if (container) container.setVisible(false);
+    });
     let index = this.page_number * 5;
-
-    while (index < (this.page_number) * 5 + num_to_show) {
-      console.log(index);
-      console.log(this.rulesets.get(this.rulesets_temp_delete_later.at(index)!.name));
-      this.rulesets.get(this.rulesets_temp_delete_later.at(index)!.name)!.setVisible(true);
+    while (index < (this.page_number) * 5 + num_to_show && index < list.length) {
+      const r = list[index];
+      const key = r && "id" in r && typeof (r as LoadedRuleset).id === "number" ? `id-${(r as LoadedRuleset).id}` : (r as RulesetClass).name;
+      const container = this.rulesets.get(key);
+      if (container) container.setVisible(true);
       index += 1;
     }
-
   }
 
-  draw_ruleset_entry_cards() {
-    //draws entry cards
-  }
 
-  add_ruleset_entry() {
-    //adds to DB and map
-    //triggers redraw
-    // this.make_ruleset_entry_card(new Ruleset("test"), 100, 100);
-  }
-
-  make_ruleset_entry_card(ruleset: RulesetClass, x_pos: number, y_pos: number, container_width: number) {
-    //called by above two fns
-    //actually handles making the card and adding
+  make_ruleset_entry_card(ruleset: LoadedRuleset | RulesetClass, x_pos: number, y_pos: number, container_width: number) {
+    const name = ruleset.name;
+    const id = "id" in ruleset && typeof (ruleset as LoadedRuleset).id === "number" ? (ruleset as LoadedRuleset).id : null;
+    const key = id != null ? `id-${id}` : name;
     const container = this.add.container(x_pos, y_pos);
 
-    // Card background
     const ruleset_bg = this.add.graphics();
-
     ruleset_bg.fillStyle(0xffffff);
     ruleset_bg.lineStyle(2, 0x000000);
     ruleset_bg.fillRoundedRect(x_pos * -0.125, y_pos * -0.05, container_width * 0.9, 55, 5);
     ruleset_bg.strokeRoundedRect(x_pos * -0.125, y_pos * -0.05, container_width * 0.9, 55, 5);
-    // ruleset_bg.setInteractive({useHandCursor: true})
-
     container.add(ruleset_bg);
 
-    const ruleset_text = this.add.text(0, y_pos * -0.05 + 10, ruleset.name, {
+    const ruleset_text = this.add.text(0, y_pos * -0.05 + 10, name, {
       fontFamily: "Arial",
       fontSize: "20px",
       fontStyle: "bold",
       color: "#101814"
     });
-
     container.add(ruleset_text);
 
+    if (id != null) {
+      const playBtn = this.add.text(container_width * 0.7, y_pos * -0.05 + 15, "Play", {
+        fontFamily: "Arial",
+        fontSize: "16px",
+        color: "#101814",
+        backgroundColor: "#EBC9B3",
+        padding: { x: 8, y: 4 }
+      }).setOrigin(0, 0.5).setInteractive({ useHandCursor: true });
+      playBtn.on("pointerdown", (e: Phaser.Input.Pointer) => {
+        e.event.stopPropagation();
+        this.registry.set("rulesetId", id);
+        this.scene.start("Game");
+      });
+      container.add(playBtn);
+      const editBtn = this.add.text(container_width * 0.55, y_pos * -0.05 + 15, "Edit", {
+        fontFamily: "Arial",
+        fontSize: "16px",
+        color: "#101814",
+        backgroundColor: "#EBC9B3",
+        padding: { x: 8, y: 4 }
+      }).setOrigin(0, 0.5).setInteractive({ useHandCursor: true });
+      editBtn.on("pointerdown", (e: Phaser.Input.Pointer) => {
+        e.event.stopPropagation();
+        this.scene.start("RulesetEditor", { name });
+      });
+      container.add(editBtn);
+    }
+
     container.setInteractive(new Phaser.Geom.Rectangle(-x_pos * 0.125, y_pos * -0.05, container_width * 0.9, 55), Phaser.Geom.Rectangle.Contains);
-    container.setInteractive({ usehandcursor: true });
+    container.setInteractive({ useHandCursor: true });
 
     container.on("pointerover", () => {
       ruleset_bg.fillStyle(0x8d8d8d);
@@ -287,17 +313,12 @@ export class Rules extends Scene {
       ruleset_bg.strokeRoundedRect(x_pos * -0.125, y_pos * -0.05, container_width * 0.9, 55, 5);
     });
 
-
     container.on("pointerdown", () => {
       this.rulesets_temp_delete_later = [];
-
-      // Should pass in the parsed JSON for this file
-      // Will likely be a RulesetTypes object, I believe?
-      // TODO: replace "name" with parsed ruleset
-      this.scene.start("RulesetEditor", {name: ruleset.name});
+      this.scene.start("RulesetEditor", { name });
     });
     container.setVisible(false);
-
-    this.rulesets.set(ruleset.name, container);
+    container.setDepth(1);
+    this.rulesets.set(key, container);
   }
 }

@@ -33,34 +33,47 @@ export class RulesetEditor extends Scene {
   private activeDropdownOverlay: Phaser.GameObjects.Container | null = null;
 
   init(args: any) {
-    // TODO: remove (replace really) below line once we're passing in the actual ruleset
-    this.name = args.name;
-    this.types = undefined;;
+    this.name = args?.name ?? "";
+    this.types = undefined;
+
+    // Clear all instance data when re-entering the scene to avoid reloading issues
+    this.options.clear();
+    this.option_objects.clear();
+    this.fieldPaths.clear();
+    this.ruleChanges.clear();
+    this.mutuallyExclusiveGroups.clear();
+    this.page_number = 1;
+    
+    // Destroy any active dropdown overlay from previous session to avoid reloading issues
+    if (this.activeDropdownOverlay) {
+      this.activeDropdownOverlay.destroy();
+      this.activeDropdownOverlay = null;
+    }
   }
 
   // maps each category to a list of options
   options: Map<String, Option<any>[]> = new Map();
   option_objects: Map<Option<any>, Phaser.GameObjects.Container> = new Map();
-  page_number: number = 0;
+  page_number: number = 1;
 
   async create() {
-    // Load the base ruleset to use for defaults
-    if (this.name !== undefined && this.name !== null) {
+    // Load the base ruleset to use for defaults (for new ruleset use default, for existing fetch by name)
+    if (this.name !== undefined && this.name !== null && this.name.trim() !== "") {
       this.baseRuleset = await this.fetchRulesetData(this.name);
-      // Show an alert with the current ruleset loaded from the database.
       try {
         alert("Loaded ruleset from database:\n\n" + JSON.stringify(this.baseRuleset, null, 2));
       } catch (e) {
         alert("Could not display loaded ruleset due to error: " + (e instanceof Error ? e.message : String(e)));
       }
     } else {
-      this.baseRuleset = DefaultRulesetData;
+      this.name = "New Ruleset";
+      this.baseRuleset = JSON.parse(JSON.stringify(DefaultRulesetData));
     }
 
     this.editorFields = await this.getTypes();
-   // alert("Types are:\n\n" + JSON.stringify(this.editorFields, null, 2));
+    alert("Editor fields:\n\n" + JSON.stringify(this.editorFields, null, 2));
 
-    //Static elems
+    const displayName = (this.name && this.name.trim()) ? this.name : "New Ruleset";
     const width = Number(this.game.config.width);
     const height = Number(this.game.config.height);
     const container_width = width * 0.75;
@@ -73,7 +86,7 @@ export class RulesetEditor extends Scene {
     bg.setScale(scale).setScrollFactor(0);
 
     var title_text = this.add
-      .text(Number(this.game.config.width) * 0.5, Number(this.game.config.height) * 0.15, this.name, {
+      .text(Number(this.game.config.width) * 0.5, Number(this.game.config.height) * 0.15, displayName, {
         fontFamily: "Arial Black",
         fontSize: "4.5rem",
         color: "#E9DFD9",
@@ -236,15 +249,15 @@ export class RulesetEditor extends Scene {
 
   //Helper fns
 
-  // Handles page navigation. Visibility change should happen here if possible.
+    // Handles page navigation. Visibility change should happen here if possible.
   handle_navigation_click(increment: number) {
     const itemsPerPage = 5;
     const totalItems = this.option_objects.size;
-    const maxPage = Math.max(0, Math.ceil(totalItems / itemsPerPage) - 1);
+    const maxPage = Math.max(1, Math.ceil(totalItems / itemsPerPage));
     
     const newPage = this.page_number + increment;
     
-    if (newPage >= 0 && newPage <= maxPage) {
+    if (newPage >= 1 && newPage <= maxPage) {
       this.page_number = newPage;
     }
   }
@@ -498,12 +511,12 @@ export class RulesetEditor extends Scene {
         this.option_objects.set(firstOption, optionContainer);
       }
       
-      // Position the container - use modulo for Y position within page
+      // Position the container - convert optionIndex to 0-based for page calculation
       const yPositionInPage = (optionIndex % itemsPerPage) * spacing;
       optionContainer.setPosition(startX, startY + yPositionInPage);
       
-      // Set initial visibility based on current page
-      const itemPage = Math.floor(optionIndex / itemsPerPage);
+      // Set initial visibility based on current page (page 1 = index 0)
+      const itemPage = Math.floor(optionIndex / itemsPerPage) + 1;
       optionContainer.setVisible(itemPage === this.page_number);
       
       optionIndex++;
@@ -836,15 +849,15 @@ export class RulesetEditor extends Scene {
   handle_visibility() {
     const itemsPerPage = 5;
     const totalItems = this.option_objects.size;
-    const maxPage = Math.max(0, Math.ceil(totalItems / itemsPerPage) - 1);
+    const maxPage = Math.max(1, Math.ceil(totalItems / itemsPerPage));
     
-    // Clamp page number to valid range
+    // Clamp page number to valid range (1-based)
     if (this.page_number > maxPage) {
       this.page_number = maxPage;
     }
 
-    if (this.page_number < 0) {
-      this.page_number = 0;
+    if (this.page_number < 1) {
+      this.page_number = 1;
     }
     
     // Hide all options first
@@ -852,8 +865,8 @@ export class RulesetEditor extends Scene {
       optionContainer.setVisible(false);
     }
     
-    // Calculate which items to show
-    const startIndex = this.page_number * itemsPerPage;
+    // Calculate which items to show (convert page number to 0-based index)
+    const startIndex = (this.page_number - 1) * itemsPerPage;
     const endIndex = Math.min(startIndex + itemsPerPage, totalItems);
     
     // Show only options for current page
@@ -970,8 +983,8 @@ export class RulesetEditor extends Scene {
 
       const savedRuleset = await response.json();
       console.log("Ruleset saved successfully:", savedRuleset);
-      // TODO: Remove this later, it is only here to confirm that saving works and show the result
-       alert("Ruleset saved successfully!\n\n" + JSON.stringify(savedRuleset.data, null, 2));
+      const savedTo = savedRuleset.savedTo === "neon" ? "Neon" : "locally";
+      alert(`Ruleset saved successfully (${savedTo})!\n\n` + JSON.stringify(savedRuleset.data, null, 2));
       
       // Clear in-memory changes after successful save
       this.ruleChanges.clear();
