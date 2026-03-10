@@ -1,7 +1,5 @@
-import { Ruleset } from "../rules/Ruleset"
-
+import { RulesetClass } from "../rules/RulesetClass"
 import { Scene } from "phaser";
-import { authorizeDiscordUser } from "../utils/discordSDK";
 
 
 export class Rules extends Scene {
@@ -9,7 +7,7 @@ export class Rules extends Scene {
     super("Rules");
   }
 
-  rulesets_temp_delete_later: Ruleset[] = [];
+  rulesets_temp_delete_later: RulesetClass[] = [];
   rulesets: Map<string, Phaser.GameObjects.Container> = new Map();
   page_number: number = 0;
 
@@ -179,11 +177,11 @@ export class Rules extends Scene {
 
     //populate rules
 
-    this.rulesets_temp_delete_later.push(new Ruleset("uno"));
-    this.rulesets_temp_delete_later.push(new Ruleset("hiii"));
-    this.rulesets_temp_delete_later.push(new Ruleset("the joke one"));
-    this.rulesets_temp_delete_later.push(new Ruleset("e"));
-    this.rulesets_temp_delete_later.push(new Ruleset("th is me"));
+    this.rulesets_temp_delete_later.push(new RulesetClass("uno"));
+    this.rulesets_temp_delete_later.push(new RulesetClass("hiii"));
+    this.rulesets_temp_delete_later.push(new RulesetClass("the joke one"));
+    this.rulesets_temp_delete_later.push(new RulesetClass("e"));
+    this.rulesets_temp_delete_later.push(new RulesetClass("th is me"));
 
     this.populate_rulesets(width, height, container_width);
     this.handle_visibility();
@@ -207,7 +205,7 @@ export class Rules extends Scene {
     //TODO: jerry 
 
     //this will hold a list of Ruleset objs loaded from DB
-    const rulesets: Ruleset[] = this.rulesets_temp_delete_later;
+    const rulesets: RulesetClass[] = this.rulesets_temp_delete_later;
 
     //and drawing each elem
     rulesets.forEach((ruleset, index) => {
@@ -249,7 +247,7 @@ export class Rules extends Scene {
     // this.make_ruleset_entry_card(new Ruleset("test"), 100, 100);
   }
 
-  make_ruleset_entry_card(ruleset: Ruleset, x_pos: number, y_pos: number, container_width: number) {
+  make_ruleset_entry_card(ruleset: RulesetClass, x_pos: number, y_pos: number, container_width: number) {
     //called by above two fns
     //actually handles making the card and adding
     const container = this.add.container(x_pos, y_pos);
@@ -292,7 +290,11 @@ export class Rules extends Scene {
 
     container.on("pointerdown", () => {
       this.rulesets_temp_delete_later = [];
-      this.scene.start("RulesetEditor", { name: ruleset.name });
+
+      // Should pass in the parsed JSON for this file
+      // Will likely be a RulesetTypes object, I believe?
+      // TODO: replace "name" with parsed ruleset
+      this.scene.start("RulesetEditor", {name: ruleset.name});
     });
     container.setVisible(false);
 

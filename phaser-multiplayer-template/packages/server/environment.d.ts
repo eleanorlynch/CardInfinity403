@@ -1,5 +1,7 @@
 import 'phaser';
 import RexUIPlugin from 'phaser3-rex-plugins/templates/ui/ui-plugin.js';
+import TextEditPlugin from 'phaser3-rex-plugins/plugins/textedit-plugin.js';
+
 
 declare global {
   namespace NodeJS {
