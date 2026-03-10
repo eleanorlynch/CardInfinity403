@@ -674,25 +674,28 @@ export class GameStatus implements Ruleset {
         this.discardPile = pile;
     }
 
-    // Gets the current game state information for a player
+    // Gets the current game state information for a player (plain objects for wire serialization)
     getGameState(playerId: number) {
+        const cardToPlain = (c: Card) => ({
+            suit: c.getSuit(),
+            rank: c.getRank(),
+            id: c.getId(),
+            code: c.code ?? `${c.getRank()}${c.getSuit().charAt(0)}`,
+        });
+        const top = this.getTopDiscard();
         return {
             gameId: this.gameId,
             ruleset: this.ruleset,
-
             players: this.players.map((p) => ({
-            id: p.getID(),
-            name: `Player ${p.getID()}`,
-            handCount: p.getHand()?.length ?? 0,
+                id: p.getID(),
+                name: `Player ${p.getID()}`,
+                handCount: p.getHand()?.length ?? 0,
             })),
-
             currentTurn: this.currentTurn,
             isMyTurn: this.currentTurn === playerId,
-
-            myHand: this.players[playerId]?.getHand() ?? [],
-            discardTop: this.getTopDiscard(),
+            myHand: (this.players[playerId]?.getHand() ?? []).map(cardToPlain),
+            discardTop: top ? cardToPlain(top) : null,
             deckCount: this.getDeckCount(),
-
             gameOver: this.gameOver,
             winner: this.winner,
         };

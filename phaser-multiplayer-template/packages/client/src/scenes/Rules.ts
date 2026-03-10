@@ -81,11 +81,14 @@ export class Rules extends Scene {
       addButton.setStyle({ backgroundColor: "#101814" });
     });
 
-    addButton.on("pointerdown", () => {
-      this.add_ruleset_entry();
+    addButton.on("pointerdown", (e: Phaser.Input.Pointer) => {
+      addButton.setStyle({ backgroundColor: "#ffffff" });
+      e.event.stopPropagation();
+      this.scene.start("RulesetEditor", { name: "" });
     });
 
-    const rules_container = this.add.container();
+    const rules_container = this.add.container(0, 0);
+    rules_container.setDepth(1);
     const navigation_container = this.add.container();
 
     const rules_container_bg = this.add
@@ -176,6 +179,7 @@ export class Rules extends Scene {
       .add(navigation_left_button)
       .add(navigation_right_button);
 
+    addButton.setDepth(1000);
 
     // Populate rules: load from DB then draw (fallback to hardcoded if API fails)
     this.loadRulesetsThenPopulate(width, height, container_width, page_number_indicator);
@@ -244,15 +248,6 @@ export class Rules extends Scene {
     }
   }
 
-  draw_ruleset_entry_cards() {
-    //draws entry cards
-  }
-
-  add_ruleset_entry() {
-    //adds to DB and map
-    //triggers redraw
-    // this.make_ruleset_entry_card(new Ruleset("test"), 100, 100);
-  }
 
   make_ruleset_entry_card(ruleset: LoadedRuleset | RulesetClass, x_pos: number, y_pos: number, container_width: number) {
     const name = ruleset.name;
@@ -323,6 +318,7 @@ export class Rules extends Scene {
       this.scene.start("RulesetEditor", { name });
     });
     container.setVisible(false);
+    container.setDepth(1);
     this.rulesets.set(key, container);
   }
 }

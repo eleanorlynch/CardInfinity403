@@ -34,6 +34,7 @@ export class GameRoom extends Room {
     );
     this.onMessage("END_TURN", (client) => this.handleEndTurn(client));
     this.onMessage("CHECK_WINNER", (client) => this.handleCheckWinner(client));
+    this.onMessage("REQUEST_STATE", (client) => this.sendPrivateState(client));
   }
 
   async onJoin(client: Client) {
