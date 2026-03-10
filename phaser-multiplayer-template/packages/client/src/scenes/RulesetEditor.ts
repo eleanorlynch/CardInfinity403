@@ -717,8 +717,6 @@ export class RulesetEditor extends Scene {
     return buttons;
   }
 
-// ...existing code...
-
   // Creates a singular checkbox button
   create_checkbox_button(text: string, name: string) {
     if (name === undefined || name === null) {
@@ -728,7 +726,8 @@ export class RulesetEditor extends Scene {
       width: 100,
       height: 100,
       text: this.add.text(200, 200, text, {
-        fontSize: 18
+        fontSize: 18,
+        color: '#E9DFD9'
       }),
       icon: this.add.rectangle(20, 20, 20, 20).setStrokeStyle(1, 0x000000),
       space: {
@@ -751,7 +750,8 @@ export class RulesetEditor extends Scene {
       width: 100,
       height: 40,
       text: this.add.text(200, 200, text, {
-        fontSize: 18
+        fontSize: 18,
+        color: '#101814'
       }),
       icon: this.add.circle(200, 200, 10).setStrokeStyle(1, 0x000000),
       space: {
