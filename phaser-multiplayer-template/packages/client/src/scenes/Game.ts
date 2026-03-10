@@ -479,7 +479,7 @@ export class Game extends Scene {
         // Display the room code so the host can share it
         const width = Number(this.game.config.width);
         const roomId = this.room.roomId;
-        const roomCodeText = this.add.text(width * 0.5, Number(this.game.config.height) * 0.08, `Room Code: ${roomId}  📋`, {
+        const roomCodeText = this.add.text(width * 0.5, Number(this.game.config.height) * 0.08, `Room Code: ${roomId}  ⧉`, {
           fontFamily: "Arial",
           fontSize: "18px",
           color: "#EBC9B3",
@@ -493,12 +493,12 @@ export class Game extends Scene {
           navigator.clipboard.writeText(roomId).then(() => {
             roomCodeText.setText(`Room Code: ${roomId}  ✓ Copied!`);
             this.time.delayedCall(2000, () => {
-              roomCodeText.setText(`Room Code: ${roomId}  📋`);
+              roomCodeText.setText(`Room Code: ${roomId}  ⧉`);
             });
           }).catch(() => {
             roomCodeText.setText(`Room Code: ${roomId}  (copy failed)`);
             this.time.delayedCall(2000, () => {
-              roomCodeText.setText(`Room Code: ${roomId}  📋`);
+              roomCodeText.setText(`Room Code: ${roomId}  ⧉`);
             });
           });
         });
