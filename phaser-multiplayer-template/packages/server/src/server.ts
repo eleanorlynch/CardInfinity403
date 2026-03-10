@@ -59,11 +59,7 @@ app.use((req, res, next) => {
 });
 
 // Game Rooms
-server
-  .define("game", GameRoom)
-  // filterBy allows us to call joinOrCreate and then hold one game per channel
-  // https://discuss.colyseus.io/topic/345/is-it-possible-to-run-joinorcreatebyid/3
-  .filterBy(["channelId"]);
+server.define("game", GameRoom);
 
 app.use(express.json());
 app.use(router);

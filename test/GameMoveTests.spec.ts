@@ -10,10 +10,10 @@ describe ("GameMove", function () {
 
   describe ("#createGame()", function () {
 
-    it ("should return the correct game when told to create one based on certain properties", function () {
+    it ("should return the correct game when told to create one based on certain properties", async function () {
       const players = [new Player(0, []), new Player(1, [])];
       const Move = new GameMove();
-      const game = Move.createGame(123, players);
+      const game = await Move.createGame(123, players);
 
       assert.deepStrictEqual(game.getGameId(), 123);
       // add tests for correct ruleset
@@ -23,10 +23,10 @@ describe ("GameMove", function () {
 
   describe ("#getGame()", function () {
 
-    it ("should return the correct game when given its gameid", function () {
+    it ("should return the correct game when given its gameid", async function () {
       const Move = new GameMove();
       const players = [new Player(0, []), new Player(1, [])];
-      const game = Move.createGame(123, players);
+      const game = await Move.createGame(123, players);
 
       assert.strictEqual(Move.getGame(123), game);
     });
@@ -34,10 +34,10 @@ describe ("GameMove", function () {
 
   describe ("#handleDrawCard()", function() {
 
-    it ("should allow the user to draw a card when they have not yet reached the draw limit", function() {
+    it ("should allow the user to draw a card when they have not yet reached the draw limit", async function() {
       const Move = new GameMove();
       const players = [new Player(0, []), new Player(1, [])];
-      const game = Move.createGame(123, players);
+      const game = await Move.createGame(123, players);
 
       if (players[0] !== undefined && players[0].getHand() !== undefined) {
         const startLen = players[0].getHand().length;
@@ -48,10 +48,10 @@ describe ("GameMove", function () {
       }
     });
 
-    it ("shouldn't allow the user to draw a card when they have reached the draw limit", function() {
+    it ("shouldn't allow the user to draw a card when they have reached the draw limit", async function() {
       const Move = new GameMove();
       const players = [new Player(0, []), new Player(1, [])];
-      const game = Move.createGame(123, players);
+      const game = await Move.createGame(123, players);
 
       game.drawCard(0);
       game.drawCard(0);
@@ -63,10 +63,10 @@ describe ("GameMove", function () {
       }
     });
 
-    it ("shouldn't allow the user to draw a card when they have reached the hand size limit", function() {
+    it ("shouldn't allow the user to draw a card when they have reached the hand size limit", async function() {
       const Move = new GameMove();
       const players = [new Player(0, []), new Player(1, [])];
-      const game = Move.createGame(123, players);
+      const game = await Move.createGame(123, players);
 
       Move.handleDrawCard(123, 0);
       Move.handleDrawCard(123, 0);
@@ -86,10 +86,10 @@ describe ("GameMove", function () {
 
   describe ("#handleDiscardCard()", function() {
 
-    it ("should allow the user to discard a card when they have not yet reached the discard limit", function() {
+    it ("should allow the user to discard a card when they have not yet reached the discard limit", async function() {
       const Move = new GameMove();
       const players = [new Player(0, []), new Player(1, [])];
-      const game = Move.createGame(123, players);
+      const game = await Move.createGame(123, players);
 
       if (players !== undefined && players[0] !== undefined) {
         const hand = players[0].getHand();
@@ -105,10 +105,10 @@ describe ("GameMove", function () {
       }
     });
 
-    it ("shouldn't allow the user to discard a card when they have reached the discard limit", function() {
+    it ("shouldn't allow the user to discard a card when they have reached the discard limit", async function() {
       const Move = new GameMove();
       const players = [new Player(0, []), new Player(1, [])];
-      const game = Move.createGame(123, players);
+      const game = await Move.createGame(123, players);
 
       if (players !== undefined && players[0] !== undefined) {
         const hand = players[0].getHand();
@@ -150,10 +150,10 @@ describe ("GameMove", function () {
 
   describe ("#handlePlayCard()", function() {
 
-    it ("should allow the user to play a card when they have not yet reached the play limit", function() {
+    it ("should allow the user to play a card when they have not yet reached the play limit", async function() {
       const Move = new GameMove();
       const players = [new Player(0, []), new Player(1, [])];
-      const game = Move.createGame(123, players);
+      const game = await Move.createGame(123, players);
 
       game.setPlayerHand([new Card("clubs", 2)], 0);
 

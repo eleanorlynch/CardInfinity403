@@ -26,9 +26,17 @@ export class Game extends Scene {
     super("Game");
   }
 
-  create() {
+  async create() {
     // Reset all game state when entering the scene
-    this.resetGameState();
+    // Initialize game
+    await this.connectToRoom().catch((err) => {
+      console.error(err);
+      if (this.statusText) this.statusText.setText("Failed to connect");
+    });
+
+    // console.log("Connected to room " + this.room?.name)
+
+    // this.resetGameState();
 
     const width = Number(this.game.config.width);
     const height = Number(this.game.config.height);
@@ -173,11 +181,7 @@ export class Game extends Scene {
     });
 
 
-    // Initialize game
-    this.connectToRoom().catch((err) => {
-      console.error(err);
-      if (this.statusText) this.statusText.setText("Failed to connect");
-    });
+
   }
 
   resetGameState() {
@@ -204,7 +208,7 @@ export class Game extends Scene {
     // Reset game move manager
     // TODO: Make sure this replacement works
     if (this.room === undefined) {
-      console.warn("No room connection");
+      console.warn("No room connection, cannot reset ");
       return;
     }
 
@@ -224,7 +228,7 @@ export class Game extends Scene {
     var stateResult: any = null;
 
     if (this.room === undefined) {
-      console.warn("No room connection");
+      console.warn("No room connection, cannot update");
       return;
     }
 
@@ -429,7 +433,7 @@ export class Game extends Scene {
   // multiplayer handle draw using room
   handleDrawCard() {
     if (this.room === undefined) {
-      console.warn("No room connection");
+      console.warn("No room connection, cannot draw");
       return;
     }
 
@@ -443,7 +447,7 @@ export class Game extends Scene {
 
   handlePlayCard(cardId: string) {
     if (this.room === undefined) {
-      console.warn("No room connection");
+      console.warn("No room connection, cannot play card");
       return;
     }
 
@@ -461,17 +465,12 @@ export class Game extends Scene {
 
   private async connectToRoom() {
     const channelId = "dev-channel-1";
-    // Optional: use a saved ruleset from DB (set by Rules scene or registry before starting Game)
     const rulesetId = this.registry.get("rulesetId") as number | undefined;
 
-    // ===== LOCAL DEV (comment this out when using tunnel) =====
-    const wsEndpoint = "ws://localhost:3001";
+    const url =
+      location.host === "localhost:3000" ? `ws://localhost:3001` : `wss://${location.host}/.proxy/api/colyseus`;
 
-    // ===== TUNNEL / DISCORD (comment this out when using local) =====
-    // Browser Colyseus must use ws:// or wss:// (not http://)
-    // const wsEndpoint = window.location.origin.replace(/^http/, "ws");
-
-    this.netClient = new ColyseusClient(wsEndpoint);
+    this.netClient = new ColyseusClient(`${url}`);
 
     const options: { channelId: string; rulesetId?: number } = { channelId };
     if (rulesetId != null) options.rulesetId = rulesetId;

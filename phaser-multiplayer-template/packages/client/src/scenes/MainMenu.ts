@@ -105,25 +105,107 @@ export class MainMenu extends Scene {
     });
 
     button_start_game.on('pointerdown', async () => {
-      if (authInProgress) {
-        return;
-      }
-
+      if (authInProgress) return;
       authInProgress = true;
-      console.log("Start game clicked");
-
-      // Show immediate feedback so Discord auth does not look frozen.
       authErrorText.setText("Authorizing with Discord...");
-      
       try {
         await authorizeDiscordUser();
-        this.scene.start("Game");
+        this.scene.start("Game", { isHost: true });
       } catch (error) {
         console.error("Discord authorization failed:", error);
         const message = error instanceof Error ? error.message : "Unknown auth error";
         authErrorText.setText(`Discord auth failed: ${message}`);
         authInProgress = false;
       }
+    });
+
+    button_join_game.setInteractive({ useHandCursor: true });
+
+    button_join_game.on('pointerover', () => {
+      button_join_game.setBackgroundColor('#8d8d8d');
+    });
+
+    button_join_game.on('pointerout', () => {
+      button_join_game.setBackgroundColor('#EBC9B3');
+    });
+
+    button_join_game.on('pointerdown', () => {
+      if (authInProgress) return;
+
+      const input = document.createElement('input');
+      input.type = 'text';
+      input.placeholder = 'Enter room code...';
+      input.style.cssText = `
+        font-size: 24px; padding: 12px 20px; border-radius: 8px;
+        border: 2px solid #EBC9B3; background: #101814; color: #E9DFD9;
+        text-align: center; outline: none; width: 240px;
+      `;
+
+      const overlay = document.createElement('div');
+      overlay.style.cssText = `
+        position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+        background: rgba(0,0,0,0.6); z-index: 999;
+      `;
+
+      const row = document.createElement('div');
+      row.style.cssText = `
+        position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);
+        display: flex; align-items: center; gap: 10px; z-index: 1000;
+      `;
+
+      const confirmBtn = document.createElement('button');
+      confirmBtn.textContent = 'Join';
+      confirmBtn.style.cssText = `
+        font-size: 24px; padding: 12px 24px; border-radius: 8px; border: none;
+        background: #EBC9B3; color: #101814; cursor: pointer; pointer-events: auto;
+        flex-shrink: 0;
+      `;
+
+      const btnWrapper = document.createElement('div');
+      btnWrapper.style.cssText = `display: flex; flex-direction: column; align-items: center; gap: 6px;`;
+
+      const hint = document.createElement('div');
+      hint.textContent = 'or press Enter';
+      hint.style.cssText = `font-size: 13px; color: #E9DFD9; opacity: 0.7; white-space: nowrap;`;
+
+      confirmBtn.onmouseenter = () => { confirmBtn.style.background = '#8d8d8d'; };
+      confirmBtn.onmouseleave = () => { confirmBtn.style.background = '#EBC9B3'; };
+
+      btnWrapper.appendChild(confirmBtn);
+      btnWrapper.appendChild(hint);
+      row.appendChild(input);
+      row.appendChild(btnWrapper);
+      document.body.appendChild(overlay);
+      document.body.appendChild(row);
+      input.focus();
+
+      const cleanup = () => {
+        document.body.removeChild(overlay);
+        document.body.removeChild(row);
+      };
+
+      const submit = async () => {
+        const roomId = input.value.trim();
+        if (!roomId) return;
+        cleanup();
+        authInProgress = true;
+        authErrorText.setText("Authorizing with Discord...");
+        try {
+          await authorizeDiscordUser();
+          this.scene.start("Game", { isHost: false, roomId });
+        } catch (error) {
+          const message = error instanceof Error ? error.message : "Unknown auth error";
+          authErrorText.setText(`Discord auth failed: ${message}`);
+          authInProgress = false;
+        }
+      };
+
+      confirmBtn.onclick = submit;
+      overlay.onclick = cleanup;
+      input.onkeydown = (e) => {
+        if (e.key === 'Enter') submit();
+        if (e.key === 'Escape') cleanup();
+      };
     });
 
     button_manage_rules.setInteractive({ useHandCursor: true });

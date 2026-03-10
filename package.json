@@ -4,7 +4,7 @@
   "description": "Card Infinity project package",
   "main": "index.js",
   "scripts": {
-    "test": "mocha -r ts-node/register/transpile-only \"test/**/*.spec.ts\"",
+    "test": "node ./node_modules/mocha/bin/mocha.js -r ts-node/register/transpile-only \"test/**/*.spec.ts\"",
     "coverage": "c8 --extension .ts --enable-source-maps -- mocha -r ts-node/register/transpile-only test/**/*.spec.ts"
   },
   "repository": {
@@ -18,6 +18,7 @@
   },
   "homepage": "https://github.com/eleanorlynch/CardInfinity403#readme",
   "devDependencies": {
+    "@neondatabase/serverless": "^1.0.2",
     "@types/chai": "^5.2.3",
     "@types/mocha": "^10.0.10",
     "@types/node": "^25.2.3",
