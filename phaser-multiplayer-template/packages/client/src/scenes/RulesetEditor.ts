@@ -249,11 +249,11 @@ export class RulesetEditor extends Scene {
 
   //Helper fns
 
-  // Handles page navigation. Visibility change should happen here if possible.
+    // Handles page navigation. Visibility change should happen here if possible.
   handle_navigation_click(increment: number) {
     const itemsPerPage = 5;
     const totalItems = this.option_objects.size;
-    const maxPage = Math.max(1, Math.ceil(totalItems / itemsPerPage) - 1);
+    const maxPage = Math.max(1, Math.ceil(totalItems / itemsPerPage));
     
     const newPage = this.page_number + increment;
     
@@ -511,12 +511,12 @@ export class RulesetEditor extends Scene {
         this.option_objects.set(firstOption, optionContainer);
       }
       
-      // Position the container - use modulo for Y position within page
+      // Position the container - convert optionIndex to 0-based for page calculation
       const yPositionInPage = (optionIndex % itemsPerPage) * spacing;
       optionContainer.setPosition(startX, startY + yPositionInPage);
       
-      // Set initial visibility based on current page
-      const itemPage = Math.floor(optionIndex / itemsPerPage);
+      // Set initial visibility based on current page (page 1 = index 0)
+      const itemPage = Math.floor(optionIndex / itemsPerPage) + 1;
       optionContainer.setVisible(itemPage === this.page_number);
       
       optionIndex++;
@@ -848,15 +848,15 @@ create_dropdown(options: string[], defaultValue?: string, onSelect?: (selectedOp
   handle_visibility() {
     const itemsPerPage = 5;
     const totalItems = this.option_objects.size;
-    const maxPage = Math.max(0, Math.ceil(totalItems / itemsPerPage) - 1);
+    const maxPage = Math.max(1, Math.ceil(totalItems / itemsPerPage));
     
-    // Clamp page number to valid range
+    // Clamp page number to valid range (1-based)
     if (this.page_number > maxPage) {
       this.page_number = maxPage;
     }
 
-    if (this.page_number < 0) {
-      this.page_number = 0;
+    if (this.page_number < 1) {
+      this.page_number = 1;
     }
     
     // Hide all options first
@@ -864,8 +864,8 @@ create_dropdown(options: string[], defaultValue?: string, onSelect?: (selectedOp
       optionContainer.setVisible(false);
     }
     
-    // Calculate which items to show
-    const startIndex = this.page_number * itemsPerPage;
+    // Calculate which items to show (convert page number to 0-based index)
+    const startIndex = (this.page_number - 1) * itemsPerPage;
     const endIndex = Math.min(startIndex + itemsPerPage, totalItems);
     
     // Show only options for current page
