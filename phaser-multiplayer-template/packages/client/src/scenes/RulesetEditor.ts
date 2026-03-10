@@ -554,24 +554,25 @@ export class RulesetEditor extends Scene {
     }
   }
 
-create_dropdown(options: string[], defaultValue?: string, onSelect?: (selectedOption: string) => void) {
+  create_dropdown(options: string[], defaultValue?: string, onSelect?: (selectedOption: string) => void) {
     const self = this;
     
     // Create a simple button that looks like a dropdown
-    const dropdownBg = this.rexUI.add.roundRectangle(0, 0, 150, 30, 0, 0xE9DFD9).setStrokeStyle(2, 0x101814);
+    const dropdownWidth = 200;
+    const dropdownBg = this.rexUI.add.roundRectangle(0, 0, dropdownWidth, 30, 0, 0xE9DFD9).setStrokeStyle(2, 0x101814);
     
-    const dropdownText = this.add.text(0, 0, defaultValue || options[0] || 'Select...', {
+    const dropdownText = this.add.text(-20, 0, defaultValue || options[0] || 'Select...', {
       fontSize: '16px',
       color: '#101814'
     }).setOrigin(0.5);
     
-    const dropdownArrow = this.add.text(60, 0, '▼', {
+    const dropdownArrow = this.add.text((dropdownWidth / 2) - 20, 0, '▼', {
       fontSize: '12px',
       color: '#101814'
     }).setOrigin(0.5);
     
     const dropdown = this.add.container(0, 0, [dropdownBg, dropdownText, dropdownArrow]);
-    dropdown.setSize(150, 30);
+    dropdown.setSize(dropdownWidth, 30);
     
     // Make it interactive
     dropdownBg.setInteractive({ useHandCursor: true });
@@ -606,14 +607,14 @@ create_dropdown(options: string[], defaultValue?: string, onSelect?: (selectedOp
       const listHeight = options.length * 35 + 10;
       const listBg = self.add.graphics();
       listBg.fillStyle(0xffffff, 1);
-      listBg.fillRoundedRect(-75, 0, 150, listHeight, 5);
+      listBg.fillRoundedRect(-dropdownWidth / 2, 0, dropdownWidth, listHeight, 5);
       listBg.lineStyle(2, 0x101814);
-      listBg.strokeRoundedRect(-75, 0, 150, listHeight, 5);
+      listBg.strokeRoundedRect(-dropdownWidth / 2, 0, dropdownWidth, listHeight, 5);
       overlay.add(listBg);
       
       // Create option buttons
       options.forEach((option, index) => {
-        const optionBg = self.add.rectangle(0, 15 + index * 35, 140, 30, 0xE9DFD9);
+        const optionBg = self.add.rectangle(0, 15 + index * 35, dropdownWidth - 10, 30, 0xE9DFD9);
         optionBg.setInteractive({ useHandCursor: true });
         
         const optionText = self.add.text(0, 15 + index * 35, option, {
