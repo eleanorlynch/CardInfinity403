@@ -25,6 +25,12 @@ export default ({ mode }) => {
           ws: true,
           rewrite: (path) => path.replace(/^\/.proxy\/assets/, ""),
         },
+        "/.proxy/discord_token": {
+          target: "http://localhost:3001",
+          changeOrigin: true,
+          secure: false,
+          rewrite: () => "/token",
+        },
         "/.proxy/api": {
           target: "http://localhost:3001",
           changeOrigin: true,

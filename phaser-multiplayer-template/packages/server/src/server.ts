@@ -254,6 +254,51 @@ router.put("/rulesets/by-name/:name", async (req: Request, res: Response) => {
   res.json({ ...row, savedTo });
 });
 
+// /.proxy/discord_token before static so Discord Activity auth is handled
+const tokenHandler = async (req: Request, res: Response) => {
+  const clientId = process.env.VITE_CLIENT_ID ?? process.env.DISCORD_CLIENT_ID;
+  const clientSecret = process.env.CLIENT_SECRET ?? process.env.DISCORD_CLIENT_SECRET;
+  if (!clientId || !clientSecret) {
+    console.error("[token] Missing VITE_CLIENT_ID/DISCORD_CLIENT_ID or CLIENT_SECRET/DISCORD_CLIENT_SECRET in server .env");
+    res.status(500).json({ error: "Server misconfiguration: Discord client credentials not set" });
+    return;
+  }
+  const code = req.body?.code;
+  if (!code || typeof code !== "string") {
+    res.status(400).json({ error: "Missing or invalid authorization code" });
+    return;
+  }
+
+  const response = await fetch(`https://discord.com/api/oauth2/token`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/x-www-form-urlencoded",
+    },
+    body: new URLSearchParams({
+      client_id: clientId,
+      client_secret: clientSecret,
+      grant_type: "authorization_code",
+      code,
+    }),
+  });
+
+  const data = (await response.json()) as { access_token?: string; error?: string; error_description?: string };
+  if (!response.ok) {
+    const msg = data.error_description ?? data.error ?? `Discord API ${response.status}`;
+    console.error("[token] Discord token exchange failed:", response.status, data);
+    res.status(response.status >= 500 ? 502 : 400).json({ error: msg });
+    return;
+  }
+  if (!data.access_token) {
+    console.error("[token] Discord response missing access_token:", data);
+    res.status(502).json({ error: "Invalid token response from Discord" });
+    return;
+  }
+
+  res.send({ access_token: data.access_token });
+};
+app.post("/.proxy/discord_token", tokenHandler);
+
 if (process.env.NODE_ENV === "production") {
   const clientBuildPath = path.join(__dirname, "../../client/dist");
   app.use(express.static(clientBuildPath));
@@ -262,30 +307,8 @@ if (process.env.NODE_ENV === "production") {
 // If you don't want people accessing your server stats, comment this line.
 router.use("/colyseus", monitor(server as Partial<MonitorOptions>));
 
-// Fetch token from developer portal and return to the embedded app
 // Keep both routes so the client works with the template proxy path (/.proxy/api/token)
 // and with any older direct /api/token callers.
-const tokenHandler = async (req: Request, res: Response) => {
-  const response = await fetch(`https://discord.com/api/oauth2/token`, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/x-www-form-urlencoded",
-    },
-    body: new URLSearchParams({
-      client_id: process.env.VITE_CLIENT_ID,
-      client_secret: process.env.CLIENT_SECRET,
-      grant_type: "authorization_code",
-      code: req.body.code,
-    }),
-  });
-
-  const { access_token } = (await response.json()) as {
-    access_token: string;
-  };
-
-  res.send({ access_token });
-};
-
 router.post("/token", tokenHandler);
 router.post("/api/token", tokenHandler);
 

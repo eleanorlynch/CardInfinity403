@@ -1,5 +1,5 @@
 import { Scene } from "phaser";
-import { authorizeDiscordUser } from "../utils/discordSDK";
+import { authorizeDiscordUser, getAuth } from "../utils/discordSDK";
 
 export class MainMenu extends Scene {
   constructor() {
@@ -84,7 +84,7 @@ export class MainMenu extends Scene {
         backgroundColor: '#EBC9B3'
       }).setPadding(32).setOrigin(0.5).setMask(mask_button_manage_rules);
 
-    // Auth/debug feedback for Discord start failures.
+    // Auth/debug feedback for Discord start failures. Keep depth lower so buttons stay clickable.
     const authErrorText = this.add
       .text(Number(this.game.config.width) * 0.5, Number(this.game.config.height) * 0.93, "", {
         fontFamily: "Arial",
@@ -92,9 +92,10 @@ export class MainMenu extends Scene {
         color: "#ffb3b3",
         align: "center",
       })
-      .setOrigin(0.5);
+      .setOrigin(0.5)
+      .setDepth(0);
 
-    button_start_game.setInteractive({ useHandCursor: true });
+    button_start_game.setDepth(1).setInteractive({ useHandCursor: true });
 
     button_start_game.on('pointerover', () => {
       button_start_game.setBackgroundColor('#8d8d8d');
@@ -106,6 +107,10 @@ export class MainMenu extends Scene {
 
     button_start_game.on('pointerdown', async () => {
       if (authInProgress) return;
+      if (getAuth()) {
+        this.scene.start("Game", { isHost: true });
+        return;
+      }
       authInProgress = true;
       authErrorText.setText("Authorizing with Discord...");
       try {
@@ -115,11 +120,12 @@ export class MainMenu extends Scene {
         console.error("Discord authorization failed:", error);
         const message = error instanceof Error ? error.message : "Unknown auth error";
         authErrorText.setText(`Discord auth failed: ${message}`);
+      } finally {
         authInProgress = false;
       }
     });
 
-    button_join_game.setInteractive({ useHandCursor: true });
+    button_join_game.setDepth(1).setInteractive({ useHandCursor: true });
 
     button_join_game.on('pointerover', () => {
       button_join_game.setBackgroundColor('#8d8d8d');
@@ -223,6 +229,10 @@ export class MainMenu extends Scene {
         }
 
         cleanup();
+        if (getAuth()) {
+          this.scene.start("Game", { isHost: false, roomId });
+          return;
+        }
         authInProgress = true;
         authErrorText.setText("Authorizing with Discord...");
         try {
@@ -231,6 +241,7 @@ export class MainMenu extends Scene {
         } catch (error) {
           const message = error instanceof Error ? error.message : "Unknown auth error";
           authErrorText.setText(`Discord auth failed: ${message}`);
+        } finally {
           authInProgress = false;
         }
       };
@@ -243,7 +254,7 @@ export class MainMenu extends Scene {
       };
     });
 
-    button_manage_rules.setInteractive({ useHandCursor: true });
+    button_manage_rules.setDepth(1).setInteractive({ useHandCursor: true });
 
     button_manage_rules.on('pointerover', () => {
       button_manage_rules.setBackgroundColor('#8d8d8d');
@@ -254,8 +265,23 @@ export class MainMenu extends Scene {
     });
 
     button_manage_rules.on('pointerdown', async () => {
-      await authorizeDiscordUser();
-      this.scene.start("Rules");
+      if (authInProgress) return;
+      if (getAuth()) {
+        this.scene.start("Rules");
+        return;
+      }
+      authInProgress = true;
+      authErrorText.setText("Authorizing with Discord...");
+      try {
+        await authorizeDiscordUser();
+        this.scene.start("Rules");
+      } catch (error) {
+        console.error("Discord authorization failed:", error);
+        const message = error instanceof Error ? error.message : "Unknown auth error";
+        authErrorText.setText(`Discord auth failed: ${message}`);
+      } finally {
+        authInProgress = false;
+      }
     });
 
     // for testing in discord without authorized user

@@ -69,8 +69,9 @@ const authorizeDiscordUser = async () => {
     scope: ["identify", "applications.commands"],
   });
 
-  // Retrieve an access_token from your application's server
-  const response = await fetch("/api/token", {
+  // Retrieve an access_token from your application's server.
+  // Use /.proxy/api/token so the request hits the backend in both dev (Vite proxy) and production (router at /.proxy/api).
+  const response = await fetch("/.proxy/api/token", {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
@@ -79,7 +80,15 @@ const authorizeDiscordUser = async () => {
       code,
     }),
   });
-  const { access_token } = await response.json();
+  const body = (await response.json()) as { access_token?: string; error?: string };
+  if (!response.ok) {
+    const msg = body?.error ?? `Token request failed: ${response.status}`;
+    throw new Error(msg);
+  }
+  const access_token = body?.access_token;
+  if (!access_token) {
+    throw new Error(body?.error ?? "No access token in response");
+  }
 
   // Authenticate with Discord client (using the access_token)
   auth = await discordSdk.commands.authenticate({
@@ -113,4 +122,4 @@ function getOverrideOrRandomSessionValue(queryParam: `${SessionStorageQueryParam
   return randomString;
 }
 
-export { discordSdk, initiateDiscordSDK, authorizeDiscordUser, getAuth };
+export { discordSdk, initiateDiscordSDK, authorizeDiscordUser, getAuth, isEmbedded };
