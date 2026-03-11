@@ -294,7 +294,7 @@ export class Rules extends Scene {
       }).setOrigin(0, 0.5).setInteractive({ useHandCursor: true });
       editBtn.on("pointerdown", (e: Phaser.Input.Pointer) => {
         e.event.stopPropagation();
-        this.scene.start("RulesetEditor", { name });
+        this.scene.start("RulesetEditor", { name, id });
       });
       container.add(editBtn);
     }
@@ -316,7 +316,7 @@ export class Rules extends Scene {
 
     container.on("pointerdown", () => {
       this.rulesets_temp_delete_later = [];
-      this.scene.start("RulesetEditor", { name });
+      this.scene.start("RulesetEditor", { name, id });
     });
     container.setVisible(false);
     container.setDepth(1);
