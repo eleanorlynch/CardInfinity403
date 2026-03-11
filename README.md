@@ -10,7 +10,11 @@ Card Infinity is a free customizable Discord app where you can set up an online 
 
 ## Current Features  
 
+Able to start a new game or join someone else's current game on Discord and local host. Able to create custom rulesets on local host and save them to an online database, then play a game using those custom rulesets. Custom rules include the number of times you can/must draw, discard, or plays a card per turn, hand size constraints, and various different win conditions.
+
 ## Current Issues
+
+Unable to create or edit custom rulesets on Discord; issues with connecting to the database from Discord make the rulesets not load properly.
 
 # User Manual
 Check out USER_MANUAL.md for more specific user information than this README provides: https://github.com/eleanorlynch/CardInfinity403/blob/main/USER_MANUAL.md 
