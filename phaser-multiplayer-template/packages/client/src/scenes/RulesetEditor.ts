@@ -4,6 +4,7 @@ import DefaultRulesetData from "../utils/DefaultRuleset.json"
 
 import { GameObjects, Scene } from "phaser";
 import { Label } from 'phaser3-rex-plugins/templates/ui/ui-components.js';
+import { getAuth } from "../utils/discordSDK";
 
 export class RulesetEditor extends Scene {
 
@@ -31,9 +32,11 @@ export class RulesetEditor extends Scene {
 
   // Custom dropdown container to handle dropdown display (regular rex UI dropdown has some issues with display layering)
   private activeDropdownOverlay: Phaser.GameObjects.Container | null = null;
+  private rulesetId: number | null = null;
 
   init(args: any) {
     this.name = args?.name ?? "";
+    this.rulesetId = typeof args?.id === "number" ? args.id : null;
     this.types = undefined;
 
     // Clear all instance data when re-entering the scene to avoid reloading issues
@@ -95,7 +98,10 @@ export class RulesetEditor extends Scene {
       const textEditor = this.rexUI.edit(title_text);
       textEditor.on('close', () => {
         // Update the ruleset name when editing is complete
-        this.trackChange("name", title_text.text);
+        const nextName = title_text.text?.trim() || "New Ruleset";
+        title_text.setText(nextName);
+        this.name = nextName;
+        this.trackChange("name", nextName);
       });
     });
 
@@ -864,7 +870,9 @@ export class RulesetEditor extends Scene {
   // Fetch ruleset data from the server
   private async fetchRulesetData(name: string): Promise<any> {
     try {
-      const apiPath = `/.proxy/api/rulesets/by-name/${encodeURIComponent(name)}`;  
+      const userId = getAuth()?.user?.id;
+      const qs = userId ? `?user_id=${encodeURIComponent(userId)}` : "";
+      const apiPath = `/.proxy/api/rulesets/by-name/${encodeURIComponent(name)}${qs}`;
       const response = await fetch(apiPath);
       // If the response isn't ok, use the DefaultRulesetData because the ruleset doesn't exist yet
       // TODO: Maybe change how this is implemented, it's pretty clumsy
@@ -882,8 +890,8 @@ export class RulesetEditor extends Scene {
 
   // Merge user changes with default ruleset values
   private getMergedRuleset(): any {
-    // Deep clone the base ruleset (either fetched existing ruleset or default)
-    const merged: any = this.baseRuleset;
+    // Deep clone the base ruleset so editor state and save payload are isolated.
+    const merged: any = JSON.parse(JSON.stringify(this.baseRuleset ?? {}));
 
     // Apply user changes
     Array.from(this.ruleChanges.entries()).forEach(([key, value]) => {
@@ -910,25 +918,47 @@ export class RulesetEditor extends Scene {
   // Handle saving the ruleset
   private async handleSaveRuleset() {
     try {
-      const mergedRuleset = this.getMergedRuleset();
-
-      // Check if ruleset exists by name
-      let exists = false;
-
-      if (this.name) {
-        const checkRes = await fetch(`/.proxy/api/rulesets/by-name/${encodeURIComponent(this.name)}`);
-        exists = checkRes.ok;
+      const userId = getAuth()?.user?.id;
+      if (!userId) {
+        alert("You must be signed in (Discord) to save rulesets.");
+        return;
       }
+      const mergedRuleset = this.getMergedRuleset();
+      const changedName = this.ruleChanges.get("name");
+      const finalName =
+        typeof changedName === "string" && changedName.trim()
+          ? changedName.trim()
+          : this.name?.trim() ||
+            (typeof mergedRuleset.name === "string" && mergedRuleset.name.trim()
+              ? mergedRuleset.name.trim()
+              : "New Ruleset");
+      mergedRuleset.name = finalName;
+      this.name = finalName;
 
       let apiPath: string;
       let method: string;
 
-      if (exists) {
-        apiPath = `/.proxy/api/rulesets/by-name/${encodeURIComponent(this.name)}`;
+      if (this.rulesetId != null) {
+        apiPath = `/.proxy/api/rulesets/${this.rulesetId}?user_id=${encodeURIComponent(userId)}`;
         method = "PUT";
       } else {
-        apiPath = "/.proxy/api/rulesets";
-        method = "POST";
+        const checkRes = await fetch(`/.proxy/api/rulesets/by-name/${encodeURIComponent(finalName)}?user_id=${encodeURIComponent(userId)}`);
+
+        if (checkRes.ok) {
+          const existing = await checkRes.json();
+          const existingId = typeof existing?.id === "number" ? existing.id : null;
+          if (existingId != null) {
+            this.rulesetId = existingId;
+            apiPath = `/.proxy/api/rulesets/${existingId}?user_id=${encodeURIComponent(userId)}`;
+            method = "PUT";
+          } else {
+            apiPath = `/.proxy/api/rulesets?user_id=${encodeURIComponent(userId)}`;
+            method = "POST";
+          }
+        } else {
+          apiPath = `/.proxy/api/rulesets?user_id=${encodeURIComponent(userId)}`;
+          method = "POST";
+        }
       }
 
       const response = await fetch(apiPath, {
@@ -953,6 +983,11 @@ export class RulesetEditor extends Scene {
       }
 
       const savedRuleset = await response.json();
+      this.rulesetId = typeof savedRuleset?.id === "number" ? savedRuleset.id : this.rulesetId;
+      if (typeof savedRuleset?.name === "string" && savedRuleset.name.trim()) {
+        this.name = savedRuleset.name.trim();
+      }
+      this.baseRuleset = JSON.parse(JSON.stringify(savedRuleset?.data ?? mergedRuleset));
       console.log("Ruleset saved successfully:", savedRuleset);
       const savedTo = savedRuleset.savedTo === "neon" ? "Neon" : "locally";
       
@@ -966,7 +1001,9 @@ export class RulesetEditor extends Scene {
 
   private async getTypes(): Promise<any[]> {
     try {
-      const response = await fetch(`/.proxy/api/rulesets/editorFields/${encodeURIComponent(this.name)}`);
+      const userId = getAuth()?.user?.id;
+      const qs = userId ? `?user_id=${encodeURIComponent(userId)}` : "";
+      const response = await fetch(`/.proxy/api/rulesets/editorFields/${encodeURIComponent(this.name)}${qs}`);
       
       if (!response.ok) {
         console.error("Error fetching editor fields:", response.statusText);

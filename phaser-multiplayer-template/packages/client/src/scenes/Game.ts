@@ -1,5 +1,6 @@
 import { Scene } from "phaser";
 import { Client as ColyseusClient, Room } from "colyseus.js"
+import { getAuth } from "../utils/discordSDK";
 
 interface Card {
   suit: string;
@@ -458,7 +459,9 @@ export class Game extends Scene {
   }
 
   private async connectToRoom() {
-    const channelId = "dev-channel-1";
+    const data = this.scene.settings.data as any;
+    const isHost: boolean = data?.isHost ?? true;
+    const roomId: string | undefined = data?.roomId;
     const rulesetId = this.registry.get("rulesetId") as number | undefined;
 
     const isLocalhost = location.hostname === "localhost" || location.hostname === "127.0.0.1";
@@ -468,9 +471,55 @@ export class Game extends Scene {
 
     this.netClient = new ColyseusClient(url);
 
-    const options: { channelId: string; rulesetId?: number } = { channelId };
-    if (rulesetId != null) options.rulesetId = rulesetId;
-    this.room = await this.netClient.joinOrCreate("game", options);
+    try {
+      if (isHost) {
+        this.room = await this.netClient.create("game", rulesetId != null ? { rulesetId } : {});
+        // Display the room code so the host can share it
+        const width = Number(this.game.config.width);
+        const roomId = this.room.roomId;
+        const roomCodeText = this.add.text(width * 0.5, Number(this.game.config.height) * 0.08, `Room Code: ${roomId}  ⧉`, {
+          fontFamily: "Arial",
+          fontSize: "18px",
+          color: "#EBC9B3",
+          backgroundColor: "#101814",
+          padding: { x: 10, y: 5 }
+        }).setOrigin(0.5).setInteractive({ useHandCursor: true });
+
+        roomCodeText.on("pointerover", () => roomCodeText.setColor("#ffffff"));
+        roomCodeText.on("pointerout", () => roomCodeText.setColor("#EBC9B3"));
+        roomCodeText.on("pointerdown", () => {
+          navigator.clipboard.writeText(roomId).then(() => {
+            roomCodeText.setText(`Room Code: ${roomId}  ✓ Copied!`);
+            this.time.delayedCall(2000, () => {
+              roomCodeText.setText(`Room Code: ${roomId}  ⧉`);
+            });
+          }).catch(() => {
+            roomCodeText.setText(`Room Code: ${roomId}  (copy failed)`);
+            this.time.delayedCall(2000, () => {
+              roomCodeText.setText(`Room Code: ${roomId}  ⧉`);
+            });
+          });
+        });
+      } else {
+        if (!roomId) {
+          if (this.statusText) this.statusText.setText("No room code provided.");
+          return;
+        }
+        this.room = await this.netClient.joinById(roomId);
+      }
+    } catch (err: any) {
+      if (this.statusText) {
+        const msg = err?.message ?? "";
+        if (msg.includes("not found") || err?.code === 4212) {
+          this.statusText.setText("Room not found. Check the code.");
+        } else if (msg.includes("full")) {
+          this.statusText.setText("Room is full.");
+        } else {
+          this.statusText.setText("Failed to connect.");
+        }
+      }
+      return;
+    }
 
     this.room.onMessage("PRIVATE_STATE", (state) => {
       this.netState = state;

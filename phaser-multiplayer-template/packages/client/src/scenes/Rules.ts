@@ -2,6 +2,7 @@ import { RulesetClass } from "../rules/RulesetClass";
 import { Scene } from "phaser";
 import type { LoadedRuleset } from "../utils/server/loadRuleset";
 import { listRulesets } from "../utils/server/loadRuleset";
+import { getAuth } from "../utils/discordSDK";
 
 
 export class Rules extends Scene {
@@ -192,7 +193,7 @@ export class Rules extends Scene {
     page_number_indicator: Phaser.GameObjects.Text
   ) {
     try {
-      const list = await listRulesets();
+      const list = await listRulesets(getAuth()?.user?.id ?? null);
       this.rulesets_temp_delete_later = list.length > 0 ? list : [
         new RulesetClass("uno"),
         new RulesetClass("Default (no saved ruleset)")
@@ -293,7 +294,7 @@ export class Rules extends Scene {
       }).setOrigin(0, 0.5).setInteractive({ useHandCursor: true });
       editBtn.on("pointerdown", (e: Phaser.Input.Pointer) => {
         e.event.stopPropagation();
-        this.scene.start("RulesetEditor", { name });
+        this.scene.start("RulesetEditor", { name, id });
       });
       container.add(editBtn);
     }
@@ -315,7 +316,7 @@ export class Rules extends Scene {
 
     container.on("pointerdown", () => {
       this.rulesets_temp_delete_later = [];
-      this.scene.start("RulesetEditor", { name });
+      this.scene.start("RulesetEditor", { name, id });
     });
     container.setVisible(false);
     container.setDepth(1);

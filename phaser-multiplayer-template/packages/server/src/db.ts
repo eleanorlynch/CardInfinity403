@@ -28,18 +28,31 @@ export function isDatabaseConfigured(): boolean {
 
 /**
  * Ensure the rulesets table exists. Call once at server startup when using DB.
+ * Includes user_id for per-user rulesets; run addRulesetsUserIdColumn() once if table already existed.
  */
 export async function initRulesetsSchema(): Promise<void> {
   const sql = getSql();
   await sql`
     CREATE TABLE IF NOT EXISTS rulesets (
       id SERIAL PRIMARY KEY,
+      user_id TEXT,
       name TEXT NOT NULL,
       description TEXT DEFAULT '',
       created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
       updated_at TIMESTAMPTZ NOT NULL DEFAULT now(),
       data JSONB NOT NULL
     )
+  `;
+  await addRulesetsUserIdColumn();
+}
+
+/**
+ * Add user_id column to existing rulesets table (idempotent). Run once when migrating.
+ */
+export async function addRulesetsUserIdColumn(): Promise<void> {
+  const sql = getSql();
+  await sql`
+    ALTER TABLE rulesets ADD COLUMN IF NOT EXISTS user_id TEXT
   `;
 }
 

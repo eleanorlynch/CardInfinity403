@@ -8,6 +8,7 @@ const RULESETS_FILE = path.join(DATA_DIR, "rulesets.json");
 
 export interface SavedRulesetRow {
   id: number;
+  user_id?: string | null;
   name: string;
   description: string;
   created_at: string;
@@ -50,6 +51,7 @@ loadFromFile();
 
 function rowFromDb(r: {
   id: number;
+  user_id?: string | null;
   name: string;
   description: string;
   created_at: Date | string;
@@ -58,6 +60,7 @@ function rowFromDb(r: {
 }): SavedRulesetRow {
   return {
     id: r.id,
+    user_id: r.user_id ?? undefined,
     name: r.name,
     description: r.description ?? "",
     created_at:
@@ -75,12 +78,15 @@ function rowFromDb(r: {
 // --- Public API (async; uses DB when DATABASE_URL is set, else file) ---
 
 export async function listRulesets(
+  userId: string | null,
   nameFilter?: string
 ): Promise<SavedRulesetRow[]> {
   if (isDatabaseConfigured()) {
+    if (!userId?.trim()) return [];
     const sql = getSql();
     type DbRow = {
       id: number;
+      user_id: string | null;
       name: string;
       description: string;
       created_at: Date | string;
@@ -89,17 +95,18 @@ export async function listRulesets(
     };
     if (!nameFilter?.trim()) {
       const result = (await sql`
-        SELECT id, name, description, created_at, updated_at, data
+        SELECT id, user_id, name, description, created_at, updated_at, data
         FROM rulesets
+        WHERE user_id = ${userId.trim()}
         ORDER BY id
       `) as DbRow[];
       return result.map(rowFromDb);
     }
     const q = `%${nameFilter.trim().toLowerCase()}%`;
     const result = (await sql`
-      SELECT id, name, description, created_at, updated_at, data
+      SELECT id, user_id, name, description, created_at, updated_at, data
       FROM rulesets
-      WHERE name ILIKE ${q} OR description ILIKE ${q}
+      WHERE user_id = ${userId.trim()} AND (name ILIKE ${q} OR description ILIKE ${q})
       ORDER BY id
     `) as DbRow[];
     return result.map(rowFromDb);
@@ -116,16 +123,18 @@ export async function listRulesets(
 }
 
 export async function getRulesetById(
-  id: number
+  id: number,
+  userId: string | null
 ): Promise<SavedRulesetRow | undefined> {
   if (isDatabaseConfigured()) {
+    if (!userId?.trim()) return undefined;
     const sql = getSql();
     const result = await sql`
-      SELECT id, name, description, created_at, updated_at, data
+      SELECT id, user_id, name, description, created_at, updated_at, data
       FROM rulesets
-      WHERE id = ${id}
+      WHERE id = ${id} AND user_id = ${userId.trim()}
     `;
-    const row = (result as { id: number; name: string; description: string; created_at: Date | string; updated_at: Date | string; data: Ruleset }[])[0];
+    const row = (result as { id: number; user_id: string | null; name: string; description: string; created_at: Date | string; updated_at: Date | string; data: Ruleset }[])[0];
     return row ? rowFromDb(row) : undefined;
   }
   return Promise.resolve(rows.find((r) => r.id === id));
@@ -135,29 +144,30 @@ export function getRulesetByNameSync(name: string): SavedRulesetRow | undefined 
   return rows.find((r) => r.name === name);
 }
 
-export async function getRulesetByName(name: string): Promise<SavedRulesetRow | undefined> {
+export async function getRulesetByName(name: string, userId: string | null): Promise<SavedRulesetRow | undefined> {
   if (isDatabaseConfigured()) {
+    if (!userId?.trim()) return undefined;
     const sql = getSql();
     const result = await sql`
-      SELECT id, name, description, created_at, updated_at, data
+      SELECT id, user_id, name, description, created_at, updated_at, data
       FROM rulesets
-      WHERE name = ${name}
+      WHERE name = ${name} AND user_id = ${userId.trim()}
     `;
-    const row = (result as { id: number; name: string; description: string; created_at: Date | string; updated_at: Date | string; data: Ruleset }[])[0];
+    const row = (result as { id: number; user_id: string | null; name: string; description: string; created_at: Date | string; updated_at: Date | string; data: Ruleset }[])[0];
     return row ? rowFromDb(row) : undefined;
   }
   return Promise.resolve(rows.find((r) => r.name === name));
 }
 
-export async function insertRuleset(data: Ruleset): Promise<SavedRulesetRow> {
+export async function insertRuleset(data: Ruleset, userId: string): Promise<SavedRulesetRow> {
   if (isDatabaseConfigured()) {
     const sql = getSql();
     const result = await sql`
-      INSERT INTO rulesets (name, description, data)
-      VALUES (${data.name}, ${data.description ?? ""}, ${JSON.stringify(data)}::jsonb)
-      RETURNING id, name, description, created_at, updated_at, data
+      INSERT INTO rulesets (user_id, name, description, data)
+      VALUES (${userId.trim()}, ${data.name}, ${data.description ?? ""}, ${JSON.stringify(data)}::jsonb)
+      RETURNING id, user_id, name, description, created_at, updated_at, data
     `;
-    const row = (result as { id: number; name: string; description: string; created_at: Date | string; updated_at: Date | string; data: Ruleset }[])[0];
+    const row = (result as { id: number; user_id: string | null; name: string; description: string; created_at: Date | string; updated_at: Date | string; data: Ruleset }[])[0];
     if (!row) throw new Error("Insert failed");
     return rowFromDb(row);
   }
@@ -177,17 +187,19 @@ export async function insertRuleset(data: Ruleset): Promise<SavedRulesetRow> {
 
 export async function updateRuleset(
   id: number,
-  data: Ruleset
+  data: Ruleset,
+  userId: string | null
 ): Promise<SavedRulesetRow | undefined> {
   if (isDatabaseConfigured()) {
+    if (!userId?.trim()) return undefined;
     const sql = getSql();
     const result = await sql`
       UPDATE rulesets
       SET name = ${data.name}, description = ${data.description ?? ""}, data = ${JSON.stringify(data)}::jsonb, updated_at = now()
-      WHERE id = ${id}
-      RETURNING id, name, description, created_at, updated_at, data
+      WHERE id = ${id} AND user_id = ${userId.trim()}
+      RETURNING id, user_id, name, description, created_at, updated_at, data
     `;
-    const row = (result as { id: number; name: string; description: string; created_at: Date | string; updated_at: Date | string; data: Ruleset }[])[0];
+    const row = (result as { id: number; user_id: string | null; name: string; description: string; created_at: Date | string; updated_at: Date | string; data: Ruleset }[])[0];
     return row ? rowFromDb(row) : undefined;
   }
   const idx = rows.findIndex((r) => r.id === id);
@@ -207,17 +219,27 @@ export async function updateRuleset(
 
 export async function updateRulesetByName(
   name: string,
-  data: Ruleset
+  data: Ruleset,
+  userId: string | null
 ): Promise<SavedRulesetRow | undefined> {
   if (isDatabaseConfigured()) {
+    if (!userId?.trim()) return undefined;
     const sql = getSql();
     const result = await sql`
-      UPDATE rulesets
+      WITH target AS (
+        SELECT id
+        FROM rulesets
+        WHERE name = ${name} AND user_id = ${userId.trim()}
+        ORDER BY updated_at DESC, id DESC
+        LIMIT 1
+      )
+      UPDATE rulesets r
       SET name = ${data.name}, description = ${data.description ?? ""}, data = ${JSON.stringify(data)}::jsonb, updated_at = now()
-      WHERE name = ${name}
-      RETURNING id, name, description, created_at, updated_at, data
+      FROM target
+      WHERE r.id = target.id
+      RETURNING id, user_id, name, description, created_at, updated_at, data
     `;
-    const row = (result as { id: number; name: string; description: string; created_at: Date | string; updated_at: Date | string; data: Ruleset }[])[0];
+    const row = (result as { id: number; user_id: string | null; name: string; description: string; created_at: Date | string; updated_at: Date | string; data: Ruleset }[])[0];
     return row ? rowFromDb(row) : undefined;
   }
   const idx = rows.findIndex((r) => r.name === name);
