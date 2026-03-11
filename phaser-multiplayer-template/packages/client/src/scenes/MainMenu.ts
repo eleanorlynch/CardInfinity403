@@ -165,7 +165,7 @@ export class MainMenu extends Scene {
       btnWrapper.style.cssText = `display: flex; flex-direction: column; align-items: center; gap: 6px;`;
 
       const hint = document.createElement('div');
-      hint.textContent = 'or press Enter';
+      hint.textContent = 'Enter to confirm  •  Esc to cancel';
       hint.style.cssText = `font-size: 13px; color: #E9DFD9; opacity: 0.7; white-space: nowrap;`;
 
       confirmBtn.onmouseenter = () => { confirmBtn.style.background = '#8d8d8d'; };
