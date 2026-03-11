@@ -12,10 +12,12 @@ export class Option<T> {
   name: string;
   value: T;
   kind: "NUMERICAL" | "NOMINAL" | "RADIO" | "CHECKBOX" | "CATEGORY";
+  displayText: string;
 
-  constructor(kind: "NUMERICAL" | "NOMINAL" | "RADIO" | "CHECKBOX" | "CATEGORY", name: string, value: T) {
+  constructor(kind: "NUMERICAL" | "NOMINAL" | "RADIO" | "CHECKBOX" | "CATEGORY", name: string, value: T, displayText?: string) {
     this.kind = kind;
     this.name = name;
     this.value = value;
+    this.displayText = displayText ?? String(value);
   }
 }

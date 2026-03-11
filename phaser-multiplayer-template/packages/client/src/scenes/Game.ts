@@ -3,9 +3,9 @@ import { Client as ColyseusClient, Room } from "colyseus.js"
 
 interface Card {
   suit: string;
-  rank: string;
+  rank: number | string;
   id: string;
-  code: string;
+  code?: string;
 }
 
 export class Game extends Scene {
@@ -182,9 +182,14 @@ export class Game extends Scene {
       if (this.netState?.gameOver) return;
       this.room.send("END_TURN");
     });
-
-
-
+    // After UI is ready, connect to the Colyseus room
+    if (this.statusText) {
+      this.statusText.setText("Connecting...");
+    }
+    await this.connectToRoom().catch((err) => {
+      console.error(err);
+      if (this.statusText) this.statusText.setText("Failed to connect");
+    });
   }
 
   resetGameState() {
@@ -371,8 +376,8 @@ export class Game extends Scene {
     // Card suit color
     const suitColor = card.suit === "hearts" || card.suit === "diamonds" ? "#ff0000" : "#000000";
 
-    // Card rank
-    const rankText = this.add.text(-20, -35, card.rank, {
+    const rankStr = typeof card.rank === "number" ? String(card.rank) : card.rank;
+    const rankText = this.add.text(-20, -35, rankStr, {
       fontFamily: "Arial",
       fontSize: "20px",
       color: suitColor,
@@ -470,15 +475,18 @@ export class Game extends Scene {
     const data = this.scene.settings.data as any;
     const isHost: boolean = data?.isHost ?? true;
     const roomId: string | undefined = data?.roomId;
+    const rulesetId = this.registry.get("rulesetId") as number | undefined;
 
-    const url =
-      location.host === "localhost:3000" ? `ws://localhost:3001` : `wss://${location.host}/.proxy/api/colyseus`;
+    const isLocalhost = location.hostname === "localhost" || location.hostname === "127.0.0.1";
+    const url = isLocalhost
+      ? "ws://localhost:3001"
+      : `wss://${location.host}/.proxy/api/colyseus`;
 
-    this.netClient = new ColyseusClient(`${url}`);
+    this.netClient = new ColyseusClient(url);
 
     try {
       if (isHost) {
-        this.room = await this.netClient.create("game");
+        this.room = await this.netClient.create("game", rulesetId != null ? { rulesetId } : {});
         // Display the room code so the host can share it
         const width = Number(this.game.config.width);
         const roomId = this.room.roomId;
@@ -536,6 +544,7 @@ export class Game extends Scene {
     });
 
     if (this.statusText) this.statusText.setText("Connected...");
+    this.room.send("REQUEST_STATE");
   }
 
   private updateDisplayFromNet() {
@@ -559,10 +568,12 @@ export class Game extends Scene {
       if (gameOver) {
         this.statusText.setText("Game Over!");
       } else {
+        const handCount = myHand.length;
+        const deckStr = deckCount.toString();
         this.statusText.setText(
           this.netState.isMyTurn
-            ? `Your turn | Hand: ${myHand.length} | Deck: ${deckCount}`
-            : `Opponent turn | Hand: ${myHand.length} | Deck: ${deckCount}`
+            ? `Your turn | Hand: ${handCount} | Deck: ${deckStr}`
+            : `Opponent turn | Hand: ${handCount} | Deck: ${deckStr}`
         );
       }
     }
