@@ -60,18 +60,12 @@ export class RulesetEditor extends Scene {
     // Load the base ruleset to use for defaults (for new ruleset use default, for existing fetch by name)
     if (this.name !== undefined && this.name !== null && this.name.trim() !== "") {
       this.baseRuleset = await this.fetchRulesetData(this.name);
-      try {
-        alert("Loaded ruleset from database:\n\n" + JSON.stringify(this.baseRuleset, null, 2));
-      } catch (e) {
-        alert("Could not display loaded ruleset due to error: " + (e instanceof Error ? e.message : String(e)));
-      }
     } else {
       this.name = "New Ruleset";
       this.baseRuleset = JSON.parse(JSON.stringify(DefaultRulesetData));
     }
 
     this.editorFields = await this.getTypes();
-    alert("Editor fields:\n\n" + JSON.stringify(this.editorFields, null, 2));
 
     const displayName = (this.name && this.name.trim()) ? this.name : "New Ruleset";
     const width = Number(this.game.config.width);
@@ -101,7 +95,6 @@ export class RulesetEditor extends Scene {
       const textEditor = this.rexUI.edit(title_text);
       textEditor.on('close', () => {
         // Update the ruleset name when editing is complete
-        alert(title_text.text);
         this.trackChange("name", title_text.text);
       });
     });
@@ -883,7 +876,6 @@ export class RulesetEditor extends Scene {
       return data.data || data;
     } catch (error) {
       console.error("Error fetching ruleset by name:", error);
-      alert("Error fetching ruleset: " + (error instanceof Error ? error.message : String(error)));
       return null;
     }
   }
@@ -957,21 +949,18 @@ export class RulesetEditor extends Scene {
           error = { error: errorText || "Unknown error" };
         }
         console.error("Error saving ruleset:", error);
-        alert("Error saving ruleset: " + (error.error || "Unknown error"));
         return;
       }
 
       const savedRuleset = await response.json();
       console.log("Ruleset saved successfully:", savedRuleset);
       const savedTo = savedRuleset.savedTo === "neon" ? "Neon" : "locally";
-      alert(`Ruleset saved successfully (${savedTo})!\n\n` + JSON.stringify(savedRuleset.data, null, 2));
       
       // Clear in-memory changes after successful save
       this.ruleChanges.clear();
       console.log("Cleared in-memory rule changes after successful save");
     } catch (error) {
       console.error("Error saving ruleset:", error);
-      alert("Error saving ruleset: " + (error instanceof Error ? error.message : String(error)));
     }
   }
 
@@ -1051,7 +1040,6 @@ export class RulesetEditor extends Scene {
       console.log(`Populated ${this.options.size} options from editor fields`);
     } else {
       console.log("No editor fields found to populate options");
-      alert("Couldn't find any rules for you to edit!");
     }
   }
 }
