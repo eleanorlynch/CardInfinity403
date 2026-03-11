@@ -241,17 +241,7 @@ router.put("/rulesets/by-name/:name", async (req: Request, res: Response) => {
   res.json({ ...row, savedTo });
 });
 
-if (process.env.NODE_ENV === "production") {
-  const clientBuildPath = path.join(__dirname, "../../client/dist");
-  app.use(express.static(clientBuildPath));
-}
-
-// If you don't want people accessing your server stats, comment this line.
-router.use("/colyseus", monitor(server as Partial<MonitorOptions>));
-
-// Fetch token from developer portal and return to the embedded app
-// Keep both routes so the client works with the template proxy path (/.proxy/api/token)
-// and with any older direct /api/token callers.
+// /.proxy/discord_token before static so Discord Activity auth is handled
 const tokenHandler = async (req: Request, res: Response) => {
   const response = await fetch(`https://discord.com/api/oauth2/token`, {
     method: "POST",
@@ -272,7 +262,18 @@ const tokenHandler = async (req: Request, res: Response) => {
 
   res.send({ access_token });
 };
+app.post("/.proxy/discord_token", tokenHandler);
 
+if (process.env.NODE_ENV === "production") {
+  const clientBuildPath = path.join(__dirname, "../../client/dist");
+  app.use(express.static(clientBuildPath));
+}
+
+// If you don't want people accessing your server stats, comment this line.
+router.use("/colyseus", monitor(server as Partial<MonitorOptions>));
+
+// Keep both routes so the client works with the template proxy path (/.proxy/api/token)
+// and with any older direct /api/token callers.
 router.post("/token", tokenHandler);
 router.post("/api/token", tokenHandler);
 

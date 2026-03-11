@@ -1,6 +1,6 @@
 import { Scene } from "phaser";
 import { Client as ColyseusClient, Room } from "colyseus.js"
-import { getAuth } from "../utils/discordSDK";
+import { getAuth, isEmbedded } from "../utils/discordSDK";
 
 interface Card {
   suit: string;
@@ -465,7 +465,8 @@ export class Game extends Scene {
     const rulesetId = this.registry.get("rulesetId") as number | undefined;
 
     const isLocalhost = location.hostname === "localhost" || location.hostname === "127.0.0.1";
-    const url = isLocalhost
+    // When embedded (Discord Activity) or in production, use /.proxy/api/colyseus; otherwise direct ws to server.
+    const url = isLocalhost && !isEmbedded
       ? "ws://localhost:3001"
       : `wss://${location.host}/.proxy/api/colyseus`;
 

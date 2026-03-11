@@ -69,8 +69,9 @@ const authorizeDiscordUser = async () => {
     scope: ["identify", "applications.commands"],
   });
 
-  // Retrieve an access_token from your application's server
-  const response = await fetch("/api/token", {
+  // Retrieve an access_token from your application's server.
+  // Use /.proxy/api/token so the request hits the backend in both dev (Vite proxy) and production (router at /.proxy/api).
+  const response = await fetch("/.proxy/api/token", {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
@@ -113,4 +114,4 @@ function getOverrideOrRandomSessionValue(queryParam: `${SessionStorageQueryParam
   return randomString;
 }
 
-export { discordSdk, initiateDiscordSDK, authorizeDiscordUser, getAuth };
+export { discordSdk, initiateDiscordSDK, authorizeDiscordUser, getAuth, isEmbedded };
