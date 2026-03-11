@@ -38,12 +38,26 @@ export class RulesetEditor extends Scene {
     this.name = args?.name ?? "";
     this.rulesetId = typeof args?.id === "number" ? args.id : null;
     this.types = undefined;
+
+    // Clear all instance data when re-entering the scene to avoid reloading issues
+    this.options.clear();
+    this.option_objects.clear();
+    this.fieldPaths.clear();
+    this.ruleChanges.clear();
+    this.mutuallyExclusiveGroups.clear();
+    this.page_number = 1;
+    
+    // Destroy any active dropdown overlay from previous session to avoid reloading issues
+    if (this.activeDropdownOverlay) {
+      this.activeDropdownOverlay.destroy();
+      this.activeDropdownOverlay = null;
+    }
   }
 
   // maps each category to a list of options
   options: Map<String, Option<any>[]> = new Map();
   option_objects: Map<Option<any>, Phaser.GameObjects.Container> = new Map();
-  page_number: number = 0;
+  page_number: number = 1;
 
   async create() {
     // Load the base ruleset to use for defaults (for new ruleset use default, for existing fetch by name)
@@ -60,6 +74,7 @@ export class RulesetEditor extends Scene {
     }
 
     this.editorFields = await this.getTypes();
+    alert("Editor fields:\n\n" + JSON.stringify(this.editorFields, null, 2));
 
     const displayName = (this.name && this.name.trim()) ? this.name : "New Ruleset";
     const width = Number(this.game.config.width);
@@ -239,15 +254,15 @@ export class RulesetEditor extends Scene {
 
   //Helper fns
 
-  // Handles page navigation. Visibility change should happen here if possible.
+    // Handles page navigation. Visibility change should happen here if possible.
   handle_navigation_click(increment: number) {
     const itemsPerPage = 5;
     const totalItems = this.option_objects.size;
-    const maxPage = Math.max(0, Math.ceil(totalItems / itemsPerPage) - 1);
+    const maxPage = Math.max(1, Math.ceil(totalItems / itemsPerPage));
     
     const newPage = this.page_number + increment;
     
-    if (newPage >= 0 && newPage <= maxPage) {
+    if (newPage >= 1 && newPage <= maxPage) {
       this.page_number = newPage;
     }
   }
@@ -265,10 +280,8 @@ export class RulesetEditor extends Scene {
 
       if (cat_options === undefined || cat_options.length === 0) continue;
       
-      // Create a container for each category/option group
       const optionContainer = this.add.container(0, 0);
       
-      // Add category label
       const categoryLabel = this.add.text(0, 0, String(category) + ":", {
         fontFamily: "Arial Black",
         fontSize: "16px",
@@ -277,50 +290,48 @@ export class RulesetEditor extends Scene {
       });
       optionContainer.add(categoryLabel);
       
-      // Calculate input x position based on label width with some padding
       const inputXOffset = categoryLabel.width + 30;
       
-      // Get current value from base ruleset using the field path
       const fieldPath = this.fieldPaths.get(String(category));
       const currentValue = fieldPath ? this.getValueFromPath(fieldPath) : undefined;
       
-      // Determine the type of input based on the first option
       const firstOption = cat_options[0];
       let inputObject: any;
       
       switch (firstOption?.kind) {
-        case "NOMINAL":
-          // Dropdown - collect all nominal options as dropdown choices
-          const dropdownOptions = cat_options
-            .filter(opt => opt.kind === "NOMINAL")
-            .map(opt => String(opt.value));
-          
-          if (dropdownOptions.length > 0) {
-            // Use current value from ruleset, or fall back to first option
-            const defaultDropdownValue = currentValue !== undefined 
-              ? String(currentValue) 
-              : dropdownOptions[0];
-            
+        case "NOMINAL": {
+          const nominalOptions = cat_options.filter(opt => opt.kind === "NOMINAL");
+          const displayTexts = nominalOptions.map(opt => opt.displayText);
+          const values = nominalOptions.map(opt => opt.value);
+
+          if (displayTexts.length > 0) {
+            const defaultIndex = currentValue !== undefined
+              ? values.indexOf(currentValue)
+              : 0;
+            const defaultDisplay = displayTexts[defaultIndex >= 0 ? defaultIndex : 0]!;
+
             const dropdown = this.create_dropdown(
-              dropdownOptions,
-              defaultDropdownValue,
-              (selectedOption: string) => {
+              displayTexts,
+              defaultDisplay,
+              (selectedDisplay: string) => {
                 const path = this.fieldPaths.get(String(category)) || String(category);
-                this.trackChange(path, selectedOption);
+                const idx = displayTexts.indexOf(selectedDisplay);
+                const selectedValue = idx >= 0 ? values[idx] : selectedDisplay;
+                this.trackChange(path, selectedValue);
               }
             );
 
-            dropdown.setPosition(inputXOffset + 50, 10);
+            dropdown.setPosition(inputXOffset + 100, 10);
             inputObject = dropdown;
             optionContainer.add(dropdown);
           }
           break;
+        }
           
         case "NUMERICAL":
-          // Number input - use current value from ruleset
+          // ...existing code...
           const numValue = currentValue !== undefined ? currentValue : firstOption.value as number;
           
-          // Add border/background first (so it's behind the text)
           const numBg = this.add.rectangle(inputXOffset + 40, 12, 80, 30)
             .setStrokeStyle(2, 0x101814)
             .setFillStyle(0xffffff)
@@ -337,15 +348,12 @@ export class RulesetEditor extends Scene {
             .setInteractive({ useHandCursor: true });
           optionContainer.add(numLabel);
           
-          // Store category for use in callback
           const categoryPath = this.fieldPaths.get(String(category)) || String(category);
           
           numLabel.on('pointerdown', () => {
-            // Create a native HTML input for editing
             const canvas = this.game.canvas;
             const canvasRect = canvas.getBoundingClientRect();
             
-            // Calculate screen position
             const worldPoint = optionContainer.getWorldTransformMatrix();
             const screenX = canvasRect.left + worldPoint.tx + inputXOffset;
             const screenY = canvasRect.top + worldPoint.ty;
@@ -402,26 +410,23 @@ export class RulesetEditor extends Scene {
           inputObject = numLabel;
           break;
           
-        case "CHECKBOX":
-          // Checkbox buttons - collect all checkbox options
-          const checkboxOptions = cat_options
-            .filter(opt => opt.kind === "CHECKBOX")
-            .map(opt => String(opt.value));
-          
-          if (checkboxOptions.length > 0) {
+        case "CHECKBOX": {
+          const checkboxOptions = cat_options.filter(opt => opt.kind === "CHECKBOX");
+          const displayTexts = checkboxOptions.map(opt => opt.displayText);
+          const values = checkboxOptions.map(opt => opt.value);
+
+          if (displayTexts.length > 0) {
             const categoryPathForCheckbox = this.fieldPaths.get(String(category)) || String(category);
             
             const checkboxButtons = this.create_buttons_container(
               String(category),
               false,
-              checkboxOptions,
-              (selectedOption: string, isSelected?: boolean) => {
+              displayTexts,
+              (selectedDisplay: string, isSelected?: boolean) => {
                 const path = categoryPathForCheckbox;
-                // Handle mutually exclusive groups (only one person can start, for example)
                 if (isSelected === true) {
                   this.handleMutuallyExclusiveSelection(path, true);
                 }
-                // Track the boolean state
                 this.trackChange(path, isSelected === true);
               }
             );
@@ -430,41 +435,38 @@ export class RulesetEditor extends Scene {
             inputObject = checkboxButtons;
             optionContainer.add(checkboxButtons);
             
-            // Set button names first
+            // Name buttons by their value (not display text) for state management
             for (let i = 0; i < checkboxOptions.length; i++) {
-              const optionName = checkboxOptions[i];
-
-              if (optionName) {
-                checkboxButtons.getButton(i)?.setName(optionName);
-              }
+              const valueKey = String(values[i]);
+              checkboxButtons.getButton(i)?.setName(valueKey);
             }
             
-            // Register for mutually exclusive handling
-            if (checkboxOptions[0]) {
-              this.registerMutuallyExclusiveCheckbox(categoryPathForCheckbox, checkboxButtons, checkboxOptions[0]);
+            if (values[0] !== undefined) {
+              this.registerMutuallyExclusiveCheckbox(categoryPathForCheckbox, checkboxButtons, String(values[0]));
             }
             
-            // Set initial state based on current value from ruleset
-            if (currentValue === true && checkboxOptions[0]) {
-              checkboxButtons.setButtonState(checkboxOptions[0], true);
+            if (currentValue === true && values[0] !== undefined) {
+              checkboxButtons.setButtonState(String(values[0]), true);
             }
           }
           break;
+        }
           
-        case "RADIO":
-          // Radio buttons - collect all radio options
-          const radioOptions = cat_options
-            .filter(opt => opt.kind === "RADIO")
-            .map(opt => String(opt.value));
-          
-          if (radioOptions.length > 0) {
+        case "RADIO": {
+          const radioOptions = cat_options.filter(opt => opt.kind === "RADIO");
+          const displayTexts = radioOptions.map(opt => opt.displayText);
+          const values = radioOptions.map(opt => opt.value);
+
+          if (displayTexts.length > 0) {
             const radioButtons = this.create_buttons_container(
               String(category),
               true,
-              radioOptions,
-              (selectedOption: string) => {
+              displayTexts,
+              (selectedDisplay: string) => {
                 const path = this.fieldPaths.get(String(category)) || String(category);
-                this.trackChange(path, selectedOption);
+                const idx = displayTexts.indexOf(selectedDisplay);
+                const selectedValue = idx >= 0 ? values[idx] : selectedDisplay;
+                this.trackChange(path, selectedValue);
               }
             );
 
@@ -472,46 +474,39 @@ export class RulesetEditor extends Scene {
             inputObject = radioButtons;
             optionContainer.add(radioButtons);
             
-            // Set button names for state management
+            // Name buttons by their value for state management
             for (let i = 0; i < radioOptions.length; i++) {
-              const optionName = radioOptions[i];
-
-              if (optionName) {
-                radioButtons.getButton(i)?.setName(optionName);
-              }
+              const valueKey = String(values[i]);
+              radioButtons.getButton(i)?.setName(valueKey);
             }
             
-            // Set initial selected state based on current value from ruleset
             if (currentValue !== undefined) {
               const currentValueStr = String(currentValue);
-
-              if (radioOptions.includes(currentValueStr)) {
+              if (values.map(String).includes(currentValueStr)) {
                 radioButtons.setButtonState(currentValueStr, true);
               }
             }
           }
           break;
+        }
           
         default:
           console.log(`Unknown option kind: ${firstOption?.kind} for category: ${category}`);
       }
       
-      // Store the option container
       if (inputObject !== undefined && firstOption !== undefined) {
         this.option_objects.set(firstOption, optionContainer);
       }
       
-      // Position the container - use modulo for Y position within page
       const yPositionInPage = (optionIndex % itemsPerPage) * spacing;
       optionContainer.setPosition(startX, startY + yPositionInPage);
       
-      // Set initial visibility based on current page
-      const itemPage = Math.floor(optionIndex / itemsPerPage);
+      const itemPage = Math.floor(optionIndex / itemsPerPage) + 1;
       optionContainer.setVisible(itemPage === this.page_number);
       
       optionIndex++;
     }
-  };
+  }
 
   // Helper function to get a value from the base ruleset using a dot-notation path
   private getValueFromPath(path: string): any {
@@ -557,24 +552,25 @@ export class RulesetEditor extends Scene {
     }
   }
 
-create_dropdown(options: string[], defaultValue?: string, onSelect?: (selectedOption: string) => void) {
+  create_dropdown(options: string[], defaultValue?: string, onSelect?: (selectedOption: string) => void) {
     const self = this;
     
     // Create a simple button that looks like a dropdown
-    const dropdownBg = this.rexUI.add.roundRectangle(0, 0, 150, 30, 0, 0xE9DFD9).setStrokeStyle(2, 0x101814);
+    const dropdownWidth = 200;
+    const dropdownBg = this.rexUI.add.roundRectangle(0, 0, dropdownWidth, 30, 0, 0xE9DFD9).setStrokeStyle(2, 0x101814);
     
-    const dropdownText = this.add.text(0, 0, defaultValue || options[0] || 'Select...', {
+    const dropdownText = this.add.text(-20, 0, defaultValue || options[0] || 'Select...', {
       fontSize: '16px',
       color: '#101814'
     }).setOrigin(0.5);
     
-    const dropdownArrow = this.add.text(60, 0, '▼', {
+    const dropdownArrow = this.add.text((dropdownWidth / 2) - 20, 0, '▼', {
       fontSize: '12px',
       color: '#101814'
     }).setOrigin(0.5);
     
     const dropdown = this.add.container(0, 0, [dropdownBg, dropdownText, dropdownArrow]);
-    dropdown.setSize(150, 30);
+    dropdown.setSize(dropdownWidth, 30);
     
     // Make it interactive
     dropdownBg.setInteractive({ useHandCursor: true });
@@ -609,14 +605,14 @@ create_dropdown(options: string[], defaultValue?: string, onSelect?: (selectedOp
       const listHeight = options.length * 35 + 10;
       const listBg = self.add.graphics();
       listBg.fillStyle(0xffffff, 1);
-      listBg.fillRoundedRect(-75, 0, 150, listHeight, 5);
+      listBg.fillRoundedRect(-dropdownWidth / 2, 0, dropdownWidth, listHeight, 5);
       listBg.lineStyle(2, 0x101814);
-      listBg.strokeRoundedRect(-75, 0, 150, listHeight, 5);
+      listBg.strokeRoundedRect(-dropdownWidth / 2, 0, dropdownWidth, listHeight, 5);
       overlay.add(listBg);
       
       // Create option buttons
       options.forEach((option, index) => {
-        const optionBg = self.add.rectangle(0, 15 + index * 35, 140, 30, 0xE9DFD9);
+        const optionBg = self.add.rectangle(0, 15 + index * 35, dropdownWidth - 10, 30, 0xE9DFD9);
         optionBg.setInteractive({ useHandCursor: true });
         
         const optionText = self.add.text(0, 15 + index * 35, option, {
@@ -719,8 +715,6 @@ create_dropdown(options: string[], defaultValue?: string, onSelect?: (selectedOp
     return buttons;
   }
 
-// ...existing code...
-
   // Creates a singular checkbox button
   create_checkbox_button(text: string, name: string) {
     if (name === undefined || name === null) {
@@ -730,7 +724,8 @@ create_dropdown(options: string[], defaultValue?: string, onSelect?: (selectedOp
       width: 100,
       height: 100,
       text: this.add.text(200, 200, text, {
-        fontSize: 18
+        fontSize: 18,
+        color: '#E9DFD9'
       }),
       icon: this.add.rectangle(20, 20, 20, 20).setStrokeStyle(1, 0x000000),
       space: {
@@ -753,7 +748,8 @@ create_dropdown(options: string[], defaultValue?: string, onSelect?: (selectedOp
       width: 100,
       height: 40,
       text: this.add.text(200, 200, text, {
-        fontSize: 18
+        fontSize: 18,
+        color: '#101814'
       }),
       icon: this.add.circle(200, 200, 10).setStrokeStyle(1, 0x000000),
       space: {
@@ -838,15 +834,15 @@ create_dropdown(options: string[], defaultValue?: string, onSelect?: (selectedOp
   handle_visibility() {
     const itemsPerPage = 5;
     const totalItems = this.option_objects.size;
-    const maxPage = Math.max(0, Math.ceil(totalItems / itemsPerPage) - 1);
+    const maxPage = Math.max(1, Math.ceil(totalItems / itemsPerPage));
     
-    // Clamp page number to valid range
+    // Clamp page number to valid range (1-based)
     if (this.page_number > maxPage) {
       this.page_number = maxPage;
     }
 
-    if (this.page_number < 0) {
-      this.page_number = 0;
+    if (this.page_number < 1) {
+      this.page_number = 1;
     }
     
     // Hide all options first
@@ -854,8 +850,8 @@ create_dropdown(options: string[], defaultValue?: string, onSelect?: (selectedOp
       optionContainer.setVisible(false);
     }
     
-    // Calculate which items to show
-    const startIndex = this.page_number * itemsPerPage;
+    // Calculate which items to show (convert page number to 0-based index)
+    const startIndex = (this.page_number - 1) * itemsPerPage;
     const endIndex = Math.min(startIndex + itemsPerPage, totalItems);
     
     // Show only options for current page
@@ -1040,20 +1036,30 @@ create_dropdown(options: string[], defaultValue?: string, onSelect?: (selectedOp
         switch (field.inputKind) {
           case 'numerical':
             this.options.set(field.label, [
-              new Option<number>("NUMERICAL", field.label, field.value)
+              new Option<number>("NUMERICAL", field.label, field.value, field.displayText)
             ]);
             break;
             
           case 'checkbox':
             this.options.set(field.label, [
-              new Option<boolean>("CHECKBOX", field.label, field.value)
+              new Option<boolean>(
+                "CHECKBOX",
+                field.label,
+                field.value,
+                field.displayText ?? field.optionText ?? String(field.value)
+              )
             ]);
             break;
             
           case 'radio':
             if (field.options && field.options.length > 0) {
-              const radioOptions = field.options.map((opt: any) => 
-                new Option<any>("RADIO", opt.label, opt.value)
+              const radioOptions = field.options.map((opt: any) =>
+                new Option<any>(
+                  "RADIO",
+                  opt.label,
+                  opt.value,
+                  opt.displayText ?? opt.text ?? opt.label ?? String(opt.value)
+                )
               );
               this.options.set(field.label, radioOptions);
             }
@@ -1061,8 +1067,13 @@ create_dropdown(options: string[], defaultValue?: string, onSelect?: (selectedOp
             
           case 'nominal':
             if (field.options && field.options.length > 0) {
-              const nominalOptions = field.options.map((opt: any) => 
-                new Option<any>("NOMINAL", opt.label, opt.value)
+              const nominalOptions = field.options.map((opt: any) =>
+                new Option<any>(
+                  "NOMINAL",
+                  opt.label,
+                  opt.value,
+                  opt.displayText ?? opt.text ?? opt.label ?? String(opt.value)
+                )
               );
               this.options.set(field.label, nominalOptions);
             }
@@ -1074,7 +1085,6 @@ create_dropdown(options: string[], defaultValue?: string, onSelect?: (selectedOp
       }
       
       console.log(`Populated ${this.options.size} options from editor fields`);
-      //alert(`Populated ${this.options.size} options from editor fields:\n\n` + JSON.stringify(Array.from(this.options.entries()), null, 2));
     } else {
       console.log("No editor fields found to populate options");
       alert("Couldn't find any rules for you to edit!");
