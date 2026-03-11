@@ -47,10 +47,11 @@ export async function loadRulesetData(id: number): Promise<Ruleset | null> {
 export async function listRulesets(
   nameFilter?: string
 ): Promise<LoadedRuleset[]> {
-  const url = nameFilter?.trim()
-    ? `${RULESETS_BASE}?name=${encodeURIComponent(nameFilter.trim())}`
-    : RULESETS_BASE;
-  const res = await fetch(url);
+  const urlObj = new URL(RULESETS_BASE, window.location.origin);
+if (nameFilter?.trim()) {
+  urlObj.searchParams.set("name", nameFilter.trim());
+}
+const res = await fetch(urlObj.toString());
   if (!res.ok) {
     const err = (await res.json().catch(() => ({}))) as { error?: string };
     throw new Error(err.error ?? `Failed to list rulesets: ${res.status}`);
