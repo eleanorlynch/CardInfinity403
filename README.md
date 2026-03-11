@@ -116,4 +116,28 @@ Instructions for setting up 2FA in Discord can be found here: https://support.di
 6) Scroll down to the Settings tab under the Activities section (As opposed to the Settings section higher up) and make sure that "Enable Activities" is set to true. This setting will not be able to be changed if no URL mapping has been set.   
 7) Scroll to the Installation tab under the Settings section and open the installation link. It should prompt you to open Discord through the non-developer interface and ask you to add the activity. You can either add it to a specific server or to your apps; choosing a specific server means that anyone in that server can use this activity in that server, while adding it to your apps allows you to start the app in any server or dm.  
 8) If you added it to a server, navigate to a text or voice channel within that server, open the Activities menu, and you should be able to launch the activity from there.  
-9) If you added it to your apps, navigate to any Discord chat or call and open the Activities menu. You should be able to launch the activity through here.  
+9) If you added it to your apps, navigate to any Discord chat or call and open the Activities menu. You should be able to launch the activity through here.
+
+## Attributions
+
+Built heavily off of this template:
+https://github.com/phaserjs/discord-multiplayer-template 
+
+Github repo skeleton diagram:
+https://stackoverflow.com/questions/19699059/print-directory-file-structure-with-icons-for-representation-in-markdown 
+
+Editable Text:
+https://codepen.io/rexrainbow/pen/dyezeQN 
+
+Menu Buttons:
+https://phaser.io/examples/v3.85.0/game-objects/text/view/simple-text-button 
+
+AI Usage:
+* Used AI to generate the current background of Game.ts (our gameboard)
+* Used Copilot for help with integrating c8 with TypeScript, converting files from ES Module to CommonJS (to comply with Phaser requirements), and help debugging them
+* Used [https://tonttu.medium.com/mocha-test-cases-with-node-js-typescript-esm-modules-and-chai-66b4536a1890](this guide) to help integrate Mocha with TypeScript
+* Used Copilot for help with Colyseus setup/integration and for debugging issues with Discord user authorization
+* Used Copilot to help create the save ruleset function
+* Used Copilot to speed up the creation of the rules editing screen
+* Used Copilot to write additional tests
+
