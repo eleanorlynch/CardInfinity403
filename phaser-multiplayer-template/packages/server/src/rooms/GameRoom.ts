@@ -1,19 +1,30 @@
 import { Client, Room } from "colyseus";
 import { GameMove } from "../card-game/GameMove";
 import { Player } from "../card-game/Player";
+import { loadDefaultRuleset } from "../card-game/loadRuleset";
+import * as rulesetDb from "../rulesetDb";
 
 export class GameRoom extends Room {
   private gameMove = new GameMove();
   private gameId = 1;
+  private rulesetId?: number;
 
   // sessionId -> seat (0,1,...,n)
   private seatBySessionId = new Map<string, number>();
 
-  // TODO: just doing 2 players for now, will update later based on what we want
-  maxClients = 2;
-
   onCreate(options: any) {
     console.log("Room created:", this.roomId);
+
+    this.rulesetId = typeof options?.rulesetId === "number" ? options.rulesetId : undefined;
+
+    let ruleset;
+    if (this.rulesetId != null) {
+      const row = rulesetDb.getRulesetById(this.rulesetId);
+      ruleset = row ? row.data : loadDefaultRuleset();
+    } else {
+      ruleset = loadDefaultRuleset();
+    }
+    this.maxClients = ruleset.maxPlayers;
 
     // message-based only for now (no schema sync yet)
     this.onMessage("DRAW", (client) => this.handleDraw(client));
@@ -33,7 +44,7 @@ export class GameRoom extends Room {
     if (!this.gameMove.getGame(this.gameId)) {
       const players = [new Player(0, [])];
 
-      this.gameMove.createGame(this.gameId, players);
+      this.gameMove.createGame(this.gameId, players, this.rulesetId);
     }
 
     const game = this.gameMove.getGame(this.gameId);
@@ -44,13 +55,13 @@ export class GameRoom extends Room {
         game.players.push(new Player(game.players.length, []));
       }
       
-      // Deal initial hand to late-joining player (match GameStatus.dealCards() = 3)
+      // Deal initial hand to late-joining player using the ruleset's starting hand size
       const p = game.players[seat];
 
       if (p && (p.getHand()?.length ?? 0) === 0) {
         const hand = p.getHand() ?? [];
 
-        for (let i = 0; i < 3; i++) {
+        for (let i = 0; i < game.handRules.startingHandSize; i++) {
           const card = game.deck.pop();
 
           if (card) {

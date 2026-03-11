@@ -1,5 +1,5 @@
 import { MonitorOptions, monitor } from "@colyseus/monitor";
-import { Server } from "colyseus";
+import { Server, matchMaker } from "colyseus";
 import dotenv from "dotenv";
 import express, { Application, Request, Response } from "express";
 import { createServer } from "http";
@@ -26,6 +26,19 @@ const server = new Server({
 
 // Game Rooms
 server.define("game", GameRoom);
+
+router.get("/room-exists/:roomId", async (req: Request, res: Response) => {
+  try {
+    const room = await matchMaker.getRoomById(req.params.roomId);
+    if (room === undefined || room === null) {
+      res.json({ exists: false, full: false });
+    } else {
+      res.json({ exists: true, full: room.locked });
+    }
+  } catch {
+    res.json({ exists: false, full: false });
+  }
+});
 
 app.use(express.json());
 app.use(router);
