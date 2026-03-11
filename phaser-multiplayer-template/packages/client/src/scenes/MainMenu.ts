@@ -254,7 +254,11 @@ export class MainMenu extends Scene {
     });
 
     button_manage_rules.on('pointerdown', async () => {
-      await authorizeDiscordUser();
+      try {
+        await authorizeDiscordUser();
+      } catch (error) {
+        console.error("Discord auth failed (Manage Rules):", error);
+      }
       this.scene.start("Rules");
     });
 

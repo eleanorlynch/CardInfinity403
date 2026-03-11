@@ -183,14 +183,6 @@ export class Game extends Scene {
       if (this.netState?.gameOver) return;
       this.room.send("END_TURN");
     });
-    // After UI is ready, connect to the Colyseus room
-    if (this.statusText) {
-      this.statusText.setText("Connecting...");
-    }
-    await this.connectToRoom().catch((err) => {
-      console.error(err);
-      if (this.statusText) this.statusText.setText("Failed to connect");
-    });
   }
 
   resetGameState() {
@@ -502,7 +494,22 @@ export class Game extends Scene {
         roomCodeText.on("pointerover", () => roomCodeText.setColor("#ffffff"));
         roomCodeText.on("pointerout", () => roomCodeText.setColor("#EBC9B3"));
         roomCodeText.on("pointerdown", () => {
-          navigator.clipboard.writeText(roomId).then(() => {
+          const copyToClipboard = (text: string): Promise<void> => {
+            if (navigator.clipboard?.writeText) {
+              return navigator.clipboard.writeText(text);
+            }
+            // Fallback for Discord iframe where clipboard API is unavailable
+            const el = document.createElement("textarea");
+            el.value = text;
+            el.style.cssText = "position:fixed;opacity:0;pointer-events:none;";
+            document.body.appendChild(el);
+            el.focus();
+            el.select();
+            const ok = document.execCommand("copy");
+            document.body.removeChild(el);
+            return ok ? Promise.resolve() : Promise.reject(new Error("copy failed"));
+          };
+          copyToClipboard(roomId).then(() => {
             roomCodeText.setText(`Room Code: ${roomId}  ✓ Copied!`);
             this.time.delayedCall(2000, () => {
               roomCodeText.setText(`Room Code: ${roomId}  ⧉`);
