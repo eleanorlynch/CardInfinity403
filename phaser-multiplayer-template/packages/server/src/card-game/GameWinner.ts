@@ -339,7 +339,7 @@ export class GameWinner {
         }
     }
 
-    // Player with most cards of a single suit wins
+    // Player with most cards of a single rank wins
     checkMostOfOneRank(gameState: GameStatus) {
         const ranks = gameState.ranks;
 
