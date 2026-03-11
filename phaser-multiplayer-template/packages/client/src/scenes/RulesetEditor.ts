@@ -32,9 +32,11 @@ export class RulesetEditor extends Scene {
 
   // Custom dropdown container to handle dropdown display (regular rex UI dropdown has some issues with display layering)
   private activeDropdownOverlay: Phaser.GameObjects.Container | null = null;
+  private rulesetId: number | null = null;
 
   init(args: any) {
     this.name = args?.name ?? "";
+    this.rulesetId = typeof args?.id === "number" ? args.id : null;
     this.types = undefined;
   }
 
@@ -87,8 +89,10 @@ export class RulesetEditor extends Scene {
       const textEditor = this.rexUI.edit(title_text);
       textEditor.on('close', () => {
         // Update the ruleset name when editing is complete
-        alert(title_text.text);
-        this.trackChange("name", title_text.text);
+        const nextName = title_text.text?.trim() || "New Ruleset";
+        title_text.setText(nextName);
+        this.name = nextName;
+        this.trackChange("name", nextName);
       });
     });
 
@@ -897,8 +901,8 @@ create_dropdown(options: string[], defaultValue?: string, onSelect?: (selectedOp
 
   // Merge user changes with default ruleset values
   private getMergedRuleset(): any {
-    // Deep clone the base ruleset (either fetched existing ruleset or default)
-    const merged: any = this.baseRuleset;
+    // Deep clone the base ruleset so editor state and save payload are isolated.
+    const merged: any = JSON.parse(JSON.stringify(this.baseRuleset ?? {}));
 
     // Apply user changes
     Array.from(this.ruleChanges.entries()).forEach(([key, value]) => {
@@ -931,23 +935,37 @@ create_dropdown(options: string[], defaultValue?: string, onSelect?: (selectedOp
         return;
       }
       const mergedRuleset = this.getMergedRuleset();
-
-      // Check if ruleset exists by name (for this user)
-      let exists = false;
-      if (this.name) {
-        const checkRes = await fetch(`/.proxy/api/rulesets/by-name/${encodeURIComponent(this.name)}?user_id=${encodeURIComponent(userId)}`);
-        exists = checkRes.ok;
-      }
+      const finalName =
+        typeof mergedRuleset.name === "string" && mergedRuleset.name.trim()
+          ? mergedRuleset.name.trim()
+          : this.name?.trim() || "New Ruleset";
+      mergedRuleset.name = finalName;
+      this.name = finalName;
 
       let apiPath: string;
       let method: string;
 
-      if (exists) {
-        apiPath = `/.proxy/api/rulesets/by-name/${encodeURIComponent(this.name)}?user_id=${encodeURIComponent(userId)}`;
+      if (this.rulesetId != null) {
+        apiPath = `/.proxy/api/rulesets/${this.rulesetId}?user_id=${encodeURIComponent(userId)}`;
         method = "PUT";
       } else {
-        apiPath = `/.proxy/api/rulesets?user_id=${encodeURIComponent(userId)}`;
-        method = "POST";
+        const checkRes = await fetch(`/.proxy/api/rulesets/by-name/${encodeURIComponent(finalName)}?user_id=${encodeURIComponent(userId)}`);
+
+        if (checkRes.ok) {
+          const existing = await checkRes.json();
+          const existingId = typeof existing?.id === "number" ? existing.id : null;
+          if (existingId != null) {
+            this.rulesetId = existingId;
+            apiPath = `/.proxy/api/rulesets/${existingId}?user_id=${encodeURIComponent(userId)}`;
+            method = "PUT";
+          } else {
+            apiPath = `/.proxy/api/rulesets?user_id=${encodeURIComponent(userId)}`;
+            method = "POST";
+          }
+        } else {
+          apiPath = `/.proxy/api/rulesets?user_id=${encodeURIComponent(userId)}`;
+          method = "POST";
+        }
       }
 
       const response = await fetch(apiPath, {
@@ -973,6 +991,10 @@ create_dropdown(options: string[], defaultValue?: string, onSelect?: (selectedOp
       }
 
       const savedRuleset = await response.json();
+      this.rulesetId = typeof savedRuleset?.id === "number" ? savedRuleset.id : this.rulesetId;
+      if (typeof savedRuleset?.name === "string" && savedRuleset.name.trim()) {
+        this.name = savedRuleset.name.trim();
+      }
       console.log("Ruleset saved successfully:", savedRuleset);
       const savedTo = savedRuleset.savedTo === "neon" ? "Neon" : "locally";
       alert(`Ruleset saved successfully (${savedTo})!\n\n` + JSON.stringify(savedRuleset.data, null, 2));

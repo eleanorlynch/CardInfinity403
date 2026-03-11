@@ -226,9 +226,17 @@ export async function updateRulesetByName(
     if (!userId?.trim()) return undefined;
     const sql = getSql();
     const result = await sql`
-      UPDATE rulesets
+      WITH target AS (
+        SELECT id
+        FROM rulesets
+        WHERE name = ${name} AND user_id = ${userId.trim()}
+        ORDER BY updated_at DESC, id DESC
+        LIMIT 1
+      )
+      UPDATE rulesets r
       SET name = ${data.name}, description = ${data.description ?? ""}, data = ${JSON.stringify(data)}::jsonb, updated_at = now()
-      WHERE name = ${name} AND user_id = ${userId.trim()}
+      FROM target
+      WHERE r.id = target.id
       RETURNING id, user_id, name, description, created_at, updated_at, data
     `;
     const row = (result as { id: number; user_id: string | null; name: string; description: string; created_at: Date | string; updated_at: Date | string; data: Ruleset }[])[0];
