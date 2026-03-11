@@ -1,18 +1,12 @@
-const loadDefaultRulesetModule = require("../phaser-multiplayer-template/packages/server/dist/card-game/loadRuleset");
+const loadDefaultRulesetModule = require("../phaser-multiplayer-template/packages/server/src/card-game/loadRuleset");
 const { loadDefaultRuleset } = loadDefaultRulesetModule;
 const assert = require("node:assert");
-const GameStatusModule = require("../phaser-multiplayer-template/packages/client/src/utils/server/GameStatus.ts");
+const GameStatusModule = require("../phaser-multiplayer-template/packages/server/src/card-game/GameStatus.ts");
 const { GameStatus } = GameStatusModule;
-const PlayerModule = require("../phaser-multiplayer-template/packages/client/src/utils/server/Player.ts");
+const PlayerModule = require("../phaser-multiplayer-template/packages/server/src/card-game/Player.ts");
 const { Player } = PlayerModule;
-const CardModule = require("../phaser-multiplayer-template/packages/client/src/utils/server/Card.ts");
+const CardModule = require("../phaser-multiplayer-template/packages/server/src/card-game/Card.ts");
 const { Card } = CardModule;
-const ServerGameStatusModule = require("../phaser-multiplayer-template/packages/server/src/card-game/GameStatus.ts");
-const { GameStatus: ServerGameStatus } = ServerGameStatusModule;
-const ServerPlayerModule = require("../phaser-multiplayer-template/packages/server/src/card-game/Player.ts");
-const { Player: ServerPlayer } = ServerPlayerModule;
-const ServerCardModule = require("../phaser-multiplayer-template/packages/server/src/card-game/Card.ts");
-const { Card: ServerCard } = ServerCardModule;
 
 describe ("GameStatus", function () {
 
@@ -72,8 +66,8 @@ describe ("GameStatus", function () {
     });
 
     it ("should set gameOver to true when a winner is found at the end of a turn", function() {
-      const players = [new ServerPlayer(0, []), new ServerPlayer(1, [new ServerCard("hearts", 1)])];
-      const game = new ServerGameStatus(1, ["2"], players);
+      const players = [new Player(0, []), new Player(1, [new Card("hearts", 1)])];
+      const game = new GameStatus(1, ["2"], players);
 
       game.winConditions.firstToHandSize.chosen = true;
       game.winConditions.firstToHandSize.handSizeTarget = 0;
@@ -85,8 +79,8 @@ describe ("GameStatus", function () {
     });
 
     it ("should keep the same player's turn when extraTurn is set", function() {
-      const players = [new ServerPlayer(0, []), new ServerPlayer(1, [])];
-      const game = new ServerGameStatus(1, ["2"], players);
+      const players = [new Player(0, []), new Player(1, [])];
+      const game = new GameStatus(1, ["2"], players);
 
       game.extraTurn = true;
       game.nextTurn();
@@ -96,8 +90,8 @@ describe ("GameStatus", function () {
     });
 
     it ("should skip the next player when skipNextPlayer is set (3-player game)", function() {
-      const players = [new ServerPlayer(0, []), new ServerPlayer(1, []), new ServerPlayer(2, [])];
-      const game = new ServerGameStatus(1, ["2"], players);
+      const players = [new Player(0, []), new Player(1, []), new Player(2, [])];
+      const game = new GameStatus(1, ["2"], players);
 
       game.skipNextPlayer = true;
       game.nextTurn();
@@ -139,12 +133,14 @@ describe ("GameStatus", function () {
 
     it ("should return the number of draws that have been made this turn", function() {
       const players = [new Player(0, []), new Player(1, [])];
-      const ruleset = ["2"];
+      const ruleset = loadDefaultRuleset();
       const game = new GameStatus(123, ruleset, players);
 
+      console.log(game.deckContents.cards.length);
       game.createDeck();
       game.shuffleDeck();
-      game.drawCard(0);
+      console.log(game.deck);
+      console.log(game.drawCard(0));
 
       assert.strictEqual(game.getDrawsThisTurn(), 1);
     });
@@ -154,7 +150,7 @@ describe ("GameStatus", function () {
 
     it ("should return the number of plays that have been made this turn", function() {
       const players = [new Player(0, []), new Player(1, [])];
-      const ruleset = ["2"];
+      const ruleset = loadDefaultRuleset();
       const game = new GameStatus(123, ruleset, players);
 
       game.drawCard(0);
@@ -177,7 +173,7 @@ describe ("GameStatus", function () {
 
     it ("should create a deck of the correct size based on the ruleset", function() {
       const players = [new Player(0, []), new Player(1, [])];
-      const ruleset = ["2"];
+      const ruleset = loadDefaultRuleset();
       const game = new GameStatus(123, ruleset, players);
       game.createDeck();
       assert.strictEqual(game.getDeckCount(), 52);
@@ -188,7 +184,7 @@ describe ("GameStatus", function () {
 
     it ("should shuffle the deck so that the order of the cards is different", function() {
       const players = [new Player(0, []), new Player(1, [])];
-      const ruleset = ["2"];
+      const ruleset = loadDefaultRuleset();
       const game = new GameStatus(123, ruleset, players);
 
       game.createDeck();
@@ -205,8 +201,8 @@ describe ("GameStatus", function () {
 
     it ("should deal the correct number of cards per player based on the ruleset startingHandSize", function() {
       const ruleset = loadDefaultRuleset();
-      const players = [new ServerPlayer(0, []), new ServerPlayer(1, [])];
-      const game = new ServerGameStatus(1, ruleset, players);
+      const players = [new Player(0, []), new Player(1, [])];
+      const game = new GameStatus(1, ruleset, players);
 
       game.createDeck();
       game.shuffleDeck();
@@ -222,8 +218,8 @@ describe ("GameStatus", function () {
 
     it ("should place one card on the discard pile after dealing", function() {
       const ruleset = loadDefaultRuleset();
-      const players = [new ServerPlayer(0, []), new ServerPlayer(1, [])];
-      const game = new ServerGameStatus(1, ruleset, players);
+      const players = [new Player(0, []), new Player(1, [])];
+      const game = new GameStatus(1, ruleset, players);
 
       game.createDeck();
       game.shuffleDeck();
@@ -325,7 +321,7 @@ describe ("GameStatus", function () {
 
     it ("should allow a player to discard a card from their hand and add it to the discard pile on their turn", function() {
       const players = [new Player(0, []), new Player(1, [])];
-      const ruleset = ["2"];
+      const ruleset = loadDefaultRuleset();
       const game = new GameStatus(123, ruleset, players);
 
       game.drawCard(0);
@@ -346,7 +342,7 @@ describe ("GameStatus", function () {
 
     it ("shouldn't allow a player to discard a card that is not in their hand", function() {
       const players = [new Player(0, []), new Player(1, [])];
-      const ruleset = ["2"];
+      const ruleset = loadDefaultRuleset();
       const game = new GameStatus(123, ruleset, players);
       const fakeCardId = "fake_card_id";
 
@@ -358,7 +354,7 @@ describe ("GameStatus", function () {
 
     it("shouldn't allow a player to discard a card when it is not their turn", function() {
       const players = [new Player(0, []), new Player(1, [])];
-      const ruleset = ["2"];
+      const ruleset = loadDefaultRuleset();
       const game = new GameStatus(123, ruleset, players);
 
       if (players[1] !== undefined && players[1].getHand() !== undefined) {
@@ -377,7 +373,7 @@ describe ("GameStatus", function () {
 
     it ("should return the top card of the discard pile", function() {
       const players = [new Player(0, []), new Player(1, [])];
-      const ruleset = ["2"];
+      const ruleset = loadDefaultRuleset();
       const game = new GameStatus(123, ruleset, players);
 
       game.drawCard(0);
@@ -411,7 +407,7 @@ describe ("GameStatus", function () {
 
     it ("should return the number of cards left in the deck", function() {
       const players = [new Player(0, []), new Player(1, [])];
-      const ruleset = ["2"];
+      const ruleset = loadDefaultRuleset();
       const game = new GameStatus(123, ruleset, players);
 
       game.createDeck();
@@ -425,7 +421,7 @@ describe ("GameStatus", function () {
 
     it ("should return the player id of the current turn", function() {
       const players = [new Player(0, []), new Player(1, [])];
-      const ruleset = ["2"];
+      const ruleset = loadDefaultRuleset();
       const game = new GameStatus(123, ruleset, players);
 
       assert.strictEqual(game.getCurrentTurn(), 0);
@@ -436,7 +432,7 @@ describe ("GameStatus", function () {
 
     it ("should update the round number and reset draws, plays, and discards this turn to 0", function() {
       const players = [new Player(0, []), new Player(1, [])];
-      const ruleset = ["2"];
+      const ruleset = loadDefaultRuleset();
       const game = new GameStatus(123, ruleset, players);
 
       game.setRound(1);
@@ -452,7 +448,7 @@ describe ("GameStatus", function () {
 
     it ("should set the player's hand to the given hand", function() {
       const players = [new Player(0, []), new Player(1, [])];
-      const ruleset = ["2"];
+      const ruleset = loadDefaultRuleset();
       const game = new GameStatus(123, ruleset, players);
       const newHand = [new Card("diamonds", 2), new Card("hearts", 2)];
 
@@ -467,9 +463,9 @@ describe ("GameStatus", function () {
   describe ("#setDiscardPile()", function() {
 
     it ("should replace the discard pile with the given cards", function() {
-      const players = [new ServerPlayer(0, []), new ServerPlayer(1, [])];
-      const game = new ServerGameStatus(1, ["2"], players);
-      const pile = [new ServerCard("hearts", 3)];
+      const players = [new Player(0, []), new Player(1, [])];
+      const game = new GameStatus(1, ["2"], players);
+      const pile = [new Card("hearts", 3)];
 
       game.setDiscardPile(pile);
 
@@ -515,15 +511,15 @@ describe ("GameStatus", function () {
 
     it ("should serialize and reconstruct a game with the same key state", function() {
       const ruleset = loadDefaultRuleset();
-      const players = [new ServerPlayer(0, []), new ServerPlayer(1, [])];
-      const game = new ServerGameStatus(99, ruleset, players);
+      const players = [new Player(0, []), new Player(1, [])];
+      const game = new GameStatus(99, ruleset, players);
 
       game.createDeck();
       game.shuffleDeck();
       game.dealCards();
 
       const snapshot = game.toSnapshot();
-      const restored = ServerGameStatus.fromSnapshot(snapshot);
+      const restored = GameStatus.fromSnapshot(snapshot);
 
       assert.strictEqual(restored.getGameId(), game.getGameId());
       assert.strictEqual(restored.getCurrentTurn(), game.getCurrentTurn());
