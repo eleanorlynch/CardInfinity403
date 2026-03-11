@@ -18,7 +18,7 @@ Check out USER_MANUAL.md for more specific user information than this README pro
 # Developer Guidelines
 
 Check out CONTRIBUTING.md for information on how to contribute (good luck):  
-[LINK IT HERE] 
+[https://github.com/eleanorlynch/CardInfinity403/blob/finalize-documentation/CONTRIBUTING.md](CONTRIBUTING.md)
 
 ## Source Code
 
