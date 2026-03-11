@@ -80,7 +80,15 @@ const authorizeDiscordUser = async () => {
       code,
     }),
   });
-  const { access_token } = await response.json();
+  const body = (await response.json()) as { access_token?: string; error?: string };
+  if (!response.ok) {
+    const msg = body?.error ?? `Token request failed: ${response.status}`;
+    throw new Error(msg);
+  }
+  const access_token = body?.access_token;
+  if (!access_token) {
+    throw new Error(body?.error ?? "No access token in response");
+  }
 
   // Authenticate with Discord client (using the access_token)
   auth = await discordSdk.commands.authenticate({
