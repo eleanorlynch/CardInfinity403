@@ -1,6 +1,8 @@
 import { Client, Room } from "colyseus";
 import { GameMove } from "../card-game/GameMove";
 import { Player } from "../card-game/Player";
+import { loadDefaultRuleset } from "../card-game/loadRuleset";
+import * as rulesetDb from "../rulesetDb";
 import * as sessionDb from "../sessionDb";
 import { GameStatus } from "../card-game/GameStatus";
 import { GameWinner } from "../card-game/GameWinner";
@@ -20,13 +22,21 @@ export class GameRoom extends Room {
   // sessionId -> seat (0,1,...,n)
   private seatBySessionId = new Map<string, number>();
 
-  maxClients = 2; // just doing 2 players for now, will update later based on what we want
-
-  onCreate(options: any) {
+  async onCreate(options: any) {
     console.log("Room created:", this.roomId);
     this.hostUserId = options?.userId ?? null;
     this.sessionNumber = options?.sessionNumber ?? null;
-    this.rulesetId = options?.rulesetId ?? null;
+    this.rulesetId = typeof options?.rulesetId === "number" ? options.rulesetId : null;
+
+    let ruleset;
+    if (this.rulesetId != null) {
+      const row = await rulesetDb.getRulesetById(this.rulesetId);
+      ruleset = row ? row.data : loadDefaultRuleset();
+    } else {
+      ruleset = loadDefaultRuleset();
+    }
+    this.maxClients = ruleset.maxPlayers;
+
     // message-based only for now (no schema sync yet)
     this.onMessage("DRAW", (client) => this.handleDraw(client));
     this.onMessage("PLAY_CARD", (client, msg: { cardId: string }) =>
@@ -77,11 +87,12 @@ export class GameRoom extends Room {
         game.players.push(new Player(game.players.length, []));
       }
 
-      // Deal initial hand to late-joining player (match GameStatus.dealCards() = 3)
+      // Deal initial hand to late-joining player using the ruleset's starting hand size
       const p = game.players[seat];
       if (p && (p.getHand()?.length ?? 0) === 0) {
         const hand = p.getHand() ?? [];
-        for (let i = 0; i < 3; i++) {
+
+        for (let i = 0; i < game.handRules.startingHandSize; i++) {
           const card = game.deck.pop();
           if (card) hand.push(card);
         }

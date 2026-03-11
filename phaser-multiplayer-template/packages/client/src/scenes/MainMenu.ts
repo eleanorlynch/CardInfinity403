@@ -168,13 +168,24 @@ export class MainMenu extends Scene {
       hint.textContent = 'Enter to confirm  •  Esc to cancel';
       hint.style.cssText = `font-size: 13px; color: #E9DFD9; opacity: 0.7; white-space: nowrap;`;
 
+      const errorLabel = document.createElement('div');
+      errorLabel.style.cssText = `
+        font-size: 14px; color: #ff7b7b; text-align: center;
+        margin-top: 4px; display: none;
+      `;
+
       confirmBtn.onmouseenter = () => { confirmBtn.style.background = '#8d8d8d'; };
       confirmBtn.onmouseleave = () => { confirmBtn.style.background = '#EBC9B3'; };
 
       btnWrapper.appendChild(confirmBtn);
       btnWrapper.appendChild(hint);
+      btnWrapper.appendChild(errorLabel);
       row.appendChild(input);
       row.appendChild(btnWrapper);
+      button_start_game.disableInteractive();
+      button_join_game.disableInteractive();
+      button_manage_rules.disableInteractive();
+
       document.body.appendChild(overlay);
       document.body.appendChild(row);
       input.focus();
@@ -182,11 +193,35 @@ export class MainMenu extends Scene {
       const cleanup = () => {
         document.body.removeChild(overlay);
         document.body.removeChild(row);
+        button_start_game.setInteractive({ useHandCursor: true });
+        button_join_game.setInteractive({ useHandCursor: true });
+        button_manage_rules.setInteractive({ useHandCursor: true });
       };
 
       const submit = async () => {
         const roomId = input.value.trim();
         if (!roomId) return;
+
+        confirmBtn.disabled = true;
+        confirmBtn.textContent = 'Checking...';
+        errorLabel.style.display = 'none';
+
+        try {
+          const res = await fetch(`/.proxy/api/room-exists/${encodeURIComponent(roomId)}`);
+          const { exists, full } = await res.json();
+          if (!exists || full) {
+            input.value = '';
+            input.placeholder = 'Enter room code...';
+            errorLabel.textContent = full ? 'Room is full.' : 'Room not found. Check the code.';
+            errorLabel.style.display = 'block';
+            confirmBtn.disabled = false;
+            confirmBtn.textContent = 'Join';
+            return;
+          }
+        } catch {
+          // If check fails, fall through and let Game scene handle it
+        }
+
         cleanup();
         authInProgress = true;
         authErrorText.setText("Authorizing with Discord...");

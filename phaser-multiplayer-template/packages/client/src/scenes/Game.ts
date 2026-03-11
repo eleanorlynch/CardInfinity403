@@ -34,6 +34,27 @@ export class Game extends Scene {
     // Forest Green background
     this.cameras.main.setBackgroundColor("#2C853B");
 
+    // Create status text early so connection errors can be displayed
+    this.statusText = this.add
+      .text(width * 0.5, height * 0.35, "Connecting...", {
+        fontFamily: "Arial",
+        fontSize: "18px",
+        color: "#E9DFD9",
+        align: "center"
+      })
+      .setOrigin(0.5);
+
+    await this.connectToRoom().catch((err) => {
+      console.error(err);
+      if (this.statusText) this.statusText.setText("Failed to connect.");
+    });
+
+    // If room connection failed, show error and return to main menu
+    if (!this.room) {
+      this.time.delayedCall(2500, () => this.scene.start("MainMenu"));
+      return;
+    }
+
     // =========================
     // TABLE LAYOUT
     // =========================
@@ -97,14 +118,7 @@ export class Game extends Scene {
     // =========================
     // STATUS TEXT
     // =========================
-    this.statusText = this.add
-      .text(width * 0.5, height * 0.35, "Game Start！", {
-        fontFamily: "Arial",
-        fontSize: "18px",
-        color: "#E9DFD9",
-        align: "center"
-      })
-      .setOrigin(0.5);
+    this.statusText.setText("Game Start！");
 
     // =========================
     // DRAW BUTTON
