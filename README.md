@@ -49,6 +49,8 @@ CardInfinity403
 │       │       │   main.ts           #Main entrypoint
 │       │       │   wsPatch.ts        #Websocket Patch
 │       │       │
+│       │       └─── rules            #Classes pertaining to rules
+│       │       │
 │       │       └───scenes            #Clientside scenes
 │       │       │
 │       │       └───utils             #Clientside helper classes/functions
@@ -60,6 +62,7 @@ CardInfinity403
 │               │   database.ts       #Database overhead
 │               │   rulesetDb.ts      #Ruleset DB defs
 │               │   server.ts         #Server API request handler
+│               │   sessionDb.ts      #External DB defs
 │               │
 │               └───card-game         #Serverside helper classes/functions
 │               │
@@ -69,7 +72,6 @@ CardInfinity403
 │
 └───test                              #Project tests
 ```
-
 
 ## Fresh Setup/Installation
 

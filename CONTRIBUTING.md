@@ -1,6 +1,3 @@
-# Developer Guide  
-Good luck.
-
 ## Source Code
 
 All source code for this project can be found in this repository. Dependencies are listed in package.json. Dependencies can be installed by running `npm i` in the root directory.
@@ -34,6 +31,8 @@ CardInfinity403
 │       │       │   main.ts           #Main entrypoint
 │       │       │   wsPatch.ts        #Websocket Patch
 │       │       │
+│       │       └─── rules            #Classes pertaining to rules
+│       │       │
 │       │       └───scenes            #Clientside scenes
 │       │       │
 │       │       └───utils             #Clientside helper classes/functions
@@ -45,6 +44,7 @@ CardInfinity403
 │               │   database.ts       #Database overhead
 │               │   rulesetDb.ts      #Ruleset DB defs
 │               │   server.ts         #Server API request handler
+│               │   sessionDb.ts      #External DB defs
 │               │
 │               └───card-game         #Serverside helper classes/functions
 │               │
@@ -91,6 +91,9 @@ Contains clientside scenes. When adding a scene, make sure to also include it in
 ### phaser-multiplayer-template/packages/client/src/utils/
 Contains clientside helper classes/functions.
 
+### phaser-multiplayer-template/packages/client/src/rules/
+Contains clientside helper classes/functions specifically for rules management.
+
 ### phaser-multiplayer-template/packages/server/
 Contains data pertaining to the server
 
@@ -105,6 +108,9 @@ Specifically defines/handles the structure/data of the ruleset database.
 
 ### phaser-multiplayer-template/packages/server/src/server.ts
 Handles server api requests
+
+### phaser-multiplayer-template/packages/server/src/sessionDb.ts
+Specifically defines/handles communications with the external database.
 
 ### phaser-multiplayer-template/packages/server/src/card-game/
 Contains serverside helper classes/functions.
