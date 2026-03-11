@@ -30,7 +30,7 @@ export class GameRoom extends Room {
 
     let ruleset;
     if (this.rulesetId != null) {
-      const row = await rulesetDb.getRulesetById(this.rulesetId);
+      const row = await rulesetDb.getRulesetById(this.rulesetId, this.hostUserId);
       ruleset = row ? row.data : loadDefaultRuleset();
     } else {
       ruleset = loadDefaultRuleset();
