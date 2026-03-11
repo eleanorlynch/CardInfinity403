@@ -2,6 +2,9 @@ import { Card } from "./Card";
 import { Player } from "./Player";
 import { GameWinner } from "./GameWinner";
 import { Ruleset } from "./RulesetTypes";
+import type { GameStateSnapshot } from "./GameStateSnapshot";
+
+export type { GameStateSnapshot } from "./GameStateSnapshot";
 
 export class GameStatus implements Ruleset {
     gameId: number;
@@ -671,27 +674,104 @@ export class GameStatus implements Ruleset {
         this.discardPile = pile;
     }
 
-    // Gets the current game state information for a player
+    // Gets the current game state information for a player (plain objects for wire serialization)
     getGameState(playerId: number) {
+        const cardToPlain = (c: Card) => ({
+            suit: c.getSuit(),
+            rank: c.getRank(),
+            id: c.getId(),
+            code: c.code ?? `${c.getRank()}${c.getSuit().charAt(0)}`,
+        });
+        const top = this.getTopDiscard();
         return {
             gameId: this.gameId,
             ruleset: this.ruleset,
-
             players: this.players.map((p) => ({
-            id: p.getID(),
-            name: `Player ${p.getID()}`,
-            handCount: p.getHand()?.length ?? 0,
+                id: p.getID(),
+                name: `Player ${p.getID()}`,
+                handCount: p.getHand()?.length ?? 0,
             })),
-
             currentTurn: this.currentTurn,
             isMyTurn: this.currentTurn === playerId,
-
-            myHand: this.players[playerId]?.getHand() ?? [],
-            discardTop: this.getTopDiscard(),
+            myHand: (this.players[playerId]?.getHand() ?? []).map(cardToPlain),
+            discardTop: top ? cardToPlain(top) : null,
             deckCount: this.getDeckCount(),
-
             gameOver: this.gameOver,
             winner: this.winner,
         };
     }
+
+    /** Serialize to a plain object for DB persistence (current_session.game_state). */
+    toSnapshot(): GameStateSnapshot {
+        const cardToPlain = (c: Card) => ({ rank: c.getRank(), suit: c.getSuit(), id: c.getId() });
+        return {
+            gameId: this.gameId,
+            ruleset: [...this.ruleset],
+            gameOver: this.gameOver,
+            winner: this.winner,
+            winners: [...this.winners],
+            tied: this.tied,
+            currentTurn: this.currentTurn,
+            totalRounds: this.totalRounds,
+            drawsThisTurn: this.drawsThisTurn,
+            playsThisTurn: this.playsThisTurn,
+            discardsThisTurn: this.discardsThisTurn,
+            extraTurn: this.extraTurn,
+            skipNextPlayer: this.skipNextPlayer,
+            reverseTurnOrder: this.reverseTurnOrder,
+            players: this.players.map((p) => ({
+                id: p.getID(),
+                hand: (p.getHand() ?? []).map(cardToPlain),
+            })),
+            deck: this.deck.map(cardToPlain),
+            discardPile: this.discardPile.map(cardToPlain),
+            rulesetData: {
+                name: this.name,
+                description: this.description,
+                maxPlayers: this.maxPlayers,
+                minPlayers: this.minPlayers,
+                AValue: this.AValue,
+                turnOrder: this.turnOrder,
+                minNumRounds: this.minNumRounds,
+                hasMaxNumRounds: this.hasMaxNumRounds,
+                maxNumRounds: this.maxNumRounds,
+                ranks: [...this.ranks],
+                suits: [...this.suits],
+                startRules: { ...this.startRules },
+                drawRules: { ...this.drawRules },
+                discardRules: { ...this.discardRules },
+                playRules: { ...this.playRules },
+                handRules: { ...this.handRules },
+                winConditions: { ...this.winConditions },
+                deckContents: { cards: [...(this.deckContents?.cards ?? [])] },
+                cardAbilities: this.cardAbilities ? { ...this.cardAbilities } : ({} as Ruleset["cardAbilities"]),
+            },
+        };
+    }
+
+    /** Reconstruct GameStatus from a snapshot (e.g. after loading from current_session). */
+    static fromSnapshot(snapshot: GameStateSnapshot): GameStatus {
+        const cardFromPlain = (p: { rank: number; suit: string; id: string }) => new Card(p.suit, p.rank);
+        const players = snapshot.players.map(
+            (p) => new Player(p.id, p.hand.map(cardFromPlain))
+        );
+        const rulesetData = snapshot.rulesetData;
+        const game = new GameStatus(snapshot.gameId, rulesetData, players, rulesetData);
+        game.gameOver = snapshot.gameOver;
+        game.winner = snapshot.winner;
+        game.winners = [...snapshot.winners];
+        game.tied = snapshot.tied;
+        game.currentTurn = snapshot.currentTurn;
+        game.totalRounds = snapshot.totalRounds;
+        game.drawsThisTurn = snapshot.drawsThisTurn;
+        game.playsThisTurn = snapshot.playsThisTurn;
+        game.discardsThisTurn = snapshot.discardsThisTurn;
+        game.extraTurn = snapshot.extraTurn;
+        game.skipNextPlayer = snapshot.skipNextPlayer;
+        game.reverseTurnOrder = snapshot.reverseTurnOrder;
+        game.deck = snapshot.deck.map(cardFromPlain);
+        game.discardPile = snapshot.discardPile.map(cardFromPlain);
+        return game;
+    }
+
 }
