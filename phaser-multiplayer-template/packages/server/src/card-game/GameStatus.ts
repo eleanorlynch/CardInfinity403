@@ -316,6 +316,13 @@ export class GameStatus implements Ruleset {
             };
         }
         
+        if (this.currentTurn !== playerId) {
+            return { 
+                success: false, 
+                message: "Not your turn" 
+            };
+        }
+
         // If deck is empty, reshuffle discard pile
         if (this.deck.length === 0) {
 

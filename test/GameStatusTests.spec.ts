@@ -1,9 +1,11 @@
+const loadDefaultRulesetModule = require("../phaser-multiplayer-template/packages/server/src/card-game/loadRuleset");
+const { loadDefaultRuleset } = loadDefaultRulesetModule;
 const assert = require("node:assert");
-const GameStatusModule = require("../phaser-multiplayer-template/packages/client/src/utils/server/GameStatus.ts");
+const GameStatusModule = require("../phaser-multiplayer-template/packages/server/src/card-game/GameStatus.ts");
 const { GameStatus } = GameStatusModule;
-const PlayerModule = require("../phaser-multiplayer-template/packages/client/src/utils/server/Player.ts");
+const PlayerModule = require("../phaser-multiplayer-template/packages/server/src/card-game/Player.ts");
 const { Player } = PlayerModule;
-const CardModule = require("../phaser-multiplayer-template/packages/client/src/utils/server/Card.ts");
+const CardModule = require("../phaser-multiplayer-template/packages/server/src/card-game/Card.ts");
 const { Card } = CardModule;
 
 describe ("GameStatus", function () {
@@ -43,49 +45,87 @@ describe ("GameStatus", function () {
 
   describe ("#nextTurn()", function() {
 
-    it ("should update the current turn to the next player", function() {
+    it ("should advance the current turn to the next player", function() {
       const players = [new Player(0, []), new Player(1, [])];
-      const ruleset = ["2"];
-      const game = new GameStatus(123, ruleset, players);
+      const game = new GameStatus(1, ["2"], players);
 
       game.nextTurn();
 
       assert.strictEqual(game.getCurrentTurn(), 1);
     });
 
-    it ("should leave gameOver at false if there is no winner at the end of a turn", function() {
-      const players = [new Player(0, [new Card("diamonds", 2)]), new Player(1, [new Card("hearts", 2)])];
-      const ruleset = ["2"];
-      const game = new GameStatus(123, ruleset, players);
+    it ("should increment totalRounds when the turn wraps back to player 0", function() {
+      const players = [new Player(0, [new Card("hearts", 1)]), new Player(1, [new Card("hearts", 1)])];
+      const game = new GameStatus(1, ["2"], players);
 
       game.nextTurn();
+      game.nextTurn();
 
-      assert.strictEqual(game.gameOver, false);
+      assert.strictEqual(game.totalRounds, 1);
+      assert.strictEqual(game.getCurrentTurn(), 0);
     });
 
-    // TODO: Uncomment/finish this test once custom rulesets are fully implemented
-  /*  it ("should set gameOver to true if there is a winner at the end of a turn and set tied to true is there is a tie", function() {
+    it ("should set gameOver to true when a winner is found at the end of a turn", function() {
+      const players = [new Player(0, []), new Player(1, [new Card("hearts", 1)])];
+      const game = new GameStatus(1, ["2"], players);
+
+      game.winConditions.firstToHandSize.chosen = true;
+      game.winConditions.firstToHandSize.handSizeTarget = 0;
+      game.minNumRounds = 0;
+
+      game.nextTurn();
+
+      assert.strictEqual(game.gameOver, true);
+    });
+
+    it ("should keep the same player's turn when extraTurn is set", function() {
       const players = [new Player(0, []), new Player(1, [])];
-      const ruleset = ["2"];
-      const game = new GameStatus(123, ruleset, players);
+      const game = new GameStatus(1, ["2"], players);
 
-      game.setRound(3);
+      game.extraTurn = true;
       game.nextTurn();
 
-      assert.strictEqual(game.gameOver, true);
-      assert.strictEqual(game.tied, true);
-    }); */
+      assert.strictEqual(game.getCurrentTurn(), 0);
+      assert.strictEqual(game.extraTurn, false);
+    });
 
-    it ("should set gameOver to true if there is a winner at the end of a turn and leave tied at false if there is no tie", function() {
-      const players = [new Player(0, [new Card("hearts", 2)]), 
-                        new Player(1, [])];
-      const ruleset = ["2"];
-      const game = new GameStatus(123, ruleset, players);
+    it ("should skip the next player when skipNextPlayer is set (3-player game)", function() {
+      const players = [new Player(0, []), new Player(1, []), new Player(2, [])];
+      const game = new GameStatus(1, ["2"], players);
+
+      game.skipNextPlayer = true;
+      game.nextTurn();
+
+      assert.strictEqual(game.getCurrentTurn(), 2);
+      assert.strictEqual(game.skipNextPlayer, false);
+    });
+
+    it ("should go backwards when reverseTurnOrder is set", function() {
+      const players = [new Player(0, []), new Player(1, [])];
+      const game = new GameStatus(1, ["2"], players);
+
+      game.reverseTurnOrder = true;
+      game.nextTurn();
+
+      assert.strictEqual(game.getCurrentTurn(), 1);
+    });
+
+    it ("should reset drawsThisTurn, playsThisTurn, and discardsThisTurn to 0", function() {
+      const ruleset = loadDefaultRuleset();
+      const players = [new Player(0, []), new Player(1, [])];
+      const game = new GameStatus(1, ruleset, players);
+
+      game.createDeck();
+      game.shuffleDeck();
+      game.drawCard(0);
+
+      assert.strictEqual(game.getDrawsThisTurn(), 1);
 
       game.nextTurn();
 
-      assert.strictEqual(game.gameOver, true);
-      assert.strictEqual(game.tied, false);
+      assert.strictEqual(game.getDrawsThisTurn(), 0);
+      assert.strictEqual(game.getPlaysThisTurn(), 0);
+      assert.strictEqual(game.getDiscardsThisTurn(), 0);
     });
   });
 
@@ -93,12 +133,14 @@ describe ("GameStatus", function () {
 
     it ("should return the number of draws that have been made this turn", function() {
       const players = [new Player(0, []), new Player(1, [])];
-      const ruleset = ["2"];
+      const ruleset = loadDefaultRuleset();
       const game = new GameStatus(123, ruleset, players);
 
+      console.log(game.deckContents.cards.length);
       game.createDeck();
       game.shuffleDeck();
-      game.drawCard(0);
+      console.log(game.deck);
+      console.log(game.drawCard(0));
 
       assert.strictEqual(game.getDrawsThisTurn(), 1);
     });
@@ -108,7 +150,7 @@ describe ("GameStatus", function () {
 
     it ("should return the number of plays that have been made this turn", function() {
       const players = [new Player(0, []), new Player(1, [])];
-      const ruleset = ["2"];
+      const ruleset = loadDefaultRuleset();
       const game = new GameStatus(123, ruleset, players);
 
       game.drawCard(0);
@@ -126,35 +168,12 @@ describe ("GameStatus", function () {
       }
     }); 
   });
-  // TODO: Uncomment/finish this test once custom rulesets are fully implemented
- /* describe ("#getDiscardsThisTurn()", function () {
-
-    it ("should return the number of discards that have been made this turn", function() {
-      const players = [new Player(0, []), new Player(1, [])]; 
-      const ruleset = ["2"];
-      const game = new GameStatus(123, ruleset, players);
-
-      game.createDeck();
-      game.shuffleDeck();
-      game.drawCard(0);
-
-      if (players[0] !== undefined) {
-        const hand = players[0].getHand();
-
-        if (hand !== undefined && hand.length > 0 && hand[0] !== undefined) {
-          const cardId = hand[0].getId();
-          game.discardCard(0, cardId);
-          assert.strictEqual(game.getDiscardsThisTurn(), 1);
-        }
-      }
-    });
-  }); */
 
   describe ("#createDeck()", function() {
 
     it ("should create a deck of the correct size based on the ruleset", function() {
       const players = [new Player(0, []), new Player(1, [])];
-      const ruleset = ["2"];
+      const ruleset = loadDefaultRuleset();
       const game = new GameStatus(123, ruleset, players);
       game.createDeck();
       assert.strictEqual(game.getDeckCount(), 52);
@@ -165,7 +184,7 @@ describe ("GameStatus", function () {
 
     it ("should shuffle the deck so that the order of the cards is different", function() {
       const players = [new Player(0, []), new Player(1, [])];
-      const ruleset = ["2"];
+      const ruleset = loadDefaultRuleset();
       const game = new GameStatus(123, ruleset, players);
 
       game.createDeck();
@@ -180,60 +199,95 @@ describe ("GameStatus", function () {
 
   describe ("#dealCards()", function() {
 
-    it ("should deal the correct number of cards to each player based on the ruleset", function() {
+    it ("should deal the correct number of cards per player based on the ruleset startingHandSize", function() {
+      const ruleset = loadDefaultRuleset();
       const players = [new Player(0, []), new Player(1, [])];
-      const ruleset = ["2"];
-      const game = new GameStatus(123, ruleset, players);
+      const game = new GameStatus(1, ruleset, players);
 
       game.createDeck();
       game.shuffleDeck();
       game.dealCards();
 
-      if (players[0] !== undefined && players[0].getHand() !== undefined) {
-        assert.strictEqual(players[0].getHand().length, 7);
+      if (players[0] !== undefined) {
+        assert.strictEqual(players[0].getHand().length, ruleset.handRules.startingHandSize);
       }
+      if (players[1] !== undefined) {
+        assert.strictEqual(players[1].getHand().length, ruleset.handRules.startingHandSize);
+      }
+    });
 
-      if (players[1] !== undefined && players[1].getHand() !== undefined) {
-        assert.strictEqual(players[1].getHand().length, 7);
-      }
+    it ("should place one card on the discard pile after dealing", function() {
+      const ruleset = loadDefaultRuleset();
+      const players = [new Player(0, []), new Player(1, [])];
+      const game = new GameStatus(1, ruleset, players);
+
+      game.createDeck();
+      game.shuffleDeck();
+      game.dealCards();
+
+      assert.strictEqual(game.discardPile.length, 1);
     });
   });
 
   describe ("#drawCard()", function() {
 
     it ("should allow a player to draw a card and add it to their hand", function() {
+      const ruleset = loadDefaultRuleset();
       const players = [new Player(0, []), new Player(1, [])];
-      const ruleset = ["2"];
-      const game = new GameStatus(123, ruleset, players);
+      const game = new GameStatus(1, ruleset, players);
 
       game.createDeck();
       game.shuffleDeck();
 
-      if (players[0] !== undefined && players[0].getHand() !== undefined) {
+      if (players[0] !== undefined) {
         game.drawCard(0);
-
         assert.strictEqual(players[0].getHand().length, 1);
       }
+    });
+
+    it ("should return failure if the game is already over", function() {
+      const ruleset = loadDefaultRuleset();
+      const players = [new Player(0, []), new Player(1, [])];
+      const game = new GameStatus(1, ruleset, players);
+
+      game.createDeck();
+      game.shuffleDeck();
+      game.gameOver = true;
+
+      assert.deepStrictEqual(game.drawCard(0), { success: false, message: "Game is over" });
+    });
+
+    it ("should return failure if it isn't the player's turn", function() {
+      const ruleset = loadDefaultRuleset();
+      const players = [new Player(0, []), new Player(1, [])];
+      const game = new GameStatus(1, ruleset, players);
+
+      game.createDeck();
+      game.shuffleDeck();
+
+      const result = game.drawCard(1);
+
+      assert.strictEqual(result.success, false);
+      assert.strictEqual(result.message, "Not your turn");
     });
   });
 
   describe ("#playCard()", function() {
 
-    it ("should allow a player to play a card from their hand and add it to the discard pile", function() {
+    it ("should allow a player to play a card from their hand onto the discard pile", function() {
+      const ruleset = loadDefaultRuleset();
       const players = [new Player(0, []), new Player(1, [])];
-      const ruleset = ["2"];
-      const game = new GameStatus(123, ruleset, players);
+      const game = new GameStatus(1, ruleset, players);
 
       game.createDeck();
       game.shuffleDeck();
       game.drawCard(0);
 
-      if (players[0] !== undefined && players[0].getHand() !== undefined) {
+      if (players[0] !== undefined) {
         const hand = players[0].getHand();
 
         if (hand.length > 0 && hand[0] !== undefined) {
           const cardId = hand[0].getId();
-
           game.playCard(0, cardId);
 
           assert.strictEqual(game.discardPile.length, 1);
@@ -241,24 +295,33 @@ describe ("GameStatus", function () {
       }
     });
 
+    it ("shouldn't allow a player to play a card when it is not their turn", function() {
+      const ruleset = loadDefaultRuleset();
+      const players = [new Player(0, [new Card("hearts", 2)]), new Player(1, [new Card("diamonds", 3)])];
+      const game = new GameStatus(1, ruleset, players);
+
+      if (players[1] !== undefined) {
+        const hand = players[1].getHand();
+        if (hand[0] !== undefined) {
+          assert.deepStrictEqual(game.playCard(1, hand[0].getId()), { success: false, message: "Not your turn" });
+        }
+      }
+    });
+
     it ("shouldn't allow a player to play a card that is not in their hand", function() {
+      const ruleset = loadDefaultRuleset();
       const players = [new Player(0, []), new Player(1, [])];
-      const ruleset = ["2"];
-      const game = new GameStatus(123, ruleset, players);
-      const fakeCardId = "fake_card_id";
+      const game = new GameStatus(1, ruleset, players);
 
-      game.playCard(0, fakeCardId);
-
-      assert.strictEqual(game.discardPile.length, 0);
+      assert.deepStrictEqual(game.playCard(0, "fake_card_id"), { success: false, message: "Card not in your hand" });
     });
   });
 
   describe ("#discardCard()", function() {
 
-    it ("should allow a player to discard a card from their hand and add it to the discard pile on their turn," 
-      + " and end the turn if the rules dictate it", function() {
+    it ("should allow a player to discard a card from their hand and add it to the discard pile on their turn", function() {
       const players = [new Player(0, []), new Player(1, [])];
-      const ruleset = ["2"];
+      const ruleset = loadDefaultRuleset();
       const game = new GameStatus(123, ruleset, players);
 
       game.drawCard(0);
@@ -279,7 +342,7 @@ describe ("GameStatus", function () {
 
     it ("shouldn't allow a player to discard a card that is not in their hand", function() {
       const players = [new Player(0, []), new Player(1, [])];
-      const ruleset = ["2"];
+      const ruleset = loadDefaultRuleset();
       const game = new GameStatus(123, ruleset, players);
       const fakeCardId = "fake_card_id";
 
@@ -291,7 +354,7 @@ describe ("GameStatus", function () {
 
     it("shouldn't allow a player to discard a card when it is not their turn", function() {
       const players = [new Player(0, []), new Player(1, [])];
-      const ruleset = ["2"];
+      const ruleset = loadDefaultRuleset();
       const game = new GameStatus(123, ruleset, players);
 
       if (players[1] !== undefined && players[1].getHand() !== undefined) {
@@ -304,14 +367,13 @@ describe ("GameStatus", function () {
         }
       }
     });
-    // add test for not allowing discard after game over once custom rules are implemented to allow that
   });
 
   describe ("#getTopDiscard()", function() {
 
     it ("should return the top card of the discard pile", function() {
       const players = [new Player(0, []), new Player(1, [])];
-      const ruleset = ["2"];
+      const ruleset = loadDefaultRuleset();
       const game = new GameStatus(123, ruleset, players);
 
       game.drawCard(0);
@@ -332,13 +394,20 @@ describe ("GameStatus", function () {
         }
       }
     });
+
+    it ("should return null when the discard pile is empty", function() {
+      const players = [new Player(0, []), new Player(1, [])];
+      const game = new GameStatus(1, ["2"], players);
+
+      assert.strictEqual(game.getTopDiscard(), null);
+    });
   });
 
   describe ("#getDeckCount()", function() {
 
     it ("should return the number of cards left in the deck", function() {
       const players = [new Player(0, []), new Player(1, [])];
-      const ruleset = ["2"];
+      const ruleset = loadDefaultRuleset();
       const game = new GameStatus(123, ruleset, players);
 
       game.createDeck();
@@ -352,7 +421,7 @@ describe ("GameStatus", function () {
 
     it ("should return the player id of the current turn", function() {
       const players = [new Player(0, []), new Player(1, [])];
-      const ruleset = ["2"];
+      const ruleset = loadDefaultRuleset();
       const game = new GameStatus(123, ruleset, players);
 
       assert.strictEqual(game.getCurrentTurn(), 0);
@@ -363,7 +432,7 @@ describe ("GameStatus", function () {
 
     it ("should update the round number and reset draws, plays, and discards this turn to 0", function() {
       const players = [new Player(0, []), new Player(1, [])];
-      const ruleset = ["2"];
+      const ruleset = loadDefaultRuleset();
       const game = new GameStatus(123, ruleset, players);
 
       game.setRound(1);
@@ -379,7 +448,7 @@ describe ("GameStatus", function () {
 
     it ("should set the player's hand to the given hand", function() {
       const players = [new Player(0, []), new Player(1, [])];
-      const ruleset = ["2"];
+      const ruleset = loadDefaultRuleset();
       const game = new GameStatus(123, ruleset, players);
       const newHand = [new Card("diamonds", 2), new Card("hearts", 2)];
 
@@ -388,6 +457,78 @@ describe ("GameStatus", function () {
       if (players[0] !== undefined) {
         assert.strictEqual(players[0].getHand(), newHand);
       }
+    });
+  });
+
+  describe ("#setDiscardPile()", function() {
+
+    it ("should replace the discard pile with the given cards", function() {
+      const players = [new Player(0, []), new Player(1, [])];
+      const game = new GameStatus(1, ["2"], players);
+      const pile = [new Card("hearts", 3)];
+
+      game.setDiscardPile(pile);
+
+      assert.strictEqual(game.discardPile, pile);
+    });
+  });
+
+  describe ("#getGameState()", function() {
+
+    it ("should return the correct gameId and indicate it is the current player's turn", function() {
+      const players = [new Player(0, [new Card("hearts", 2)]), new Player(1, [])];
+      const game = new GameStatus(42, ["2"], players);
+
+      const state = game.getGameState(0);
+
+      assert.strictEqual(state.gameId, 42);
+      assert.strictEqual(state.isMyTurn, true);
+      assert.strictEqual(state.currentTurn, 0);
+    });
+
+    it ("should indicate it is not the player's turn when it is not", function() {
+      const players = [new Player(0, []), new Player(1, [])];
+      const game = new GameStatus(1, ["2"], players);
+
+      const state = game.getGameState(1);
+
+      assert.strictEqual(state.isMyTurn, false);
+    });
+
+    it ("should return hand counts for all players and only show myHand for the requesting player", function() {
+      const players = [new Player(0, [new Card("hearts", 2), new Card("clubs", 5)]), new Player(1, [new Card("spades", 7)])];
+      const game = new GameStatus(1, ["2"], players);
+
+      const state = game.getGameState(0);
+
+      assert.strictEqual(state.myHand.length, 2);
+      assert.strictEqual(state.players[0].handCount, 2);
+      assert.strictEqual(state.players[1].handCount, 1);
+    });
+  });
+
+  describe ("#toSnapshot() and #fromSnapshot()", function() {
+
+    it ("should serialize and reconstruct a game with the same key state", function() {
+      const ruleset = loadDefaultRuleset();
+      const players = [new Player(0, []), new Player(1, [])];
+      const game = new GameStatus(99, ruleset, players);
+
+      game.createDeck();
+      game.shuffleDeck();
+      game.dealCards();
+
+      const snapshot = game.toSnapshot();
+      const restored = GameStatus.fromSnapshot(snapshot);
+
+      assert.strictEqual(restored.getGameId(), game.getGameId());
+      assert.strictEqual(restored.getCurrentTurn(), game.getCurrentTurn());
+      assert.strictEqual(restored.getDeckCount(), game.getDeckCount());
+      assert.strictEqual(restored.gameOver, game.gameOver);
+      assert.strictEqual(
+        restored.getPlayers()[0].getHand().length,
+        game.getPlayers()[0].getHand().length
+      );
     });
   });
 });
