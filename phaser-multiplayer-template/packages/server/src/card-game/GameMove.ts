@@ -11,11 +11,12 @@ export class GameMove {
     }
     
     // Create a new game. rulesetId: optional saved ruleset id; if omitted, uses default Ruleset.json template.
-    async createGame(gameId: number, players: any[], rulesetId?: number): Promise<GameStatus> {
+    // userId: required when using rulesetId with DB, so the ruleset is loaded only if it belongs to that user.
+    async createGame(gameId: number, players: any[], rulesetId?: number, userId?: string | null): Promise<GameStatus> {
         let ruleset: Ruleset;
 
         if (rulesetId != null) {
-            const row = await rulesetDb.getRulesetById(rulesetId);
+            const row = await rulesetDb.getRulesetById(rulesetId, userId ?? null);
             if (!row) throw new Error(`Ruleset ${rulesetId} not found`);
             ruleset = row.data;
         } else {

@@ -1,5 +1,6 @@
 import { Scene } from "phaser";
 import { Client as ColyseusClient, Room } from "colyseus.js"
+import { getAuth } from "../utils/discordSDK";
 
 interface Card {
   suit: string;

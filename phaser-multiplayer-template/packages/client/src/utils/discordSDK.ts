@@ -1,6 +1,8 @@
 import { CommandResponse, DiscordSDK, DiscordSDKMock } from "@discord/embedded-app-sdk";
 type Auth = CommandResponse<"authenticate">;
-let auth: Auth;
+export type { Auth };
+
+let auth: Auth | undefined;
 
 const queryParams = new URLSearchParams(window.location.search);
 const isEmbedded = queryParams.get("frame_id") != null;
@@ -47,6 +49,9 @@ const initiateDiscordSDK = async () => {
         };
       },
     });
+
+    // Propagate auth in mock mode so the rest of the app can use getAuth() without OAuth
+    auth = await discordSdk.commands.authenticate({ access_token: "mock_token" });
   }
 };
 
@@ -82,13 +87,8 @@ const authorizeDiscordUser = async () => {
   });
 };
 
-const getUserName = () => {
-  if (!auth) {
-    return "User";
-  }
-
-  return auth.user.username;
-};
+/** Returns the current auth (user, token, etc.). Use this outside this file instead of getUserName/getUserId so auth is the single source of truth. */
+const getAuth = (): Auth | undefined => auth;
 
 enum SessionStorageQueryParam {
   user_id = "user_id",
@@ -113,4 +113,4 @@ function getOverrideOrRandomSessionValue(queryParam: `${SessionStorageQueryParam
   return randomString;
 }
 
-export { discordSdk, initiateDiscordSDK, authorizeDiscordUser, getUserName };
+export { discordSdk, initiateDiscordSDK, authorizeDiscordUser, getAuth };
