@@ -935,10 +935,14 @@ create_dropdown(options: string[], defaultValue?: string, onSelect?: (selectedOp
         return;
       }
       const mergedRuleset = this.getMergedRuleset();
+      const changedName = this.ruleChanges.get("name");
       const finalName =
-        typeof mergedRuleset.name === "string" && mergedRuleset.name.trim()
-          ? mergedRuleset.name.trim()
-          : this.name?.trim() || "New Ruleset";
+        typeof changedName === "string" && changedName.trim()
+          ? changedName.trim()
+          : this.name?.trim() ||
+            (typeof mergedRuleset.name === "string" && mergedRuleset.name.trim()
+              ? mergedRuleset.name.trim()
+              : "New Ruleset");
       mergedRuleset.name = finalName;
       this.name = finalName;
 
@@ -995,6 +999,7 @@ create_dropdown(options: string[], defaultValue?: string, onSelect?: (selectedOp
       if (typeof savedRuleset?.name === "string" && savedRuleset.name.trim()) {
         this.name = savedRuleset.name.trim();
       }
+      this.baseRuleset = JSON.parse(JSON.stringify(savedRuleset?.data ?? mergedRuleset));
       console.log("Ruleset saved successfully:", savedRuleset);
       const savedTo = savedRuleset.savedTo === "neon" ? "Neon" : "locally";
       alert(`Ruleset saved successfully (${savedTo})!\n\n` + JSON.stringify(savedRuleset.data, null, 2));
