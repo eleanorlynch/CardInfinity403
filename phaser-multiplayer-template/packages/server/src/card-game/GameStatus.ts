@@ -182,14 +182,14 @@ export class GameStatus implements Ruleset {
             };
             this.drawRules = {
                 whenToDraw: "startOfTurn",
-                minCardsToDraw: 1,
-                maxCardsToDraw: 3,
+                minCardsToDraw: 0,
+                maxCardsToDraw: 1,
                 drawFrom: "deck",
             };
             this.discardRules = {
                 whenToDiscard: "endOfTurn",
-                minCardsToDiscard: 1,
-                maxCardsToDiscard: 3,
+                minCardsToDiscard: 0,
+                maxCardsToDiscard: 1,
                 cardMustMatch: "none",
                 cardMustNotMatch: "none",
             };
@@ -197,8 +197,8 @@ export class GameStatus implements Ruleset {
                 whenToPlay: "startOfTurn",
                 cardMustMatch: "none",
                 cardMustNotMatch: "none",
-                minCardsToPlay: 1,
-                maxCardsToPlay: 3,
+                minCardsToPlay: 0,
+                maxCardsToPlay: 1,
             };
             this.handRules = {
                 startingHandSize: 5,

@@ -27,13 +27,13 @@
     "drawRules": {
         "whenToDraw": "any",
         "minCardsToDraw": 0,
-        "maxCardsToDraw": 0,
+        "maxCardsToDraw": 1,
         "drawFrom": "deck"
     },
     "discardRules": {
         "whenToDiscard": "any",
         "minCardsToDiscard": 0,
-        "maxCardsToDiscard": 0,
+        "maxCardsToDiscard": 1,
         "cardMustMatch": "none",
         "cardMustNotMatch": "none"
     },
@@ -42,7 +42,7 @@
         "cardMustMatch": "none",
         "cardMustNotMatch": "none",
         "minCardsToPlay": 0,
-        "maxCardsToPlay": 0
+        "maxCardsToPlay": 1
     },
     "handRules": {
         "startingHandSize": 0,
